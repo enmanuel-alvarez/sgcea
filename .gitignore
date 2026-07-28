@@ -1,49 +1,59 @@
 ```
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-dist/
-build/
-target/
-
-# Dependencies
-.venv/
-venv/
-node_modules/
-.julia/
-zig*/
-.env
-.env.local
-.env.*
-
-# Logs and temp files
+# PHP and Web Application
+*.php~
+*.php.bak
 *.log
 *.tmp
 *.swp
 
-# Editors
+# Dependencies
+vendor/
+composer.lock
+
+# Environment specific
+.env
+.env.local
+.env.*
+!.env.example
+
+# IDE and Editor
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# System files
+# OS generated
 .DS_Store
 Thumbs.db
 
-# Coverage
+# Cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.coverage
 coverage/
 htmlcov/
-.coverage
 
-# Gradle
-.gradle/
+# Build and distribution
+dist/
+build/
+target/
+*.tar.gz
+*.zip
 
-# MyPy
-.mypy_cache/
+# Sessions and logs (if not already in storage)
+storage/logs/
+storage/sessions/
+!storage/logs/.gitkeep
+!storage/sessions/.gitkeep
 
-# Pytest
-.pytest_cache/
+# Database dump (be careful with this)
+*.sql
+database.sql
+
+# Compiled assets (if applicable)
+public/assets/dist/
+public/build/
 ```
