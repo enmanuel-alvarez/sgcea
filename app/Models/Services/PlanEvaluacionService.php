@@ -12,10 +12,12 @@ class PlanEvaluacionService
     private PlanEvaluacionRepository $planRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(PlanEvaluacionRepository $planRepo, AuditoriaService $auditoriaService)
-    {
-        $this->planRepo = $planRepo;
-        $this->auditoriaService = $auditoriaService;
+    public function __construct(
+        ?PlanEvaluacionRepository $planRepo = null,
+        ?AuditoriaService $auditoriaService = null
+    ) {
+        $this->planRepo = $planRepo ?? new PlanEvaluacionRepository();
+        $this->auditoriaService = $auditoriaService ?? new AuditoriaService();
     }
 
     public function obtenerPorAsignacion(int $asignacion_id): array
@@ -92,4 +94,17 @@ class PlanEvaluacionService
         
         return $resultado;
     }
+
+    public function contarPorProfesor(int $profesor_id): int
+    {
+        $db = \Src\Core\Database::getInstance()->getConnection();
+        $sql = "SELECT COUNT(*) 
+                FROM planes_evaluacion pe 
+                INNER JOIN asignaciones a ON pe.asignacion_id = a.id 
+                WHERE a.docente_id = ? AND pe.estado = 'activo' AND a.estado = 'activa'";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$profesor_id]);
+        return (int) $stmt->fetchColumn();
+    }
+
 }

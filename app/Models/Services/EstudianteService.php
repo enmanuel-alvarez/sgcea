@@ -159,4 +159,19 @@ class EstudianteService
 
         return $inscripcion_id;
     }
+
+    public function obtenerUsuarioPorEstudiante(int $estudiante_id): ?array
+    {
+        $estudiante = $this->estudianteRepo->obtenerPorId($estudiante_id);
+        if ($estudiante && !empty($estudiante['usuario_id'])) {
+            return (new \Src\Models\Services\UsuarioService())->obtenerPorId((int)$estudiante['usuario_id']);
+        }
+        return null;
+    }
+
+    public function obtenerPorSeccion(int $seccion_id): array
+    {
+        return $this->estudianteRepo->obtenerEstudiantesPorSeccion($seccion_id);
+    }
+
 }

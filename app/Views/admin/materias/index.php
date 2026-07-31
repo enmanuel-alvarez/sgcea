@@ -9,19 +9,14 @@ require_once __DIR__ . '/../../layouts/header.php';
 require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
 
-<div class="container-fluid py-4">
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2><i class="bi bi-book me-2"></i>Materias</h2>
-                <?php if (in_array('materias.crear', $_SESSION['usuario_permisos'] ?? [])): ?>
-                    <a href="?route=admin/materias/crear" class="btn btn-primary">
-                        <i class="bi bi-plus-lg me-1"></i>Nueva Materia
-                    </a>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Materias</h1>
+    <?php if (in_array('materias.crear', $_SESSION['usuario_permisos'] ?? [])): ?>
+        <a href="?route=admin/materias/crear" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Nueva Materia
+        </a>
+    <?php endif; ?>
+</div>
 
     <?php if (isset($_SESSION['flash_success'])): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -86,7 +81,7 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             </div>
         </div>
     </div>
-</div>
+
 
 <form id="formEliminar" method="POST" action="?route=admin/materias/eliminar" style="display:none;">
     <input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>">

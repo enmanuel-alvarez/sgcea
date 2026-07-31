@@ -5,9 +5,9 @@
 $editar = isset($usuario);
 ?>
 
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800"><?= $editar ? 'Editar' : 'Nuevo' ?> Usuario</h1>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><?= $editar ? 'Editar' : 'Nuevo' ?> Usuario</h1>
         <a href="/admin/usuarios" class="btn btn-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Volver
         </a>
@@ -122,7 +122,7 @@ $editar = isset($usuario);
             </div>
         </div>
     </div>
-</div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

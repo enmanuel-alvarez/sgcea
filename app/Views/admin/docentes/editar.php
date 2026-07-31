@@ -9,12 +9,9 @@ require_once __DIR__ . '/../../layouts/header.php';
 require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
 
-<div class="container-fluid py-4">
-    <div class="row mb-3">
-        <div class="col-12">
-            <h2><i class="bi bi-pencil me-2"></i>Editar Docente</h2>
-        </div>
-    </div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Editar Docente</h1>
+</div>
 
     <?php if (isset($errores)): ?>
         <div class="alert alert-danger">
@@ -26,15 +23,17 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
         </div>
     <?php endif; ?>
 
+    
+
     <form method="POST" action="?route=admin/docentes/actualizar">
         <input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>">
         <input type="hidden" name="id" value="<?= $docente['id'] ?>">
         
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white">
+        <div class="border-0 mb-4">
+            <div class="border-0 mb-4">
                 <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Datos Personales</h5>
             </div>
-            <div class="card-body">
+            <div class="border-0 mb-4">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label for="cedula" class="form-label">Cédula *</label>
@@ -83,11 +82,11 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             </div>
         </div>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-success text-white">
+        <div class="border-0 mb-4">
+            <div class="border-0 mb-4">
                 <h5 class="mb-0"><i class="bi bi-book me-2"></i>Datos Académicos</h5>
             </div>
-            <div class="card-body">
+            <div class="border-0 mb-4">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="especialidad" class="form-label">Especialidad *</label>
@@ -119,15 +118,12 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             </div>
         </div>
 
-        <div class="d-flex justify-content-end gap-2">
-            <a href="?route=admin/docentes" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-1"></i>Cancelar
-            </a>
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-save me-1"></i>Actualizar Docente
-            </button>
-        </div>
-    </form>
+        <hr class="my-4">
+<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <a href="?route=admin/docentes" class="btn btn-secondary me-md-2">Cancelar</a>
+    <button class="btn btn-primary" type="submit">Guardar</button>
 </div>
+</form>
+
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

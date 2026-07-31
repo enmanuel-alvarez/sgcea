@@ -1,20 +1,17 @@
 /**
- * JavaScript principal del sistema
- * Manejo de modo oscuro, toasts y utilidades
+ * JavaScript principal del sistema SGCEA
+ * Sidebar toggle, búsqueda global, toasts y utilidades
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar modo oscuro/claro
-    initDarkMode();
-    
     // Inicializar tooltips de Bootstrap
     initTooltips();
     
-    // Inicializar toasts
+    // Inicializar toasts desde flash messages
     initToasts();
     
-    // Toggle sidebar en móviles
-    initSidebarToggle();
+    // Búsqueda global en tablas
+    initGlobalSearch();
     
     // Confirmación de eliminaciones
     initDeleteConfirmations();
@@ -22,34 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-ocultar alertas
     initAutoHideAlerts();
 });
-
-/**
- * Modo oscuro/claro
- */
-function initDarkMode() {
-    const themeToggle = document.getElementById('theme-toggle');
-    const body = document.body;
-    
-    // Cargar preferencia guardada
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    body.setAttribute('data-theme', savedTheme);
-    
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            // Actualizar ícono
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = newTheme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-            }
-        });
-    }
-}
 
 /**
  * Inicializar tooltips de Bootstrap
@@ -62,44 +31,71 @@ function initTooltips() {
 }
 
 /**
+ * Búsqueda global — filtra filas en la primera tabla visible de la página
+ */
+function initGlobalSearch() {
+    const searchInput = document.getElementById('searchGlobal');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', function() {
+        const filtro = this.value.toLowerCase();
+        
+        // Buscar la tabla de contenido principal (excluir DataTables que tiene su propio buscador)
+        const tables = document.querySelectorAll('main table tbody');
+        
+        tables.forEach(function(tbody) {
+            const filas = tbody.getElementsByTagName('tr');
+            for (let i = 0; i < filas.length; i++) {
+                const textoFila = filas[i].textContent.toLowerCase();
+                filas[i].style.display = textoFila.includes(filtro) ? '' : 'none';
+            }
+        });
+        
+        // También filtrar en DataTables si existe
+        if (typeof $ !== 'undefined' && $.fn.DataTable) {
+            $('table.dataTable').each(function() {
+                if ($.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable().search(filtro).draw();
+                }
+            });
+        }
+    });
+}
+
+/**
  * Mostrar toast notification
  */
-function showToast(mensaje, tipo = 'info') {
-    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+function showToast(mensaje, tipo) {
+    tipo = tipo || 'info';
+    var toastContainer = document.getElementById('toast-container') || createToastContainer();
     
-    const toastId = 'toast-' + Date.now();
-    const bgClass = {
+    var toastId = 'toast-' + Date.now();
+    var bgClass = {
         'success': 'bg-success',
         'error': 'bg-danger',
         'warning': 'bg-warning',
         'info': 'bg-primary'
     }[tipo] || 'bg-primary';
     
-    const iconClass = {
+    var iconClass = {
         'success': 'bi-check-circle',
         'error': 'bi-exclamation-triangle',
         'warning': 'bi-exclamation-circle',
         'info': 'bi-info-circle'
     }[tipo] || 'bi-info-circle';
     
-    const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi ${iconClass} me-2"></i>${mensaje}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        </div>
-    `;
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white ' + bgClass + ' border-0" role="alert">' +
+        '<div class="d-flex">' +
+        '<div class="toast-body"><i class="bi ' + iconClass + ' me-2"></i>' + mensaje + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+        '</div></div>';
     
     toastContainer.insertAdjacentHTML('beforeend', toastHtml);
     
-    const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+    var toastElement = document.getElementById(toastId);
+    var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
     toast.show();
     
-    // Eliminar después de ocultar
     toastElement.addEventListener('hidden.bs.toast', function() {
         toastElement.remove();
     });
@@ -109,9 +105,10 @@ function showToast(mensaje, tipo = 'info') {
  * Crear contenedor de toasts si no existe
  */
 function createToastContainer() {
-    const container = document.createElement('div');
+    var container = document.createElement('div');
     container.id = 'toast-container';
-    container.className = 'toast-container';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
     document.body.appendChild(container);
     return container;
 }
@@ -120,11 +117,10 @@ function createToastContainer() {
  * Inicializar toasts desde mensajes flash (PHP)
  */
 function initToasts() {
-    // Los mensajes flash se renderizan desde PHP en el footer
-    const flashMessages = document.querySelectorAll('.flash-message');
+    var flashMessages = document.querySelectorAll('.flash-message');
     flashMessages.forEach(function(flash) {
-        const tipo = flash.dataset.tipo || 'info';
-        const mensaje = flash.textContent.trim();
+        var tipo = flash.dataset.tipo || 'info';
+        var mensaje = flash.textContent.trim();
         if (mensaje) {
             showToast(mensaje, tipo);
         }
@@ -133,29 +129,14 @@ function initToasts() {
 }
 
 /**
- * Toggle sidebar en dispositivos móviles
- */
-function initSidebarToggle() {
-    const toggleButton = document.getElementById('sidebar-toggle');
-    const wrapper = document.getElementById('wrapper');
-    
-    if (toggleButton && wrapper) {
-        toggleButton.addEventListener('click', function() {
-            wrapper.classList.toggle('toggled');
-        });
-    }
-}
-
-/**
  * Confirmación para acciones de eliminación
  */
 function initDeleteConfirmations() {
-    const deleteButtons = document.querySelectorAll('.btn-delete, [data-confirm-delete]');
+    var deleteButtons = document.querySelectorAll('.btn-delete, [data-confirm-delete]');
     
     deleteButtons.forEach(function(button) {
         button.addEventListener('click', function(e) {
-            const message = this.dataset.confirmMessage || '¿Está seguro de eliminar este registro?';
-            
+            var message = this.dataset.confirmMessage || '¿Está seguro de eliminar este registro?';
             if (!confirm(message)) {
                 e.preventDefault();
                 return false;
@@ -168,11 +149,11 @@ function initDeleteConfirmations() {
  * Auto-ocultar alertas después de unos segundos
  */
 function initAutoHideAlerts() {
-    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+    var alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
     
     alerts.forEach(function(alert) {
         setTimeout(function() {
-            const bsAlert = new bootstrap.Alert(alert);
+            var bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();
         }, 5000);
     });
@@ -182,11 +163,11 @@ function initAutoHideAlerts() {
  * Validar formulario antes de enviar
  */
 function validateForm(formId) {
-    const form = document.getElementById(formId);
+    var form = document.getElementById(formId);
     if (!form) return false;
     
-    const inputs = form.querySelectorAll('[required]');
-    let isValid = true;
+    var inputs = form.querySelectorAll('[required]');
+    var isValid = true;
     
     inputs.forEach(function(input) {
         if (!input.value.trim()) {
@@ -204,10 +185,10 @@ function validateForm(formId) {
  * Limpiar campos de formulario
  */
 function clearForm(formId) {
-    const form = document.getElementById(formId);
+    var form = document.getElementById(formId);
     if (form) {
         form.reset();
-        const invalidFields = form.querySelectorAll('.is-invalid');
+        var invalidFields = form.querySelectorAll('.is-invalid');
         invalidFields.forEach(function(field) {
             field.classList.remove('is-invalid');
         });
@@ -217,18 +198,15 @@ function clearForm(formId) {
 /**
  * Mostrar overlay de carga
  */
-function showLoading(message = 'Cargando...') {
-    const overlay = document.createElement('div');
+function showLoading(message) {
+    message = message || 'Cargando...';
+    var overlay = document.createElement('div');
     overlay.id = 'loading-overlay';
     overlay.className = 'spinner-overlay';
-    overlay.innerHTML = `
-        <div class="text-center text-white">
-            <div class="spinner-border text-light mb-3" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p>${message}</p>
-        </div>
-    `;
+    overlay.innerHTML = '<div class="text-center text-white">' +
+        '<div class="spinner-border text-light mb-3" role="status">' +
+        '<span class="visually-hidden">Cargando...</span></div>' +
+        '<p>' + message + '</p></div>';
     document.body.appendChild(overlay);
 }
 
@@ -236,7 +214,7 @@ function showLoading(message = 'Cargando...') {
  * Ocultar overlay de carga
  */
 function hideLoading() {
-    const overlay = document.getElementById('loading-overlay');
+    var overlay = document.getElementById('loading-overlay');
     if (overlay) {
         overlay.remove();
     }
@@ -246,34 +224,25 @@ function hideLoading() {
  * Formatear fecha
  */
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    var date = new Date(dateString);
+    var options = { year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('es-ES', options);
-}
-
-/**
- * Formatear moneda
- */
-function formatCurrency(amount, currency = 'VES') {
-    return new Intl.NumberFormat('es-VE', {
-        style: 'currency',
-        currency: currency
-    }).format(amount);
 }
 
 /**
  * Exportar tabla a CSV
  */
-function exportTableToCSV(tableId, filename = 'export.csv') {
-    const table = document.getElementById(tableId);
+function exportTableToCSV(tableId, filename) {
+    filename = filename || 'export.csv';
+    var table = document.getElementById(tableId);
     if (!table) return;
     
-    let csv = [];
-    const rows = table.querySelectorAll('tr');
+    var csv = [];
+    var rows = table.querySelectorAll('tr');
     
     rows.forEach(function(row) {
-        const cols = row.querySelectorAll('td, th');
-        const rowData = [];
+        var cols = row.querySelectorAll('td, th');
+        var rowData = [];
         
         cols.forEach(function(col) {
             rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
@@ -289,8 +258,8 @@ function exportTableToCSV(tableId, filename = 'export.csv') {
  * Descargar CSV
  */
 function downloadCSV(csv, filename) {
-    const csvFile = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const downloadLink = document.createElement('a');
+    var csvFile = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var downloadLink = document.createElement('a');
     downloadLink.download = filename;
     downloadLink.href = window.URL.createObjectURL(csvFile);
     downloadLink.style.display = 'none';

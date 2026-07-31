@@ -17,10 +17,10 @@ class AsignacionRepository
 
     public function obtenerTodos(): array
     {
-        $sql = "SELECT a.*, d.nombre as docente_nombre, d.apellido as docente_apellido, 
+        $sql = "SELECT a.*, u_doc.nombre as docente_nombre, u_doc.apellido as docente_apellido, 
                        m.nombre as materia_nombre, s.nombre as seccion_nombre, g.nombre as grado_nombre
                 FROM asignaciones a 
-                INNER JOIN docentes d ON a.docente_id = d.id 
+                INNER JOIN profesores d ON a.profesor_id = d.id INNER JOIN usuarios u_doc ON d.usuario_id = u_doc.id 
                 INNER JOIN materias m ON a.materia_id = m.id 
                 INNER JOIN secciones s ON a.seccion_id = s.id 
                 LEFT JOIN grados g ON s.grado_id = g.id 
@@ -31,12 +31,12 @@ class AsignacionRepository
 
     public function obtenerPorId(int $id): ?array
     {
-        $sql = "SELECT a.*, d.nombre as docente_nombre, d.apellido as docente_apellido, 
+        $sql = "SELECT a.*, u_doc.nombre as docente_nombre, u_doc.apellido as docente_apellido, 
                        m.nombre as materia_nombre, m.id as materia_id,
                        s.nombre as seccion_nombre, s.id as seccion_id, 
                        g.id as grado_id, g.nombre as grado_nombre
                 FROM asignaciones a 
-                INNER JOIN docentes d ON a.docente_id = d.id 
+                INNER JOIN profesores d ON a.profesor_id = d.id INNER JOIN usuarios u_doc ON d.usuario_id = u_doc.id 
                 INNER JOIN materias m ON a.materia_id = m.id 
                 INNER JOIN secciones s ON a.seccion_id = s.id 
                 LEFT JOIN grados g ON s.grado_id = g.id 

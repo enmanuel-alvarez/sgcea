@@ -4,8 +4,9 @@ $titulo = 'Solicitudes de Constancias';
 require_once __DIR__ . '/../../layouts/header.php';
 require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
-<div class="container-fluid py-4">
-    <div class="row mb-3"><div class="col-12"><h2><i class="bi bi-file-text me-2"></i>Solicitudes de Constancias</h2></div></div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Solicitudes de Constancias</h1>
+</div>
     <?php if (isset($_SESSION['flash_success'])): ?>
         <div class="alert alert-success alert-dismissible fade show"><?= htmlspecialchars($_SESSION['flash_success']) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
         <?php unset($_SESSION['flash_success']); ?>
@@ -47,7 +48,7 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             </div>
         </div>
     </div>
-</div>
+
 <form id="formAprobar" method="POST" action="?route=admin/constancias/aprobar" style="display:none;"><input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>"><input type="hidden" name="id" id="idAprobar"></form>
 <form id="formRechazar" method="POST" action="?route=admin/constancias/rechazar" style="display:none;"><input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>"><input type="hidden" name="id" id="idRechazar"><input type="hidden" name="motivo_rechazo" id="motivoRechazo"></form>
 <script>

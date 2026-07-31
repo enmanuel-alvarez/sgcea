@@ -9,10 +9,9 @@ require_once __DIR__ . '/../../layouts/header.php';
 require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
 
-<div class="container-fluid py-4">
-    <div class="row mb-3">
-        <div class="col-12">
-            <h2><i class="bi bi-plus-circle me-2"></i>Nueva Materia</h2>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    
         </div>
     </div>
 
@@ -83,6 +82,6 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             </button>
         </div>
     </form>
-</div>
+
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

@@ -21,7 +21,7 @@ class ConfiguracionRepository
      */
     public function obtenerTodos(): array
     {
-        $sql = "SELECT id, clave, valor, descripcion, fecha_actualizacion 
+        $sql = "SELECT id, clave, valor, descripcion, updated_at 
                 FROM configuraciones 
                 ORDER BY clave ASC";
         
@@ -34,7 +34,7 @@ class ConfiguracionRepository
      */
     public function obtenerPorClave(string $clave): ?array
     {
-        $sql = "SELECT id, clave, valor, descripcion, fecha_actualizacion 
+        $sql = "SELECT id, clave, valor, descripcion, updated_at 
                 FROM configuraciones 
                 WHERE clave = :clave";
         
@@ -52,7 +52,7 @@ class ConfiguracionRepository
     {
         $sql = "UPDATE configuraciones 
                 SET valor = :valor, 
-                    fecha_actualizacion = NOW() 
+                    updated_at = NOW() 
                 WHERE clave = :clave";
         
         $stmt = $this->db->prepare($sql);
@@ -67,12 +67,12 @@ class ConfiguracionRepository
      */
     public function insertarOActualizar(string $clave, string $valor, string $descripcion = ''): bool
     {
-        $sql = "INSERT INTO configuraciones (clave, valor, descripcion, fecha_actualizacion)
+        $sql = "INSERT INTO configuraciones (clave, valor, descripcion, updated_at)
                 VALUES (:clave, :valor, :descripcion, NOW())
                 ON DUPLICATE KEY UPDATE 
                     valor = :valor_update,
                     descripcion = :descripcion_update,
-                    fecha_actualizacion = NOW()";
+                    updated_at = NOW()";
         
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([

@@ -1,174 +1,210 @@
 <?php
 /**
- * Layout - Sidebar dinámico según permisos
+ * Layout - Sidebar (Bootstrap 5 Dashboard Template)
+ * Sidebar dinámico según permisos y tipo de usuario
  */
 $tipoUsuario = $_SESSION['usuario_tipo'] ?? '';
-$permisos = $_SESSION['usuario_permisos'] ?? [];
-$nombreCompleto = ($_SESSION['usuario_nombre'] ?? '') . ' ' . ($_SESSION['usuario_apellido'] ?? '');
+$permisos_sesion = $_SESSION['usuario_permisos'] ?? [];
+$currentUri = $_SERVER['REQUEST_URI'] ?? '';
 ?>
 
-<div id="sidebar-wrapper">
-    <div class="sidebar-heading">
-        <i class="bi bi-mortarboard-fill me-2"></i>
-        SGCEA
-    </div>
-    
-    <div class="list-group list-group-flush">
-        <?php if ($tipoUsuario === 'admin' || in_array('admin.dashboard', $permisos)): ?>
-            <!-- Menú Administrador -->
-            <a href="<?= url('/admin') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin') !== false && strpos($_SERVER['REQUEST_URI'], '/admin/usuarios') === false ? 'active' : '' ?>">
-                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-            </a>
-            
-            <?php if (in_array('admin.usuarios.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/usuarios') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/usuarios') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-people me-2"></i> Usuarios
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.estudiantes.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/estudiantes') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/estudiantes') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-person-badge me-2"></i> Estudiantes
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.docentes.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/docentes') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/docentes') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-chalkboard-teacher me-2"></i> Docentes
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.materias.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/materias') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/materias') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-book me-2"></i> Materias
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.secciones.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/secciones') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/secciones') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-collection me-2"></i> Secciones
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.asignaciones.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/asignaciones') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/asignaciones') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-clipboard-check me-2"></i> Asignaciones
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.constancias.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/constancias') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/constancias') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-file-earmark-text me-2"></i> Constancias
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.permisos.asignar', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/permisos/asignar') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/permisos') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-shield-lock me-2"></i> Permisos
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('admin.configuracion.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/admin/configuracion') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/admin/configuracion') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-gear me-2"></i> Configuración
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('reportes.ver', $permisos) || $tipoUsuario === 'admin'): ?>
-                <a href="<?= url('/reportes') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/reportes') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-graph-up me-2"></i> Reportes
-                </a>
-            <?php endif; ?>
-        <?php endif; ?>
-        
-        <?php if ($tipoUsuario === 'docente' || in_array('docente.dashboard', $permisos)): ?>
-            <!-- Menú Docente -->
-            <a href="<?= url('/docente') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/docente') !== false ? 'active' : '' ?>">
-                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-            </a>
-            
-            <?php if (in_array('docente.calificaciones.ver', $permisos) || $tipoUsuario === 'docente'): ?>
-                <a href="<?= url('/docente/calificaciones') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/docente/calificaciones') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-pencil-square me-2"></i> Calificaciones
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('docente.asistencia.ver', $permisos) || $tipoUsuario === 'docente'): ?>
-                <a href="<?= url('/docente/asistencia') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/docente/asistencia') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-calendar-check me-2"></i> Asistencia
-                </a>
-            <?php endif; ?>
-        <?php endif; ?>
-        
-        <?php if ($tipoUsuario === 'estudiante' || in_array('estudiante.dashboard', $permisos)): ?>
-            <!-- Menú Estudiante -->
-            <a href="<?= url('/estudiante') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/estudiante') !== false ? 'active' : '' ?>">
-                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-            </a>
-            
-            <?php if (in_array('estudiante.boletin.ver', $permisos) || $tipoUsuario === 'estudiante'): ?>
-                <a href="<?= url('/estudiante/boletin') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/estudiante/boletin') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-journal-check me-2"></i> Boletín
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('estudiante.asistencia.ver', $permisos) || $tipoUsuario === 'estudiante'): ?>
-                <a href="<?= url('/estudiante/asistencia') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/estudiante/asistencia') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-calendar-check me-2"></i> Asistencia
-                </a>
-            <?php endif; ?>
-            
-            <?php if (in_array('estudiante.constancias.solicitar', $permisos) || $tipoUsuario === 'estudiante'): ?>
-                <a href="<?= url('/estudiante/constancias/solicitar') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/estudiante/constancias') !== false ? 'active' : '' ?>">
-                    <i class="bi bi-file-earmark-text me-2"></i> Constancias
-                </a>
-            <?php endif; ?>
-            
-            <a href="<?= url('/estudiante/perfil') ?>" class="list-group-item <?= strpos($_SERVER['REQUEST_URI'], '/estudiante/perfil') !== false ? 'active' : '' ?>">
-                <i class="bi bi-person-circle me-2"></i> Mi Perfil
-            </a>
-        <?php endif; ?>
-        
-        <!-- Logout -->
-        <a href="<?= url('/logout') ?>" class="list-group-item text-danger mt-3">
-            <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
-        </a>
-    </div>
-</div>
+            <!-- SIDEBAR -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3">
+                    
+                    <?php if ($tipoUsuario === 'admin'): ?>
+                    <!-- ═══ Menú Administrador ═══ -->
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted">
+                        <span>Principal</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <?= $currentUri === '/admin' || $currentUri === '/admin/' ? 'active' : '' ?>" href="<?= url('/admin') ?>">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                    </ul>
 
-<!-- Contenido principal -->
-<div id="page-content-wrapper">
-    <!-- Topbar -->
-    <nav class="navbar navbar-expand-lg topbar border-bottom">
-        <div class="container-fluid">
-            <button class="btn btn-link sidebar-toggler" id="sidebar-toggle">
-                <i class="bi bi-list fs-4"></i>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto mt-2 mt-lg-0 align-items-center">
-                    <li class="nav-item me-3">
-                        <button class="btn btn-link nav-link" id="theme-toggle" title="Cambiar tema">
-                            <i class="bi bi-moon-fill"></i>
-                        </button>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
-                                <?= strtoupper(substr($nombreCompleto, 0, 1)) ?>
-                            </div>
-                            <span><?= e($nombreCompleto) ?></span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><span class="dropdown-item-text text-muted small"><?= e($tipoUsuario) ?></span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="<?= url('/logout') ?>"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    
-    <!-- Contenido de la página -->
-    <div class="container-fluid px-4 py-4">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Gestión</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <?php if (in_array('admin.usuarios.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/usuarios') !== false ? 'active' : '' ?>" href="<?= url('/admin/usuarios') ?>">
+                                <i class="bi bi-people me-2"></i> Usuarios
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('admin.estudiantes.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/estudiantes') !== false ? 'active' : '' ?>" href="<?= url('/admin/estudiantes') ?>">
+                                <i class="bi bi-person-badge me-2"></i> Estudiantes
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('admin.docentes.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/docentes') !== false ? 'active' : '' ?>" href="<?= url('/admin/docentes') ?>">
+                                <i class="bi bi-person-workspace me-2"></i> Docentes
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('admin.materias.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/materias') !== false ? 'active' : '' ?>" href="<?= url('/admin/materias') ?>">
+                                <i class="bi bi-book me-2"></i> Materias
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('admin.secciones.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/secciones') !== false ? 'active' : '' ?>" href="<?= url('/admin/secciones') ?>">
+                                <i class="bi bi-door-open me-2"></i> Secciones
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('admin.asignaciones.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/asignaciones') !== false ? 'active' : '' ?>" href="<?= url('/admin/asignaciones') ?>">
+                                <i class="bi bi-diagram-3 me-2"></i> Asignaciones
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php if (in_array('admin.constancias.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/constancias') !== false ? 'active' : '' ?>" href="<?= url('/admin/constancias') ?>">
+                                <i class="bi bi-file-earmark-text me-2"></i> Constancias
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Sistema</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <?php if (in_array('admin.configuracion.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/configuracion') !== false || strpos($currentUri, '/configuracion') !== false ? 'active' : '' ?>" href="<?= url('/admin/configuracion') ?>">
+                                <i class="bi bi-gear me-2"></i> Configuración
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('reportes.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/reportes') !== false ? 'active' : '' ?>" href="<?= url('/reportes') ?>">
+                                <i class="bi bi-bar-chart-line me-2"></i> Reportes
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/admin/permisos') !== false ? 'active' : '' ?>" href="<?= url('/admin/permisos') ?>">
+                                <i class="bi bi-shield-lock me-2"></i> Permisos
+                            </a>
+                        </li>
+                    </ul>
+                    <?php endif; ?>
+                    
+                    <?php if ($tipoUsuario === 'docente'): ?>
+                    <!-- ═══ Menú Docente ═══ -->
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted">
+                        <span>Principal</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <?= $currentUri === '/docente' || $currentUri === '/docente/' ? 'active' : '' ?>" href="<?= url('/docente') ?>">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Académico</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <?php if (in_array('docente.calificaciones.ver', $permisos_sesion) || $tipoUsuario === 'docente'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/docente/calificaciones') !== false ? 'active' : '' ?>" href="<?= url('/docente/calificaciones') ?>">
+                                <i class="bi bi-journal-check me-2"></i> Calificaciones
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('docente.asistencia.ver', $permisos_sesion) || $tipoUsuario === 'docente'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/docente/asistencia') !== false ? 'active' : '' ?>" href="<?= url('/docente/asistencia') ?>">
+                                <i class="bi bi-calendar-check me-2"></i> Asistencia
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                    <?php endif; ?>
+                    
+                    <?php if ($tipoUsuario === 'estudiante'): ?>
+                    <!-- ═══ Menú Estudiante ═══ -->
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted">
+                        <span>Principal</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <?= $currentUri === '/estudiante' || $currentUri === '/estudiante/' ? 'active' : '' ?>" href="<?= url('/estudiante') ?>">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Académico</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <?php if (in_array('estudiante.boletin.ver', $permisos_sesion) || $tipoUsuario === 'estudiante'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/estudiante/boletin') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/boletin') ?>">
+                                <i class="bi bi-file-earmark-bar-graph me-2"></i> Boletín
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('estudiante.asistencia.ver', $permisos_sesion) || $tipoUsuario === 'estudiante'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/estudiante/asistencia') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/asistencia') ?>">
+                                <i class="bi bi-calendar-check me-2"></i> Asistencia
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if (in_array('estudiante.constancias.solicitar', $permisos_sesion) || $tipoUsuario === 'estudiante'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/estudiante/constancias') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/constancias/solicitar') ?>">
+                                <i class="bi bi-file-earmark-text me-2"></i> Constancias
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Mi Cuenta</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($currentUri, '/estudiante/perfil') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/perfil') ?>">
+                                <i class="bi bi-person-circle me-2"></i> Mi Perfil
+                            </a>
+                        </li>
+                    </ul>
+                    <?php endif; ?>
+
+                </div>
+            </nav>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">

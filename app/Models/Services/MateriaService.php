@@ -86,4 +86,17 @@ class MateriaService
         
         return $resultado;
     }
+
+    public function obtenerTodasConEstadisticas(): array
+    {
+        $db = \Src\Core\Database::getInstance()->getConnection();
+        $sql = "SELECT m.*, 
+                       (SELECT COUNT(*) FROM asignaciones a WHERE a.materia_id = m.id AND a.estado = 'activa') as total_asignaciones
+                FROM materias m 
+                WHERE m.estado != 'eliminado'
+                ORDER BY m.nombre";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
 }

@@ -86,4 +86,35 @@ class CalificacionService
     {
         return $this->calificacionRepo->calcularPromedioPorMateria($estudiante_id, $asignacion_id);
     }
+
+    public function obtenerUltimasPorProfesor(int $profesor_id, int $limite = 5): array
+    {
+        return $this->calificacionRepo->obtenerUltimasPorProfesor($profesor_id, $limite);
+    }
+
+    public function obtenerNotasPorAsignacion(int $asignacion_id): array
+    {
+        return $this->calificacionRepo->obtenerNotasPorAsignacion($asignacion_id);
+    }
+
+    public function obtenerRendimientoPorMateria(): array
+    {
+        return $this->calificacionRepo->obtenerRendimientoPorMateria();
+    }
+
+    public function obtenerPromediosPorSeccion(int $seccion_id): array
+    {
+        return $this->calificacionRepo->obtenerPromediosPorSeccion($seccion_id);
+    }
+
+    public function obtenerPorPeriodoYSeccion(string $periodo, int $seccion_id): array
+    {
+        return $this->calificacionRepo->obtenerPorPeriodoYSeccion($periodo, $seccion_id);
+    }
+
+    public function obtenerRendimientoPorSeccion(int $seccion_id, ?int $materia_id = null, ?string $periodo = null): array
+    {
+        return $this->calificacionRepo->obtenerRendimientoPorSeccion($seccion_id, $materia_id, $periodo);
+    }
+
 }

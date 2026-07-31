@@ -3,9 +3,10 @@ $titulo = 'Dashboard Docente';
 require_once __DIR__ . '/../../layouts/header.php';
 require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
-<div class="container-fluid py-4">
-    <div class="row mb-3"><div class="col-12"><h2><i class="bi bi-speedometer2 me-2"></i>Panel del Docente</h2></div></div>
-    <div class="row g-4 mb-4">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Panel del Docente</h1>
+</div>
+<div class="row g-4 mb-4">
         <div class="col-md-3">
             <div class="card bg-primary text-white h-100">
                 <div class="card-body text-center">
@@ -67,5 +68,5 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             </div>
         </div>
     </div>
-</div>
+
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

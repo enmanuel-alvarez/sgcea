@@ -95,4 +95,17 @@ class AsignacionService
         
         return $resultado;
     }
+
+    public function contarEstudiantesPorProfesor(int $profesor_id): int
+    {
+        $db = \Src\Core\Database::getInstance()->getConnection();
+        $sql = "SELECT COUNT(DISTINCT i.estudiante_id) 
+                FROM asignaciones a 
+                INNER JOIN inscripciones i ON a.seccion_id = i.seccion_id 
+                WHERE a.docente_id = ? AND a.estado = 'activa' AND i.estado = 'activo'";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$profesor_id]);
+        return (int) $stmt->fetchColumn();
+    }
+
 }

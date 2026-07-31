@@ -10,9 +10,15 @@ class AsistenciaRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct(?PDO $db = null)
     {
-        $this->db = $db;
+        if ($db !== null) {
+            $this->db = $db;
+            return;
+        }
+
+        $database = \Src\Core\Database::getInstance();
+        $this->db = $database->getConnection();
     }
 
     public function obtenerPorEstudianteYFecha(int $estudiante_id, string $fecha): ?array
@@ -61,9 +67,11 @@ class AsistenciaRepository
             return true;
         }
 
-        $sql = "INSERT INTO asistencias (estudiante_id, seccion_id, fecha, estado, observacion) 
-                VALUES (?, ?, ?, ?, ?) 
-                ON DUPLICATE KEY UPDATE estado = VALUES(estado), observacion = VALUES(observacion)";
+        $sql = "INSERT INTO asistencias (estudiante_id, asignacion_id, fecha, estado, observacion, periodo) 
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE 
+                estado = VALUES(estado), 
+                observacion = VALUES(observacion)";
         
         $stmt = $this->db->prepare($sql);
         
@@ -159,4 +167,23 @@ class AsistenciaRepository
         $stmt->execute([$seccion_id, $fecha]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function obtenerResumenGeneral(): array
+    {
+        $sql = "SELECT estado, COUNT(*) as cantidad FROM asistencias GROUP BY estado";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerResumenPorSeccion(int $seccion_id, string $fecha_inicio, string $fecha_fin): array
+    {
+        $sql = "SELECT estado, COUNT(*) as cantidad 
+                FROM asistencias 
+                WHERE seccion_id = ? AND DATE(fecha) BETWEEN ? AND ? 
+                GROUP BY estado";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$seccion_id, $fecha_inicio, $fecha_fin]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
 }

@@ -4,15 +4,14 @@
  */
 ?>
 
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Gestión de Usuarios</h1>
-        <?php if (in_array('admin_crear_usuario', $_SESSION['usuario_permisos'] ?? [])): ?>
-            <a href="/admin/usuarios/crear" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-circle"></i> Nuevo Usuario
-            </a>
-        <?php endif; ?>
-    </div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Gestión de Usuarios</h1>
+    <?php if (in_array('admin_crear_usuario', $_SESSION['usuario_permisos'] ?? [])): ?>
+        <a href="/admin/usuarios/crear" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Nuevo Usuario
+        </a>
+    <?php endif; ?>
+</div>
 
     <div class="card shadow">
         <div class="card-body">
@@ -72,7 +71,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <form id="formEliminar" method="POST" action="/admin/usuarios/eliminar">
     <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">

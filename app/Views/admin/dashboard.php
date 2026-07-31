@@ -4,12 +4,9 @@
  */
 ?>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
-        </div>
-    </div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
 
     <!-- Tarjetas de estadísticas -->
     <div class="row">
@@ -130,4 +127,3 @@
             </div>
         </div>
     </div>
-</div>

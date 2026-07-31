@@ -73,7 +73,7 @@ class DocenteController extends Controller
         }
 
         // Verificar que el docente sea el propietario
-        if ($asignacion['id_profesor'] !== $_SESSION['profesor_id']) {
+        if ($asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
             $_SESSION['flash_error'] = 'No tiene permiso para gestionar esta asignación';
             $this->redirigir('/docente/calificaciones');
             return;
@@ -123,7 +123,7 @@ class DocenteController extends Controller
         }
 
         $asignacion = $this->asignacionService->obtenerPorId($idAsignacion);
-        if (!$asignacion || $asignacion['id_profesor'] !== $_SESSION['profesor_id']) {
+        if (!$asignacion || $asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
             $_SESSION['flash_error'] = 'No tiene permiso para realizar esta acción';
             $this->redirigir('/docente/calificaciones');
             return;
@@ -187,7 +187,7 @@ class DocenteController extends Controller
             return;
         }
 
-        if ($asignacion['id_profesor'] !== $_SESSION['profesor_id']) {
+        if ($asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
             $_SESSION['flash_error'] = 'No tiene permiso para gestionar esta asignación';
             $this->redirigir('/docente/asistencia');
             return;
@@ -238,7 +238,7 @@ class DocenteController extends Controller
         }
 
         $asignacion = $this->asignacionService->obtenerPorId($idAsignacion);
-        if (!$asignacion || $asignacion['id_profesor'] !== $_SESSION['profesor_id']) {
+        if (!$asignacion || $asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
             $_SESSION['flash_error'] = 'No tiene permiso para realizar esta acción';
             $this->redirigir('/docente/asistencia');
             return;
@@ -280,7 +280,7 @@ class DocenteController extends Controller
     {
         $asignacion = $this->asignacionService->obtenerPorId($idAsignacion);
         
-        if (!$asignacion || $asignacion['id_profesor'] !== $_SESSION['profesor_id']) {
+        if (!$asignacion || $asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
             $_SESSION['flash_error'] = 'No tiene permiso para gestionar esta asignación';
             $this->redirigir('/docente/calificaciones');
             return;
@@ -319,7 +319,7 @@ class DocenteController extends Controller
         $descripcion = trim($_POST['descripcion'] ?? '');
 
         $asignacion = $this->asignacionService->obtenerPorId($idAsignacion);
-        if (!$asignacion || $asignacion['id_profesor'] !== $_SESSION['profesor_id']) {
+        if (!$asignacion || $asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
             $_SESSION['flash_error'] = 'No tiene permiso para realizar esta acción';
             $this->redirigir('/docente/calificaciones');
             return;
@@ -380,7 +380,7 @@ class DocenteController extends Controller
         }
 
         $asignacion = $this->asignacionService->obtenerPorId($plan['id_asignacion']);
-        if (!$asignacion || $asignacion['id_profesor'] !== $_SESSION['profesor_id']) {
+        if (!$asignacion || $asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
             $_SESSION['flash_error'] = 'No tiene permiso para realizar esta acción';
             $this->redirigir('/docente/calificaciones');
             return;

@@ -4,10 +4,9 @@ $titulo = 'Registrar Asistencia';
 require_once __DIR__ . '/../../../layouts/header.php';
 require_once __DIR__ . '/../../../layouts/sidebar.php';
 ?>
-<div class="container-fluid py-4">
-    <div class="row mb-3">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-            <h2><i class="bi bi-person-check me-2"></i>Asistencia - <?= htmlspecialchars($asignacion['materia_nombre']) ?></h2>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    
             <a href="?route=docente/asistencia" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Volver</a>
         </div>
     </div>
@@ -47,5 +46,5 @@ require_once __DIR__ . '/../../../layouts/sidebar.php';
         </div>
         <button type="submit" class="btn btn-success"><i class="bi bi-save me-1"></i>Guardar Asistencia</button>
     </form>
-</div>
+
 <?php require_once __DIR__ . '/../../../layouts/footer.php'; ?>

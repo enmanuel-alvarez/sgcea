@@ -4,9 +4,10 @@ $titulo = 'Configuración del Sistema';
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../layouts/sidebar.php';
 ?>
-<div class="container-fluid py-4">
-    <div class="row mb-3"><div class="col-12"><h2><i class="bi bi-gear me-2"></i>Configuración</h2></div></div>
-    <?php if (isset($_SESSION['flash_success'])): ?>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Configuración</h1>
+</div>
+<?php if (isset($_SESSION['flash_success'])): ?>
         <div class="alert alert-success alert-dismissible fade show"><?= htmlspecialchars($_SESSION['flash_success']) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
         <?php unset($_SESSION['flash_success']); ?>
     <?php endif; ?>
@@ -41,5 +42,5 @@ require_once __DIR__ . '/../layouts/sidebar.php';
         </div>
         <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Guardar Configuración</button>
     </form>
-</div>
+
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

@@ -17,11 +17,11 @@ class ConstanciaRepository
 
     public function obtenerTodos(): array
     {
-        $sql = "SELECT s.*, e.nombre as estudiante_nombre, e.apellido as estudiante_apellido, 
+        $sql = "SELECT s.*, u_est.nombre as estudiante_nombre, u_est.apellido as estudiante_apellido, 
                        u.nombre as usuario_nombre, u.apellido as usuario_apellido
                 FROM solicitudes_constancia s 
-                INNER JOIN estudiantes e ON s.estudiante_id = e.id 
-                LEFT JOIN usuarios u ON s.usuario_id = u.id 
+                INNER JOIN estudiantes e ON s.estudiante_id = e.id INNER JOIN usuarios u_est ON e.usuario_id = u_est.id 
+                LEFT JOIN usuarios u ON s.resuelto_por = u.id 
                 ORDER BY s.fecha_solicitud DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -29,14 +29,16 @@ class ConstanciaRepository
 
     public function obtenerPorId(int $id): ?array
     {
-        $sql = "SELECT s.*, e.nombre as estudiante_nombre, e.apellido as estudiante_apellido, 
-                       e.codigo as codigo_estudiante, g.nombre as grado, s.nombre as seccion,
+        $sql = "SELECT s.*, u_est.nombre as estudiante_nombre, u_est.apellido as estudiante_apellido, 
+                       u_est.cedula as codigo_estudiante, g.nombre as grado, s.nombre as seccion,
                        u.nombre as usuario_nombre, u.apellido as usuario_apellido
                 FROM solicitudes_constancia s 
-                INNER JOIN estudiantes e ON s.estudiante_id = e.id 
-                LEFT JOIN grados g ON e.grado_id = g.id 
-                LEFT JOIN secciones sec ON e.seccion_id = sec.id 
-                LEFT JOIN usuarios u ON s.usuario_id = u.id 
+                INNER JOIN estudiantes e ON s.estudiante_id = e.id INNER JOIN usuarios u_est ON e.usuario_id = u_est.id 
+                LEFT JOIN inscripciones i ON e.id = i.estudiante_id AND i.estado = 'activo'
+                LEFT JOIN secciones sec ON i.seccion_id = sec.id
+                LEFT JOIN grados g ON sec.grado_id = g.id 
+                 
+                LEFT JOIN usuarios u ON s.resuelto_por = u.id 
                 WHERE s.id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id]);
@@ -56,9 +58,9 @@ class ConstanciaRepository
 
     public function obtenerPendientes(): array
     {
-        $sql = "SELECT s.*, e.nombre as estudiante_nombre, e.apellido as estudiante_apellido 
+        $sql = "SELECT s.*, u_est.nombre as estudiante_nombre, u_est.apellido as estudiante_apellido 
                 FROM solicitudes_constancia s 
-                INNER JOIN estudiantes e ON s.estudiante_id = e.id 
+                INNER JOIN estudiantes e ON s.estudiante_id = e.id INNER JOIN usuarios u_est ON e.usuario_id = u_est.id 
                 WHERE s.estado = 'pendiente' 
                 ORDER BY s.fecha_solicitud ASC";
         $stmt = $this->db->query($sql);

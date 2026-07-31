@@ -10,9 +10,15 @@ class PlanEvaluacionRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct(?PDO $db = null)
     {
-        $this->db = $db;
+        if ($db !== null) {
+            $this->db = $db;
+            return;
+        }
+
+        $database = \Src\Core\Database::getInstance();
+        $this->db = $database->getConnection();
     }
 
     public function obtenerPorAsignacion(int $asignacion_id): array

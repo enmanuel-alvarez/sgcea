@@ -4,9 +4,10 @@ $titulo = 'Reportes';
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../layouts/sidebar.php';
 ?>
-<div class="container-fluid py-4">
-    <div class="row mb-3"><div class="col-12"><h2><i class="bi bi-bar-chart me-2"></i>Reportes Estadísticos</h2></div></div>
-    <div class="row g-4">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Reportes Estadísticos</h1>
+</div>
+<div class="row g-4">
         <div class="col-md-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="bi bi-people me-2"></i>Estudiantes</h5></div>
@@ -35,5 +36,5 @@ require_once __DIR__ . '/../layouts/sidebar.php';
             </div>
         </div>
     </div>
-</div>
+
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

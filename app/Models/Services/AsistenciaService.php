@@ -12,10 +12,12 @@ class AsistenciaService
     private AsistenciaRepository $asistenciaRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(AsistenciaRepository $asistenciaRepo, AuditoriaService $auditoriaService)
-    {
-        $this->asistenciaRepo = $asistenciaRepo;
-        $this->auditoriaService = $auditoriaService;
+    public function __construct(
+        ?AsistenciaRepository $asistenciaRepo = null,
+        ?AuditoriaService $auditoriaService = null
+    ) {
+        $this->asistenciaRepo = $asistenciaRepo ?? new AsistenciaRepository();
+        $this->auditoriaService = $auditoriaService ?? new AuditoriaService();
     }
 
     public function obtenerPorEstudiante(int $estudiante_id, ?string $desde = null, ?string $hasta = null): array
@@ -53,4 +55,20 @@ class AsistenciaService
     {
         return $this->asistenciaRepo->contarPorEstudianteYEstado($estudiante_id, $estado, $desde, $hasta);
     }
+
+    public function obtenerPorFechaYAsignacion(string $fecha, int $asignacion_id): array
+    {
+        return $this->asistenciaRepo->obtenerPorAsignacionYFecha($asignacion_id, $fecha);
+    }
+
+    public function obtenerResumenGeneral(): array
+    {
+        return $this->asistenciaRepo->obtenerResumenGeneral();
+    }
+
+    public function obtenerResumenPorSeccion(int $seccion_id, string $fecha_inicio, string $fecha_fin): array
+    {
+        return $this->asistenciaRepo->obtenerResumenPorSeccion($seccion_id, $fecha_inicio, $fecha_fin);
+    }
+
 }

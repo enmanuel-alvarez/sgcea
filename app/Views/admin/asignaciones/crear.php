@@ -4,8 +4,9 @@ $titulo = 'Nueva Asignación';
 require_once __DIR__ . '/../../layouts/header.php';
 require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
-<div class="container-fluid py-4">
-    <div class="row mb-3"><div class="col-12"><h2><i class="bi bi-plus-circle me-2"></i>Nueva Asignación</h2></div></div>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    </div></div>
     <?php if (isset($errores)): ?><div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errores as $error): ?><li><?= htmlspecialchars($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
     <form method="POST" action="?route=admin/asignaciones/guardar">
         <input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>">
@@ -66,5 +67,5 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Guardar Asignación</button>
         </div>
     </form>
-</div>
+
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
