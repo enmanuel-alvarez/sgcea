@@ -16,162 +16,207 @@ class EstudianteService
     private InscripcionRepository $inscripcionRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(
-        EstudianteRepository $estudianteRepo,
-        UsuarioRepository $usuarioRepo,
-        InscripcionRepository $inscripcionRepo,
-        AuditoriaService $auditoriaService
-    ) {
-        $this->estudianteRepo = $estudianteRepo;
-        $this->usuarioRepo = $usuarioRepo;
-        $this->inscripcionRepo = $inscripcionRepo;
-        $this->auditoriaService = $auditoriaService;
-    }
-
-    public function obtenerTodos(): array
+    public function __construct()
     {
-        return $this->estudianteRepo->obtenerTodos();
+        // Instanciamos las dependencias directamente (sin contenedor DI)
+        $this->estudianteRepo = new EstudianteRepository();
+        $this->usuarioRepo = new UsuarioRepository();
+        $this->inscripcionRepo = new InscripcionRepository();
+        $this->auditoriaService = new AuditoriaService();
     }
 
+    /**
+     * Obtiene todos los estudiantes con detalles de sección/grado
+     */
+    public function obtenerTodosConDetalles(): array
+    {
+        return $this->estudianteRepo->obtenerTodosConDetalles();
+    }
+
+    /**
+     * Obtiene un estudiante por su ID
+     */
     public function obtenerPorId(int $id): ?array
     {
         return $this->estudianteRepo->obtenerPorId($id);
     }
 
-    public function obtenerPorUsuario(int $usuario_id): ?array
+    /**
+     * Obtiene la inscripción actual (activa) de un estudiante
+     */
+    public function obtenerInscripcionActual(int $idEstudiante): ?array
     {
-        return $this->estudianteRepo->obtenerPorUsuario($usuario_id);
+        return $this->inscripcionRepo->obtenerInscripcionActivaPorEstudiante($idEstudiante);
     }
 
-    public function crear(array $datos, int $usuario_id_sesion): array
+    /**
+     * Inscribe un nuevo estudiante: crea usuario, estudiante e inscripción
+     */
+    public function inscribir(array $datosUsuario, array $datosEstudiante, array $datosInscripcion): array
     {
-        if (!$this->estudianteRepo->verificarCodigoUnico($datos['codigo'])) {
-            throw new \Exception('El código de estudiante ya está registrado');
-        }
+        // 1. Crear usuario
+        $passwordHash = password_hash($datosUsuario['password'], PASSWORD_DEFAULT);
+        $usuarioData = [
+            'correo' => $datosUsuario['correo'],
+            'cedula' => $datosUsuario['cedula'],
+            'contrasena_hash' => $passwordHash,
+            'estado_cuenta' => $datosUsuario['activo'] ?? 1,
+            'primer_login' => 1
+        ];
+        $idUsuario = $this->usuarioRepo->crear($usuarioData);
 
-        $usuario_data = [
-            'correo' => $datos['correo'] ?? $datos['codigo'] . '@estudiante.sgcea.com',
-            'password' => password_hash($datos['codigo'], PASSWORD_DEFAULT),
-            'nombre' => $datos['nombre'],
-            'apellido' => $datos['apellido'],
-            'tipo' => 'estudiante',
+        // 2. Crear estudiante vinculado
+        $estudianteData = [
+            'id_usuario' => $idUsuario,
+            'nombres' => $datosUsuario['nombre'],
+            'apellidos' => $datosUsuario['apellido'],
+            'cedula_identidad' => $datosUsuario['cedula'],
+            'fecha_nacimiento' => $datosEstudiante['fecha_nacimiento'],
+            'genero' => $datosEstudiante['genero'],
+            'direccion' => $datosEstudiante['direccion'] ?? null,
+            'telefono_padre' => $datosEstudiante['telefono'] ?? null,
+            'nombre_representante' => $datosEstudiante['representante'] ?? null,
+            'telefono_representante' => $datosEstudiante['telefono_representante'] ?? null
+        ];
+        $idEstudiante = $this->estudianteRepo->crear($estudianteData);
+
+        // 3. Crear inscripción
+        $inscripcionData = [
+            'id_estudiante' => $idEstudiante,
+            'id_seccion' => $datosInscripcion['id_seccion'],
+            'ano_academico' => $datosInscripcion['ano_academico'],
+            'fecha_inscripcion' => date('Y-m-d'),
             'estado' => 'activo'
         ];
+        $idInscripcion = $this->inscripcionRepo->crear($inscripcionData);
 
-        $usuario_id = $this->usuarioRepo->crear($usuario_data);
-
-        $estudiante_data = [
-            'usuario_id' => $usuario_id,
-            'codigo' => $datos['codigo'],
-            'nombre' => $datos['nombre'],
-            'apellido' => $datos['apellido'],
-            'fecha_nacimiento' => $datos['fecha_nacimiento'],
-            'genero' => $datos['genero'],
-            'direccion' => $datos['direccion'] ?? null,
-            'telefono' => $datos['telefono'] ?? null,
-            'representante_nombre' => $datos['representante_nombre'] ?? null,
-            'representante_telefono' => $datos['representante_telefono'] ?? null,
-            'grado_id' => $datos['grado_id'],
-            'seccion_id' => $datos['seccion_id'],
-            'estado' => 'activo'
-        ];
-
-        $estudiante_id = $this->estudianteRepo->crear($estudiante_data);
-
+        // Auditoría
         $this->auditoriaService->registrar(
-            $usuario_id_sesion,
-            'crear',
+            $_SESSION['usuario_id'] ?? 0,
+            'CREATE',
             'estudiantes',
-            $estudiante_id,
-            "Estudiante creado: {$datos['nombre']} {$datos['apellido']}"
+            $idEstudiante,
+            "Estudiante inscrito: {$datosUsuario['cedula']}"
         );
 
-        return ['id' => $estudiante_id, 'usuario_id' => $usuario_id];
+        return [
+            'id_estudiante' => $idEstudiante,
+            'id_usuario' => $idUsuario,
+            'id_inscripcion' => $idInscripcion
+        ];
     }
 
-    public function actualizar(int $id, array $datos, int $usuario_id_sesion): bool
+    /**
+     * Actualiza datos de un estudiante: usuario, perfil e inscripción
+     */
+    public function actualizar(int $id, array $datosUsuario, array $datosEstudiante, array $datosInscripcion): bool
     {
         $estudiante = $this->estudianteRepo->obtenerPorId($id);
         if (!$estudiante) {
             throw new \Exception('Estudiante no encontrado');
         }
 
-        if (!$this->estudianteRepo->verificarCodigoUnico($datos['codigo'], $id)) {
-            throw new \Exception('El código de estudiante ya está registrado');
+        // Actualizar usuario
+        $usuarioData = [
+            'correo' => $datosUsuario['correo'],
+            'cedula' => $datosUsuario['cedula'],
+            'estado_cuenta' => $datosUsuario['activo'] ?? 1
+        ];
+        if (!empty($datosUsuario['password'])) {
+            $usuarioData['contrasena_hash'] = password_hash($datosUsuario['password'], PASSWORD_DEFAULT);
+        }
+        $this->usuarioRepo->actualizar($estudiante['id_usuario'], $usuarioData);
+
+        // Actualizar perfil estudiante
+        $estudianteData = [
+            'nombres' => $datosUsuario['nombre'],
+            'apellidos' => $datosUsuario['apellido'],
+            'cedula_identidad' => $datosUsuario['cedula'],
+            'fecha_nacimiento' => $datosEstudiante['fecha_nacimiento'],
+            'genero' => $datosEstudiante['genero'],
+            'direccion' => $datosEstudiante['direccion'] ?? null,
+            'telefono_padre' => $datosEstudiante['telefono'] ?? null,
+            'nombre_representante' => $datosEstudiante['representante'] ?? null,
+            'telefono_representante' => $datosEstudiante['telefono_representante'] ?? null
+        ];
+        $this->estudianteRepo->actualizar($id, $estudianteData);
+
+        // Actualizar inscripción (si se proporciona sección)
+        if (!empty($datosInscripcion['id_seccion'])) {
+            $inscripcion = $this->inscripcionRepo->obtenerInscripcionActivaPorEstudiante($id);
+            if ($inscripcion) {
+                $this->inscripcionRepo->actualizar($inscripcion['id_inscripcion'], [
+                    'id_seccion' => $datosInscripcion['id_seccion'],
+                    'ano_academico' => $datosInscripcion['ano_academico']
+                ]);
+            } else {
+                // Si no tiene inscripción activa, crear una nueva
+                $this->inscripcionRepo->crear([
+                    'id_estudiante' => $id,
+                    'id_seccion' => $datosInscripcion['id_seccion'],
+                    'ano_academico' => $datosInscripcion['ano_academico'],
+                    'fecha_inscripcion' => date('Y-m-d'),
+                    'estado' => 'activo'
+                ]);
+            }
         }
 
-        $resultado = $this->estudianteRepo->actualizar($id, $datos);
-
-        if ($resultado) {
-            $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'actualizar',
-                'estudiantes',
-                $id,
-                "Estudiante actualizado: {$datos['nombre']} {$datos['apellido']}"
-            );
-        }
-
-        return $resultado;
-    }
-
-    public function eliminar(int $id, int $usuario_id_sesion): bool
-    {
-        $estudiante = $this->estudianteRepo->obtenerPorId($id);
-        if (!$estudiante) {
-            throw new \Exception('Estudiante no encontrado');
-        }
-
-        $resultado = $this->estudianteRepo->eliminar($id);
-
-        if ($resultado) {
-            $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'eliminar',
-                'estudiantes',
-                $id,
-                "Estudiante eliminado: {$estudiante['nombre']} {$estudiante['apellido']}"
-            );
-        }
-
-        return $resultado;
-    }
-
-    public function inscribir(int $estudiante_id, string $ano_lectivo, int $usuario_id_sesion): int
-    {
-        if (!$this->inscripcionRepo->verificarInscripcionActiva($estudiante_id, $ano_lectivo)) {
-            throw new \Exception('El estudiante ya tiene una inscripción activa para este año lectivo');
-        }
-
-        $inscripcion_id = $this->inscripcionRepo->crear([
-            'estudiante_id' => $estudiante_id,
-            'ano_lectivo' => $ano_lectivo,
-            'estado' => 'activa'
-        ]);
-
+        // Auditoría
         $this->auditoriaService->registrar(
-            $usuario_id_sesion,
-            'inscribir',
-            'inscripciones',
-            $inscripcion_id,
-            "Estudiante inscrito para año lectivo $ano_lectivo"
+            $_SESSION['usuario_id'] ?? 0,
+            'UPDATE',
+            'estudiantes',
+            $id,
+            "Estudiante actualizado: {$datosUsuario['cedula']}"
         );
 
-        return $inscripcion_id;
+        return true;
     }
 
-    public function obtenerUsuarioPorEstudiante(int $estudiante_id): ?array
+    /**
+     * Elimina un estudiante (soft delete o desactivación)
+     */
+    public function eliminar(int $id): bool
     {
-        $estudiante = $this->estudianteRepo->obtenerPorId($estudiante_id);
-        if ($estudiante && !empty($estudiante['usuario_id'])) {
-            return (new \Src\Models\Services\UsuarioService())->obtenerPorId((int)$estudiante['usuario_id']);
+        $estudiante = $this->estudianteRepo->obtenerPorId($id);
+        if (!$estudiante) {
+            throw new \Exception('Estudiante no encontrado');
         }
-        return null;
+
+        // Desactivar usuario
+        $this->usuarioRepo->actualizar($estudiante['id_usuario'], ['estado_cuenta' => 0]);
+        // También podrías hacer soft delete en estudiante, pero aquí solo desactivamos
+        $this->estudianteRepo->eliminar($id); // Asume que el repo tiene método eliminar
+
+        // Auditoría
+        $this->auditoriaService->registrar(
+            $_SESSION['usuario_id'] ?? 0,
+            'DELETE',
+            'estudiantes',
+            $id,
+            'Estudiante eliminado'
+        );
+
+        return true;
     }
 
+    /**
+     * Obtiene estudiantes por sección
+     */
     public function obtenerPorSeccion(int $seccion_id): array
     {
         return $this->estudianteRepo->obtenerEstudiantesPorSeccion($seccion_id);
     }
 
+    /**
+     * Obtiene el usuario asociado a un estudiante
+     */
+    public function obtenerUsuarioPorEstudiante(int $estudiante_id): ?array
+    {
+        $estudiante = $this->estudianteRepo->obtenerPorId($estudiante_id);
+        if ($estudiante && !empty($estudiante['id_usuario'])) {
+            return (new UsuarioService())->obtenerPorId((int)$estudiante['id_usuario']);
+        }
+        return null;
+    }
 }

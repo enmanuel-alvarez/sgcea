@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Src\Models\Repositories;
 
+use Src\Core\Database;
 use PDO;
 
 class MateriaRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = Database::getInstance()->getConnection();
     }
 
     public function obtenerTodos(): array
@@ -49,7 +50,7 @@ class MateriaRepository
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $datos['nombre'],
-            $datos['descripcion'],
+            $datos['descripcion'] ?? null,
             $datos['estado'],
             $id
         ]);

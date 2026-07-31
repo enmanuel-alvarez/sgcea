@@ -2,6 +2,10 @@
 
 namespace Src\Models\Services;
 
+use PDO;
+
+use Src\Core\Database;
+
 /**
  * Servicio de Auditoría
  * Registra todas las acciones críticas del sistema

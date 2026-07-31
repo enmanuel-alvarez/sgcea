@@ -12,10 +12,10 @@ class GradoService
     private GradoRepository $gradoRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(GradoRepository $gradoRepo, AuditoriaService $auditoriaService)
+    public function __construct()
     {
-        $this->gradoRepo = $gradoRepo;
-        $this->auditoriaService = $auditoriaService;
+        $this->gradoRepo = new GradoRepository();
+        $this->auditoriaService = new AuditoriaService();
     }
 
     public function obtenerTodos(): array
@@ -33,52 +33,52 @@ class GradoService
         return $this->gradoRepo->obtenerActivos();
     }
 
-    public function crear(array $datos, int $usuario_id_sesion): int
+    public function crear(array $datos): int
     {
         $id = $this->gradoRepo->crear($datos);
-        
+
         $this->auditoriaService->registrar(
-            $usuario_id_sesion,
-            'crear',
+            $_SESSION['usuario_id'] ?? 0,
+            'CREATE',
             'grados',
             $id,
             "Grado creado: {$datos['nombre']}"
         );
-        
+
         return $id;
     }
 
-    public function actualizar(int $id, array $datos, int $usuario_id_sesion): bool
+    public function actualizar(int $id, array $datos): bool
     {
         $resultado = $this->gradoRepo->actualizar($id, $datos);
-        
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'actualizar',
+                $_SESSION['usuario_id'] ?? 0,
+                'UPDATE',
                 'grados',
                 $id,
                 "Grado actualizado: {$datos['nombre']}"
             );
         }
-        
+
         return $resultado;
     }
 
-    public function eliminar(int $id, int $usuario_id_sesion): bool
+    public function eliminar(int $id): bool
     {
         $resultado = $this->gradoRepo->eliminar($id);
-        
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'eliminar',
+                $_SESSION['usuario_id'] ?? 0,
+                'DELETE',
                 'grados',
                 $id,
                 "Grado eliminado: ID $id"
             );
         }
-        
+
         return $resultado;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Src\Controllers;
 
+use Src\Core\Controller;
+
 use Src\Models\Services\UsuarioService;
 use Src\Models\Services\AuditoriaService;
 use Src\Core\Security;
@@ -170,16 +172,5 @@ class AuthController extends Controller
             default:
                 $this->redirigir('/login');
         }
-    }
-
-    /**
-     * Establecer mensaje flash
-     */
-    private function setFlash(string $tipo, string $mensaje): void
-    {
-        $_SESSION['flash'] = [
-            'tipo' => $tipo,
-            'mensaje' => $mensaje
-        ];
     }
 }

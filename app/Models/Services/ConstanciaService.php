@@ -12,10 +12,18 @@ class ConstanciaService
     private ConstanciaRepository $constanciaRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(ConstanciaRepository $constanciaRepo, AuditoriaService $auditoriaService)
+    public function __construct()
     {
-        $this->constanciaRepo = $constanciaRepo;
-        $this->auditoriaService = $auditoriaService;
+        $this->constanciaRepo = new ConstanciaRepository();
+        $this->auditoriaService = new AuditoriaService();
+    }
+
+    /**
+     * Obtiene todas las solicitudes de constancia con detalles
+     */
+    public function obtenerTodasConDetalles(): array
+    {
+        return $this->constanciaRepo->obtenerTodos();
     }
 
     public function obtenerTodos(): array
@@ -46,18 +54,18 @@ class ConstanciaService
     public function solicitar(array $datos, int $usuario_id_sesion): int
     {
         $estudiante_id = $datos['estudiante_id'];
-        
+
         $pendientes = $this->constanciaRepo->contarPendientesPorEstudiante($estudiante_id);
         if ($pendientes >= 3) {
             throw new \Exception('El estudiante ya tiene 3 solicitudes pendientes. Máximo permitido alcanzado.');
         }
 
         $id = $this->constanciaRepo->crear([
-            'estudiante_id' => $estudiante_id,
-            'usuario_id' => $usuario_id_sesion,
+            'estudiante_id'   => $estudiante_id,
+            'usuario_id'      => $usuario_id_sesion,
             'tipo_constancia' => $datos['tipo_constancia'],
-            'motivo' => $datos['motivo'] ?? null,
-            'estado' => 'pendiente'
+            'motivo'          => $datos['motivo'] ?? null,
+            'estado'          => 'pendiente'
         ]);
 
         $this->auditoriaService->registrar(
@@ -71,6 +79,9 @@ class ConstanciaService
         return $id;
     }
 
+    /**
+     * Aprueba una constancia (adaptado a AdminController que llama con 2 argumentos: id, usuario_id)
+     */
     public function aprobar(int $id, int $aprobado_por): bool
     {
         $resultado = $this->constanciaRepo->aprobar($id, $aprobado_por);
@@ -88,6 +99,9 @@ class ConstanciaService
         return $resultado;
     }
 
+    /**
+     * Rechaza una constancia (adaptado a AdminController que llama con 3 argumentos: id, motivo, usuario_id)
+     */
     public function rechazar(int $id, string $motivo_rechazo, int $rechazado_por): bool
     {
         if (empty($motivo_rechazo)) {

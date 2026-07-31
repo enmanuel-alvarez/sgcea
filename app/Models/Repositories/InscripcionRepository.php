@@ -4,35 +4,38 @@ declare(strict_types=1);
 
 namespace Src\Models\Repositories;
 
+use Src\Core\Database;
 use PDO;
 
 class InscripcionRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = Database::getInstance()->getConnection();
     }
 
     public function obtenerTodos(): array
     {
-        $sql = "SELECT i.*, e.nombre as estudiante_nombre, e.apellido as estudiante_apellido, 
+        $sql = "SELECT i.*, u.nombre as estudiante_nombre, u.apellido as estudiante_apellido, 
                        g.nombre as grado, s.nombre as seccion
                 FROM inscripciones i 
                 INNER JOIN estudiantes e ON i.estudiante_id = e.id 
-                LEFT JOIN grados g ON e.grado_id = g.id 
-                LEFT JOIN secciones s ON e.seccion_id = s.id 
-                ORDER BY i.ano_lectivo DESC, e.apellido, e.nombre";
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
+                INNER JOIN secciones s ON i.seccion_id = s.id 
+                INNER JOIN grados g ON s.grado_id = g.id 
+                ORDER BY i.ano_academico DESC, u.apellido, u.nombre";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function obtenerPorId(int $id): ?array
     {
-        $sql = "SELECT i.*, e.nombre as estudiante_nombre, e.apellido as estudiante_apellido 
+        $sql = "SELECT i.*, u.nombre as estudiante_nombre, u.apellido as estudiante_apellido 
                 FROM inscripciones i 
                 INNER JOIN estudiantes e ON i.estudiante_id = e.id 
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
                 WHERE i.id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id]);
@@ -42,45 +45,42 @@ class InscripcionRepository
 
     public function obtenerPorEstudiante(int $estudiante_id): array
     {
-        $sql = "SELECT i.* FROM inscripciones i 
-                WHERE i.estudiante_id = ? 
-                ORDER BY i.ano_lectivo DESC";
+        $sql = "SELECT i.* FROM inscripciones i WHERE i.estudiante_id = ? ORDER BY i.ano_academico DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$estudiante_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerPorEstudianteYAno(int $estudiante_id, string $ano_lectivo): ?array
+    public function obtenerPorEstudianteYAno(int $estudiante_id, string $ano_academico): ?array
     {
-        $sql = "SELECT i.* FROM inscripciones i 
-                WHERE i.estudiante_id = ? AND i.ano_lectivo = ?";
+        $sql = "SELECT i.* FROM inscripciones i WHERE i.estudiante_id = ? AND i.ano_academico = ?";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$estudiante_id, $ano_lectivo]);
+        $stmt->execute([$estudiante_id, $ano_academico]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
     }
 
     public function crear(array $datos): int
     {
-        $sql = "INSERT INTO inscripciones (estudiante_id, ano_lectivo, fecha_inscripcion, estado) 
-                VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO inscripciones (estudiante_id, seccion_id, ano_academico, fecha_inscripcion, estado) 
+                VALUES (?, ?, ?, NOW(), ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $datos['estudiante_id'],
-            $datos['ano_lectivo'],
-            $datos['fecha_inscripcion'] ?? date('Y-m-d'),
-            $datos['estado'] ?? 'activa'
+            $datos['seccion_id'],
+            $datos['ano_academico'],
+            $datos['estado'] ?? 'activo'
         ]);
         return (int) $this->db->lastInsertId();
     }
 
     public function actualizar(int $id, array $datos): bool
     {
-        $sql = "UPDATE inscripciones SET ano_lectivo = ?, fecha_inscripcion = ?, estado = ? WHERE id = ?";
+        $sql = "UPDATE inscripciones SET seccion_id = ?, ano_academico = ?, estado = ? WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
-            $datos['ano_lectivo'],
-            $datos['fecha_inscripcion'],
+            $datos['seccion_id'],
+            $datos['ano_academico'],
             $datos['estado'],
             $id
         ]);
@@ -88,40 +88,51 @@ class InscripcionRepository
 
     public function eliminar(int $id): bool
     {
-        $sql = "UPDATE inscripciones SET estado = 'cancelada' WHERE id = ?";
+        $sql = "UPDATE inscripciones SET estado = 'retirado' WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
     }
 
-    public function verificarInscripcionActiva(int $estudiante_id, string $ano_lectivo): bool
+    public function verificarInscripcionActiva(int $estudiante_id, string $ano_academico): bool
     {
         $sql = "SELECT COUNT(*) FROM inscripciones 
-                WHERE estudiante_id = ? AND ano_lectivo = ? AND estado = 'activa'";
+                WHERE estudiante_id = ? AND ano_academico = ? AND estado = 'activo'";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$estudiante_id, $ano_lectivo]);
+        $stmt->execute([$estudiante_id, $ano_academico]);
         return (int) $stmt->fetchColumn() === 0;
     }
 
-    public function obtenerPorAnoLectivo(string $ano_lectivo): array
+    public function obtenerPorAnoLectivo(string $ano_academico): array
     {
-        $sql = "SELECT i.*, e.nombre as estudiante_nombre, e.apellido as estudiante_apellido, 
-                       e.codigo as codigo_estudiante, g.nombre as grado, s.nombre as seccion
+        $sql = "SELECT i.*, u.nombre as estudiante_nombre, u.apellido as estudiante_apellido, 
+                       u.cedula as codigo_estudiante, g.nombre as grado, s.nombre as seccion
                 FROM inscripciones i 
                 INNER JOIN estudiantes e ON i.estudiante_id = e.id 
-                LEFT JOIN grados g ON e.grado_id = g.id 
-                LEFT JOIN secciones s ON e.seccion_id = s.id 
-                WHERE i.ano_lectivo = ? AND i.estado = 'activa'
-                ORDER BY e.apellido, e.nombre";
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
+                INNER JOIN secciones s ON i.seccion_id = s.id 
+                INNER JOIN grados g ON s.grado_id = g.id 
+                WHERE i.ano_academico = ? AND i.estado = 'activo'
+                ORDER BY u.apellido, u.nombre";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$ano_lectivo]);
+        $stmt->execute([$ano_academico]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function contarPorAnoLectivo(string $ano_lectivo): int
+    public function contarPorAnoLectivo(string $ano_academico): int
     {
-        $sql = "SELECT COUNT(*) FROM inscripciones WHERE ano_lectivo = ? AND estado = 'activa'";
+        $sql = "SELECT COUNT(*) FROM inscripciones WHERE ano_academico = ? AND estado = 'activo'";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$ano_lectivo]);
+        $stmt->execute([$ano_academico]);
         return (int) $stmt->fetchColumn();
+    }
+
+    // Alias para compatibilidad con AdminController
+    public function obtenerInscripcionActivaPorEstudiante(int $estudiante_id): ?array
+    {
+        $sql = "SELECT * FROM inscripciones WHERE estudiante_id = ? AND estado = 'activo' LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$estudiante_id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+namespace Src\Core;
+
 /**
  * Autoloader PSR-4
  * Registra y carga clases automáticamente según el namespace

@@ -1,4 +1,9 @@
 <?php
+
+namespace Src\Core;
+
+use Exception;
+
 /**
  * Router - Enrutador con verificación de permisos ACL
  */

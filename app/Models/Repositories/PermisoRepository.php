@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Src\Models\Repositories;
 
-/**
- * Repositorio de Permisos
- */
+use Src\Core\Database;
+use PDO;
+
 class PermisoRepository
 {
-    private \PDO $db;
+    private PDO $db;
 
     public function __construct()
     {
@@ -17,94 +19,86 @@ class PermisoRepository
     public function obtenerTodos(): array
     {
         $sql = "SELECT * FROM permisos ORDER BY modulo, nombre";
-        return $this->db->fetchAll($sql);
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function obtenerPorId(int $id): ?array
     {
-        $sql = "SELECT * FROM permisos WHERE id = :id";
-        return $this->db->fetch($sql, ['id' => $id]);
+        $sql = "SELECT * FROM permisos WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 
     public function obtenerPorNombre(string $nombre): ?array
     {
-        $sql = "SELECT * FROM permisos WHERE nombre = :nombre";
-        return $this->db->fetch($sql, ['nombre' => $nombre]);
+        $sql = "SELECT * FROM permisos WHERE nombre = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$nombre]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 
     public function obtenerPermisosPorUsuario(int $usuarioId): array
     {
-        $sql = "SELECT p.nombre, p.descripcion, p.modulo
+        $sql = "SELECT p.id, p.nombre, p.descripcion, p.modulo
                 FROM permisos p
-                INNER JOIN usuario_permisos up ON p.id = up.permiso_id
-                WHERE up.usuario_id = :usuario_id
+                INNER JOIN usuario_permisos up ON p.id = up.id_permiso
+                WHERE up.id_usuario = ?
                 ORDER BY p.modulo, p.nombre";
-        
-        return $this->db->fetchAll($sql, ['usuario_id' => $usuarioId]);
-    }
-
-    public function asignarPermiso(int $usuarioId, int $permisoId, ?int $asignadoPor = null): bool
-    {
-        try {
-            $sql = "INSERT INTO usuario_permisos (usuario_id, permiso_id, asignado_por)
-                    VALUES (:usuario_id, :permiso_id, :asignado_por)
-                    ON DUPLICATE KEY UPDATE fecha_asignacion = CURRENT_TIMESTAMP";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindValue(':usuario_id', $usuarioId, \PDO::PARAM_INT);
-            $stmt->bindValue(':permiso_id', $permisoId, \PDO::PARAM_INT);
-            $stmt->bindValue(':asignado_por', $asignadoPor, \PDO::PARAM_INT);
-            
-            return $stmt->execute();
-        } catch (\PDOException $e) {
-            error_log("Error al asignar permiso: " . $e->getMessage());
-            return false;
-        }
-    }
-
-    public function quitarPermiso(int $usuarioId, int $permisoId): bool
-    {
-        $sql = "DELETE FROM usuario_permisos WHERE usuario_id = :usuario_id AND permiso_id = :permiso_id";
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':usuario_id', $usuarioId, \PDO::PARAM_INT);
-        $stmt->bindValue(':permiso_id', $permisoId, \PDO::PARAM_INT);
-        return $stmt->execute();
-    }
-
-    public function quitarTodosLosPermisos(int $usuarioId): bool
-    {
-        $sql = "DELETE FROM usuario_permisos WHERE usuario_id = :usuario_id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':usuario_id', $usuarioId, \PDO::PARAM_INT);
-        return $stmt->execute();
+        $stmt->execute([$usuarioId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function tienePermiso(int $usuarioId, string $permisoNombre): bool
     {
         $sql = "SELECT COUNT(*) as total 
                 FROM usuario_permisos up
-                INNER JOIN permisos p ON up.permiso_id = p.id
-                WHERE up.usuario_id = :usuario_id AND p.nombre = :permiso_nombre";
-        
-        $result = $this->db->fetch($sql, [
-            'usuario_id' => $usuarioId,
-            'permiso_nombre' => $permisoNombre
-        ]);
-        
+                INNER JOIN permisos p ON up.id_permiso = p.id
+                WHERE up.id_usuario = ? AND p.nombre = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$usuarioId, $permisoNombre]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) ($result['total'] ?? 0) > 0;
     }
 
-    public function contarTotal(): int
+    public function asignarPermisos(int $usuarioId, array $permisoIds): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM permisos";
-        $result = $this->db->fetch($sql);
-        return (int) ($result['total'] ?? 0);
+        try {
+            $this->db->beginTransaction();
+
+            // Eliminar permisos actuales
+            $sqlDelete = "DELETE FROM usuario_permisos WHERE id_usuario = ?";
+            $stmtDelete = $this->db->prepare($sqlDelete);
+            $stmtDelete->execute([$usuarioId]);
+
+            // Insertar nuevos permisos
+            if (!empty($permisoIds)) {
+                $sqlInsert = "INSERT INTO usuario_permisos (id_usuario, id_permiso) VALUES (?, ?)";
+                $stmtInsert = $this->db->prepare($sqlInsert);
+                foreach ($permisoIds as $permisoId) {
+                    $stmtInsert->execute([$usuarioId, $permisoId]);
+                }
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (\PDOException $e) {
+            $this->db->rollBack();
+            error_log("Error al asignar permisos: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function obtenerPorModulo(string $modulo): array
     {
-        $sql = "SELECT * FROM permisos WHERE modulo = :modulo ORDER BY nombre";
-        return $this->db->fetchAll($sql, ['modulo' => $modulo]);
+        $sql = "SELECT * FROM permisos WHERE modulo = ? ORDER BY nombre";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$modulo]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function obtenerTodosAgrupadosPorModulo(): array
@@ -113,14 +107,12 @@ class PermisoRepository
                 FROM permisos
                 GROUP BY modulo
                 ORDER BY modulo";
-        
-        $resultados = $this->db->fetchAll($sql);
+        $stmt = $this->db->query($sql);
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $agrupados = [];
-        
         foreach ($resultados as $row) {
             $agrupados[$row['modulo']] = explode('|', $row['permisos']);
         }
-        
         return $agrupados;
     }
 }

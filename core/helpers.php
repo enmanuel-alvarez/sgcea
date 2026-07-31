@@ -3,6 +3,8 @@
  * Funciones helper globales
  */
 
+use Src\Core\Security;
+
 if (!function_exists('e')) {
     /**
      * Escapa una cadena para HTML

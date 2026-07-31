@@ -4,35 +4,34 @@ declare(strict_types=1);
 
 namespace Src\Models\Repositories;
 
+use Src\Core\Database;
 use PDO;
-use Exception;
 
 class EstudianteRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = Database::getInstance()->getConnection();
     }
 
     public function obtenerTodos(): array
     {
-        $sql = "SELECT e.*, g.nombre as grado, s.nombre as seccion 
+        $sql = "SELECT e.*, u.nombre, u.apellido, u.cedula, u.email 
                 FROM estudiantes e 
-                LEFT JOIN grados g ON e.grado_id = g.id 
-                LEFT JOIN secciones s ON e.seccion_id = s.id 
-                ORDER BY e.apellido, e.nombre";
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
+                WHERE e.estado = 1 
+                ORDER BY u.apellido, u.nombre";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function obtenerPorId(int $id): ?array
     {
-        $sql = "SELECT e.*, g.id as grado_id, g.nombre as grado, s.id as seccion_id, s.nombre as seccion 
+        $sql = "SELECT e.*, u.nombre, u.apellido, u.cedula, u.email 
                 FROM estudiantes e 
-                LEFT JOIN grados g ON e.grado_id = g.id 
-                LEFT JOIN secciones s ON e.seccion_id = s.id 
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
                 WHERE e.id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id]);
@@ -42,10 +41,9 @@ class EstudianteRepository
 
     public function obtenerPorUsuario(int $usuario_id): ?array
     {
-        $sql = "SELECT e.*, g.nombre as grado, s.nombre as seccion 
+        $sql = "SELECT e.*, u.nombre, u.apellido, u.cedula, u.email 
                 FROM estudiantes e 
-                LEFT JOIN grados g ON e.grado_id = g.id 
-                LEFT JOIN secciones s ON e.seccion_id = s.id 
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
                 WHERE e.usuario_id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$usuario_id]);
@@ -55,23 +53,18 @@ class EstudianteRepository
 
     public function crear(array $datos): int
     {
-        $sql = "INSERT INTO estudiantes (usuario_id, codigo, nombre, apellido, fecha_nacimiento, genero, direccion, telefono, representante_nombre, representante_telefono, grado_id, seccion_id, estado) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO estudiantes (usuario_id, fecha_nacimiento, genero, direccion, telefono, nombre_representante, telefono_representante, estado) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $datos['usuario_id'],
-            $datos['codigo'],
-            $datos['nombre'],
-            $datos['apellido'],
-            $datos['fecha_nacimiento'],
-            $datos['genero'],
-            $datos['direccion'],
-            $datos['telefono'],
-            $datos['representante_nombre'],
-            $datos['representante_telefono'],
-            $datos['grado_id'],
-            $datos['seccion_id'],
-            $datos['estado'] ?? 'activo'
+            $datos['fecha_nacimiento'] ?? null,
+            $datos['genero'] ?? null,
+            $datos['direccion'] ?? null,
+            $datos['telefono'] ?? null,
+            $datos['nombre_representante'] ?? null,
+            $datos['telefono_representante'] ?? null,
+            $datos['estado'] ?? 1
         ]);
         return (int) $this->db->lastInsertId();
     }
@@ -79,55 +72,43 @@ class EstudianteRepository
     public function actualizar(int $id, array $datos): bool
     {
         $sql = "UPDATE estudiantes SET 
-                codigo = ?, nombre = ?, apellido = ?, fecha_nacimiento = ?, genero = ?, 
-                direccion = ?, telefono = ?, representante_nombre = ?, representante_telefono = ?, 
-                grado_id = ?, seccion_id = ?, estado = ? 
+                fecha_nacimiento = ?, genero = ?, direccion = ?, telefono = ?, 
+                nombre_representante = ?, telefono_representante = ?, estado = ? 
                 WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
-            $datos['codigo'],
-            $datos['nombre'],
-            $datos['apellido'],
-            $datos['fecha_nacimiento'],
-            $datos['genero'],
-            $datos['direccion'],
-            $datos['telefono'],
-            $datos['representante_nombre'],
-            $datos['representante_telefono'],
-            $datos['grado_id'],
-            $datos['seccion_id'],
-            $datos['estado'],
+            $datos['fecha_nacimiento'] ?? null,
+            $datos['genero'] ?? null,
+            $datos['direccion'] ?? null,
+            $datos['telefono'] ?? null,
+            $datos['nombre_representante'] ?? null,
+            $datos['telefono_representante'] ?? null,
+            $datos['estado'] ?? 1,
             $id
         ]);
     }
 
     public function eliminar(int $id): bool
     {
-        $sql = "UPDATE estudiantes SET estado = 'eliminado' WHERE id = ?";
+        $sql = "UPDATE estudiantes SET estado = 0 WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
     }
 
     public function verificarCodigoUnico(string $codigo, ?int $excluir_id = null): bool
     {
-        $sql = "SELECT COUNT(*) FROM estudiantes WHERE codigo = ?";
-        if ($excluir_id) {
-            $sql .= " AND id != ?";
-        }
-        $stmt = $this->db->prepare($sql);
-        if ($excluir_id) {
-            $stmt->execute([$codigo, $excluir_id]);
-        } else {
-            $stmt->execute([$codigo]);
-        }
-        return (int) $stmt->fetchColumn() === 0;
+        // Código no existe en estudiantes, se omite o se puede adaptar a cédula en usuarios
+        return true;
     }
 
     public function obtenerEstudiantesPorSeccion(int $seccion_id): array
     {
-        $sql = "SELECT e.* FROM estudiantes e 
-                WHERE e.seccion_id = ? AND e.estado = 'activo' 
-                ORDER BY e.apellido, e.nombre";
+        $sql = "SELECT e.*, u.nombre, u.apellido, u.cedula 
+                FROM estudiantes e 
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
+                INNER JOIN inscripciones i ON e.id = i.estudiante_id 
+                WHERE i.seccion_id = ? AND i.estado = 'activo' AND e.estado = 1 
+                ORDER BY u.apellido, u.nombre";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$seccion_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -135,15 +116,23 @@ class EstudianteRepository
 
     public function obtenerConInscripcionActual(int $ano_lectivo): array
     {
-        $sql = "SELECT DISTINCT e.*, g.nombre as grado, s.nombre as seccion 
+        $sql = "SELECT e.*, u.nombre, u.apellido, u.cedula, g.nombre as grado, s.nombre as seccion 
                 FROM estudiantes e 
-                INNER JOIN inscripciones i ON e.id = i.estudiante_id 
-                LEFT JOIN grados g ON e.grado_id = g.id 
-                LEFT JOIN secciones s ON e.seccion_id = s.id 
-                WHERE i.ano_lectivo = ? AND i.estado = 'activa' AND e.estado = 'activo'
-                ORDER BY e.apellido, e.nombre";
+                INNER JOIN usuarios u ON e.usuario_id = u.id 
+                INNER JOIN inscripciones i ON e.id = i.estudiante_id AND i.ano_academico = ? AND i.estado = 'activo'
+                INNER JOIN secciones s ON i.seccion_id = s.id 
+                INNER JOIN grados g ON s.grado_id = g.id 
+                WHERE e.estado = 1 
+                ORDER BY u.apellido, u.nombre";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$ano_lectivo]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Método adicional usado por DashboardService
+    public function contarActivos(): int
+    {
+        $sql = "SELECT COUNT(*) FROM estudiantes WHERE estado = 1";
+        return (int) $this->db->query($sql)->fetchColumn();
     }
 }

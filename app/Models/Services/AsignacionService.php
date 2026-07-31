@@ -12,13 +12,21 @@ class AsignacionService
     private AsignacionRepository $asignacionRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(AsignacionRepository $asignacionRepo, AuditoriaService $auditoriaService)
+    public function __construct()
     {
-        $this->asignacionRepo = $asignacionRepo;
-        $this->auditoriaService = $auditoriaService;
+        $this->asignacionRepo = new AsignacionRepository();
+        $this->auditoriaService = new AuditoriaService();
     }
 
     public function obtenerTodos(): array
+    {
+        return $this->asignacionRepo->obtenerTodos();
+    }
+
+    /**
+     * Obtiene todas las asignaciones con detalles (join de docente, materia, sección, grado)
+     */
+    public function obtenerTodosConDetalles(): array
     {
         return $this->asignacionRepo->obtenerTodos();
     }
@@ -38,61 +46,85 @@ class AsignacionService
         return $this->asignacionRepo->obtenerConPlanEvaluacion($docente_id);
     }
 
-    public function crear(array $datos, int $usuario_id_sesion): int
+    /**
+     * Crea una asignación a partir de los datos del AdminController
+     */
+    public function crear(array $datos): int
     {
+        // Mapeo de nombres de campos del AdminController a los del repositorio
+        $datosRepo = [
+            'profesor_id'  => $datos['id_profesor'] ?? $datos['profesor_id'] ?? 0,
+            'materia_id'   => $datos['id_materia'] ?? $datos['materia_id'] ?? 0,
+            'seccion_id'   => $datos['id_seccion'] ?? $datos['seccion_id'] ?? 0,
+            'ano_lectivo'  => $datos['ano_academico'] ?? $datos['ano_lectivo'] ?? date('Y'),
+            'estado'       => ($datos['activo'] ?? 1) ? 'activa' : 'inactiva'
+        ];
+
+        // Verificar duplicado (invierte lógica: verificarDuplicado retorna true si NO existe duplicado)
         if (!$this->asignacionRepo->verificarDuplicado(
-            $datos['docente_id'],
-            $datos['materia_id'],
-            $datos['seccion_id'],
-            $datos['ano_lectivo']
+            $datosRepo['profesor_id'],
+            $datosRepo['materia_id'],
+            $datosRepo['seccion_id'],
+            $datosRepo['ano_lectivo']
         )) {
             throw new \Exception('Ya existe una asignación similar para este docente, materia y sección en este año lectivo');
         }
 
-        $id = $this->asignacionRepo->crear($datos);
-        
+        $id = $this->asignacionRepo->crear($datosRepo);
+
         $this->auditoriaService->registrar(
-            $usuario_id_sesion,
-            'crear',
+            $_SESSION['usuario_id'] ?? 0,
+            'CREATE',
             'asignaciones',
             $id,
-            "Asignación creada: Docente ID {$datos['docente_id']}, Materia ID {$datos['materia_id']}"
+            "Asignación creada: Docente ID {$datosRepo['profesor_id']}, Materia ID {$datosRepo['materia_id']}"
         );
-        
+
         return $id;
     }
 
-    public function actualizar(int $id, array $datos, int $usuario_id_sesion): bool
+    public function actualizar(int $id, array $datos): bool
     {
-        $resultado = $this->asignacionRepo->actualizar($id, $datos);
-        
+        $datosRepo = [
+            'profesor_id'  => $datos['id_profesor'] ?? $datos['profesor_id'] ?? 0,
+            'materia_id'   => $datos['id_materia'] ?? $datos['materia_id'] ?? 0,
+            'seccion_id'   => $datos['id_seccion'] ?? $datos['seccion_id'] ?? 0,
+            'ano_lectivo'  => $datos['ano_academico'] ?? $datos['ano_lectivo'] ?? date('Y'),
+            'estado'       => ($datos['activo'] ?? 1) ? 'activa' : 'inactiva'
+        ];
+
+        $resultado = $this->asignacionRepo->actualizar($id, $datosRepo);
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'actualizar',
+                $_SESSION['usuario_id'] ?? 0,
+                'UPDATE',
                 'asignaciones',
                 $id,
                 "Asignación actualizada: ID $id"
             );
         }
-        
+
         return $resultado;
     }
 
-    public function eliminar(int $id, int $usuario_id_sesion): bool
+    /**
+     * Elimina una asignación (soft delete)
+     */
+    public function eliminar(int $id): bool
     {
         $resultado = $this->asignacionRepo->eliminar($id);
-        
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'eliminar',
+                $_SESSION['usuario_id'] ?? 0,
+                'DELETE',
                 'asignaciones',
                 $id,
                 "Asignación eliminada: ID $id"
             );
         }
-        
+
         return $resultado;
     }
 
@@ -102,10 +134,9 @@ class AsignacionService
         $sql = "SELECT COUNT(DISTINCT i.estudiante_id) 
                 FROM asignaciones a 
                 INNER JOIN inscripciones i ON a.seccion_id = i.seccion_id 
-                WHERE a.docente_id = ? AND a.estado = 'activa' AND i.estado = 'activo'";
+                WHERE a.profesor_id = ? AND a.estado = 'activa' AND i.estado = 'activo'";
         $stmt = $db->prepare($sql);
         $stmt->execute([$profesor_id]);
         return (int) $stmt->fetchColumn();
     }
-
 }

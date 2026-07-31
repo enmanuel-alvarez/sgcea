@@ -16,16 +16,12 @@ class CalificacionService
     private AuditoriaService $auditoriaService;
     private DashboardService $dashboardService;
 
-    public function __construct(
-        CalificacionRepository $calificacionRepo,
-        PlanEvaluacionRepository $planRepo,
-        AuditoriaService $auditoriaService,
-        DashboardService $dashboardService
-    ) {
-        $this->calificacionRepo = $calificacionRepo;
-        $this->planRepo = $planRepo;
-        $this->auditoriaService = $auditoriaService;
-        $this->dashboardService = $dashboardService;
+    public function __construct()
+    {
+        $this->calificacionRepo = new CalificacionRepository();
+        $this->planRepo         = new PlanEvaluacionRepository();
+        $this->auditoriaService = new AuditoriaService();
+        $this->dashboardService = new DashboardService();
     }
 
     public function obtenerPorEstudianteYAsignacion(int $estudiante_id, int $asignacion_id): array
@@ -50,21 +46,20 @@ class CalificacionService
         }
 
         $existente = $this->calificacionRepo->obtenerPorEstudianteYPlan($estudiante_id, $plan_evaluacion_id);
-        
+
         if ($existente) {
             $this->calificacionRepo->actualizar($existente['id'], [
-                'nota' => $nota,
+                'nota'           => $nota,
                 'fecha_registro' => date('Y-m-d H:i:s')
             ]);
-            
             $id = $existente['id'];
             $accion = 'actualizar';
         } else {
             $id = $this->calificacionRepo->crear([
-                'estudiante_id' => $estudiante_id,
+                'estudiante_id'      => $estudiante_id,
                 'plan_evaluacion_id' => $plan_evaluacion_id,
-                'nota' => $nota,
-                'profesor_id' => $profesor_id
+                'nota'               => $nota,
+                'profesor_id'        => $profesor_id
             ]);
             $accion = 'crear';
         }
@@ -116,5 +111,4 @@ class CalificacionService
     {
         return $this->calificacionRepo->obtenerRendimientoPorSeccion($seccion_id, $materia_id, $periodo);
     }
-
 }

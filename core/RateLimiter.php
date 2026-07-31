@@ -1,4 +1,9 @@
 <?php
+
+namespace Src\Core;
+
+use PDO;
+
 /**
  * RateLimiter - Control de intentos de login usando base de datos
  * Limita a 5 intentos en 15 minutos por IP

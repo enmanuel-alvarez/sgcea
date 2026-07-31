@@ -1,22 +1,8 @@
 <?php
-/**
- * Definición de rutas del sistema
- * Formato: metodo => ['ruta', 'controlador@metodo', 'permiso_requerido']
- * permiso_requerido = null para rutas públicas (login)
- */
-
 return [
-    // Rutas públicas
     'GET' => [
         '/login' => ['AuthController@mostrarLogin', null],
         '/logout' => ['AuthController@cerrarSesion', null],
-    ],
-    'POST' => [
-        '/login' => ['AuthController@autenticar', null],
-    ],
-
-    // Rutas de Administrador
-    'GET' => [
         '/admin' => ['AdminController@index', 'admin.dashboard'],
         '/admin/usuarios' => ['AdminController@listarUsuarios', 'admin.usuarios.ver'],
         '/admin/usuarios/crear' => ['AdminController@mostrarCrearUsuario', 'admin.usuarios.crear'],
@@ -55,8 +41,27 @@ return [
         '/admin/permisos/asignar/{id}' => ['AdminController@asignarPermisos', 'admin.permisos.asignar'],
         
         '/admin/configuracion' => ['ConfiguracionController@index', 'admin.configuracion.ver'],
+        '/docente' => ['DocenteController@index', 'docente.dashboard'],
+        '/docente/calificaciones' => ['DocenteController@calificaciones', 'docente.calificaciones.ver'],
+        '/docente/calificaciones/registrar/{id_asignacion}' => ['DocenteController@registrarCalificaciones', 'docente.calificaciones.registrar'],
+        '/docente/asistencia' => ['DocenteController@asistencia', 'docente.asistencia.ver'],
+        '/docente/asistencia/registrar/{id_asignacion}' => ['DocenteController@registrarAsistencia', 'docente.asistencia.registrar'],
+        '/docente/planevaluacion/{id_asignacion}' => ['DocenteController@planEvaluacion', 'docente.planevaluacion.gestionar'],
+        '/estudiante' => ['EstudianteController@index', 'estudiante.dashboard'],
+        '/estudiante/boletin' => ['EstudianteController@boletin', 'estudiante.boletin.ver'],
+        '/estudiante/asistencia' => ['EstudianteController@asistencia', 'estudiante.asistencia.ver'],
+        '/estudiante/constancias/solicitar' => ['EstudianteController@solicitarConstancia', 'estudiante.constancias.solicitar'],
+        '/estudiante/constancias/historial' => ['EstudianteController@historialConstancias', 'estudiante.constancias.ver'],
+        '/estudiante/perfil' => ['EstudianteController@perfil', 'estudiante.perfil.ver'],
+        '/constancias/imprimir/{id}' => ['ConstanciaController@imprimir', null],
+        '/reportes' => ['ReportesController@index', 'reportes.ver'],
+        '/reportes/rendimiento' => ['ReportesController@rendimiento', 'reportes.ver'],
+        '/reportes/asistencia' => ['ReportesController@asistencia', 'reportes.ver'],
+        '/api/estudiantes/{id}' => ['ApiController@obtenerEstudiante', null],
+        '/api/secciones/{id}/estudiantes' => ['ApiController@obtenerEstudiantesPorSeccion', null],
     ],
     'POST' => [
+        '/login' => ['AuthController@autenticar', null],
         '/admin/usuarios/guardar' => ['AdminController@guardarUsuario', 'admin.usuarios.crear'],
         '/admin/usuarios/actualizar/{id}' => ['AdminController@actualizarUsuario', 'admin.usuarios.editar'],
         
@@ -81,52 +86,10 @@ return [
         '/admin/permisos/guardar' => ['AdminController@guardarPermisos', 'admin.permisos.asignar'],
         
         '/admin/configuracion/guardar' => ['ConfiguracionController@guardar', 'admin.configuracion.editar'],
-    ],
-
-    // Rutas de Docente
-    'GET' => [
-        '/docente' => ['DocenteController@index', 'docente.dashboard'],
-        '/docente/calificaciones' => ['DocenteController@calificaciones', 'docente.calificaciones.ver'],
-        '/docente/calificaciones/registrar/{id_asignacion}' => ['DocenteController@registrarCalificaciones', 'docente.calificaciones.registrar'],
-        '/docente/asistencia' => ['DocenteController@asistencia', 'docente.asistencia.ver'],
-        '/docente/asistencia/registrar/{id_asignacion}' => ['DocenteController@registrarAsistencia', 'docente.asistencia.registrar'],
-        '/docente/planevaluacion/{id_asignacion}' => ['DocenteController@planEvaluacion', 'docente.planevaluacion.gestionar'],
-    ],
-    'POST' => [
         '/docente/calificaciones/guardar' => ['DocenteController@guardarCalificaciones', 'docente.calificaciones.registrar'],
         '/docente/asistencia/guardar' => ['DocenteController@guardarAsistencia', 'docente.asistencia.registrar'],
         '/docente/planevaluacion/guardar' => ['DocenteController@guardarPlanEvaluacion', 'docente.planevaluacion.gestionar'],
-    ],
-
-    // Rutas de Estudiante
-    'GET' => [
-        '/estudiante' => ['EstudianteController@index', 'estudiante.dashboard'],
-        '/estudiante/boletin' => ['EstudianteController@boletin', 'estudiante.boletin.ver'],
-        '/estudiante/asistencia' => ['EstudianteController@asistencia', 'estudiante.asistencia.ver'],
-        '/estudiante/constancias/solicitar' => ['EstudianteController@solicitarConstancia', 'estudiante.constancias.solicitar'],
-        '/estudiante/constancias/historial' => ['EstudianteController@historialConstancias', 'estudiante.constancias.ver'],
-        '/estudiante/perfil' => ['EstudianteController@perfil', 'estudiante.perfil.ver'],
-    ],
-    'POST' => [
         '/estudiante/constancias/guardar' => ['EstudianteController@guardarSolicitud', 'estudiante.constancias.solicitar'],
         '/estudiante/perfil/actualizar' => ['EstudianteController@actualizarPerfil', 'estudiante.perfil.editar'],
-    ],
-
-    // Rutas de Constancias (Impresión)
-    'GET' => [
-        '/constancias/imprimir/{id}' => ['ConstanciaController@imprimir', null],
-    ],
-
-    // Rutas de Reportes
-    'GET' => [
-        '/reportes' => ['ReportesController@index', 'reportes.ver'],
-        '/reportes/rendimiento' => ['ReportesController@rendimiento', 'reportes.ver'],
-        '/reportes/asistencia' => ['ReportesController@asistencia', 'reportes.ver'],
-    ],
-
-    // API interna (opcional)
-    'GET' => [
-        '/api/estudiantes/{id}' => ['ApiController@obtenerEstudiante', null],
-        '/api/secciones/{id}/estudiantes' => ['ApiController@obtenerEstudiantesPorSeccion', null],
-    ],
+    ]
 ];

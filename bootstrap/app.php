@@ -4,12 +4,15 @@
  * Inicializa configuración, sesión, autoloader y zona horaria
  */
 
+use Src\Core\Autoloader;
+use Src\Core\Security;
+
 // Definir constante de directorio base
 define('BASE_PATH', '/sgcea/public');
 define('APP_ROOT', dirname(__DIR__));
 
 // Registrar autoloader
-require_once __DIR__ . '/Autoloader.php';
+require_once __DIR__ . '/../core/Autoloader.php';
 Autoloader::register();
 
 // Cargar configuración de la aplicación
@@ -43,7 +46,7 @@ if (session_status() === PHP_SESSION_NONE) {
 Security::establecerHeadersSeguridad();
 
 // Cargar helpers
-require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/../core/helpers.php';
 
 // Manejador de errores personalizado
 if (APP_DEBUG) {

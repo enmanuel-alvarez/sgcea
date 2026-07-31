@@ -28,28 +28,18 @@ class AdminController extends Controller
     private PermisoService $permisoService;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(
-        UsuarioService $usuarioService,
-        EstudianteService $estudianteService,
-        DocenteService $docenteService,
-        GradoService $gradoService,
-        SeccionService $seccionService,
-        MateriaService $materiaService,
-        AsignacionService $asignacionService,
-        ConstanciaService $constanciaService,
-        PermisoService $permisoService,
-        AuditoriaService $auditoriaService
-    ) {
-        $this->usuarioService = $usuarioService;
-        $this->estudianteService = $estudianteService;
-        $this->docenteService = $docenteService;
-        $this->gradoService = $gradoService;
-        $this->seccionService = $seccionService;
-        $this->materiaService = $materiaService;
-        $this->asignacionService = $asignacionService;
-        $this->constanciaService = $constanciaService;
-        $this->permisoService = $permisoService;
-        $this->auditoriaService = $auditoriaService;
+    public function __construct()
+    {
+        $this->usuarioService = new UsuarioService();
+        $this->estudianteService = new EstudianteService();
+        $this->docenteService = new DocenteService();
+        $this->gradoService = new GradoService();
+        $this->seccionService = new SeccionService();
+        $this->materiaService = new MateriaService();
+        $this->asignacionService = new AsignacionService();
+        $this->constanciaService = new ConstanciaService();
+        $this->permisoService = new PermisoService();
+        $this->auditoriaService = new AuditoriaService();
     }
 
     /**

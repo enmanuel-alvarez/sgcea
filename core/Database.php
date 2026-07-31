@@ -1,4 +1,12 @@
 <?php
+
+namespace Src\Core;
+
+use PDO;
+use PDOException;
+use PDOStatement;
+use Exception;
+
 /**
  * Clase Database - Singleton para conexión PDO
  */

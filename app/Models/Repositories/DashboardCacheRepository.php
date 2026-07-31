@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Src\Models\Repositories;
 
+use Src\Core\Database;
 use PDO;
 
 class DashboardCacheRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = Database::getInstance()->getConnection();
     }
 
     public function obtenerAdmin(): ?array
@@ -25,11 +26,9 @@ class DashboardCacheRepository
 
     public function actualizarAdmin(array $datos): bool
     {
-        $sql = "UPDATE cache_dashboard_admin SET 
-                total_estudiantes = ?, total_docentes = ?, total_materias = ?, 
-                total_secciones = ?, inscripciones_ano_actual = ?, 
-                constancias_pendientes = ?, fecha_actualizacion = NOW() 
-                WHERE id = 1";
+        $sql = "REPLACE INTO cache_dashboard_admin (id, total_estudiantes, total_docentes, total_materias, 
+                total_secciones, inscripciones_ano_actual, constancias_pendientes, fecha_actualizacion) 
+                VALUES (1, ?, ?, ?, ?, ?, ?, NOW())";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $datos['total_estudiantes'],
@@ -52,14 +51,9 @@ class DashboardCacheRepository
 
     public function actualizarDocente(int $docente_id, array $datos): bool
     {
-        $sql = "INSERT INTO cache_dashboard_docente (docente_id, total_asignaciones, total_estudiantes, 
+        $sql = "REPLACE INTO cache_dashboard_docente (docente_id, total_asignaciones, total_estudiantes, 
                 promedio_calificaciones, fecha_actualizacion) 
-                VALUES (?, ?, ?, ?, NOW())
-                ON DUPLICATE KEY UPDATE 
-                total_asignaciones = VALUES(total_asignaciones),
-                total_estudiantes = VALUES(total_estudiantes),
-                promedio_calificaciones = VALUES(promedio_calificaciones),
-                fecha_actualizacion = VALUES(fecha_actualizacion)";
+                VALUES (?, ?, ?, ?, NOW())";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $docente_id,
@@ -75,11 +69,7 @@ class DashboardCacheRepository
                 FROM cache_dashboard_admin WHERE id = 1";
         $stmt = $this->db->query($sql);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$result) {
-            return true;
-        }
-        
+        if (!$result) return true;
         return (int) $result['minutos'] > $minutos;
     }
 
@@ -90,11 +80,7 @@ class DashboardCacheRepository
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$docente_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$result) {
-            return true;
-        }
-        
+        if (!$result) return true;
         return (int) $result['minutos'] > $minutos;
     }
 

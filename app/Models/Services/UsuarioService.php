@@ -2,20 +2,23 @@
 
 namespace Src\Models\Services;
 
+use Src\Models\Repositories\UsuarioRepository;
+use Src\Models\Repositories\PermisoRepository;
+
 /**
  * Servicio de Usuarios
  * Encapsula la lógica de negocio relacionada con usuarios
  */
 class UsuarioService
 {
-    private Repositories\UsuarioRepository $usuarioRepo;
-    private Repositories\PermisoRepository $permisoRepo;
+    private UsuarioRepository $usuarioRepo;
+    private PermisoRepository $permisoRepo;
     private AuditoriaService $auditoriaService;
 
     public function __construct()
     {
-        $this->usuarioRepo = new Repositories\UsuarioRepository();
-        $this->permisoRepo = new Repositories\PermisoRepository();
+        $this->usuarioRepo = new UsuarioRepository();
+        $this->permisoRepo = new PermisoRepository();
         $this->auditoriaService = new AuditoriaService();
     }
 
@@ -28,11 +31,35 @@ class UsuarioService
     }
 
     /**
+     * Obtener todos los usuarios con detalles (alias de obtenerTodos)
+     */
+    public function obtenerTodosConDetalles(): array
+    {
+        return $this->obtenerTodos();
+    }
+
+    /**
      * Obtener usuario por ID
      */
     public function obtenerPorId(int $id): ?array
     {
         return $this->usuarioRepo->obtenerPorId($id);
+    }
+
+    /**
+     * Obtener usuario por email
+     */
+    public function obtenerPorEmail(string $email): ?array
+    {
+        return $this->usuarioRepo->obtenerPorEmail($email);
+    }
+
+    /**
+     * Obtener usuario por cédula
+     */
+    public function obtenerPorCedula(string $cedula): ?array
+    {
+        return $this->usuarioRepo->obtenerPorCedula($cedula);
     }
 
     /**

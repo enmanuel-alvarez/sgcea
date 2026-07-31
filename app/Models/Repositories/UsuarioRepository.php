@@ -2,16 +2,20 @@
 
 namespace Src\Models\Repositories;
 
+use PDO;
+
+use Src\Core\Database;
+
 /**
  * Repositorio de Usuarios
  */
 class UsuarioRepository
 {
-    private \PDO $db;
+    private Database $db;
 
     public function __construct()
     {
-        $this->db = Database::getInstance()->getConnection();
+        $this->db = Database::getInstance();
     }
 
     public function obtenerTodos(): array

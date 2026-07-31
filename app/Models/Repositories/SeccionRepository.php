@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Src\Models\Repositories;
 
+use Src\Core\Database;
 use PDO;
 
 class SeccionRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = Database::getInstance()->getConnection();
     }
 
     public function obtenerTodos(): array

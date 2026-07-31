@@ -12,10 +12,10 @@ class MateriaService
     private MateriaRepository $materiaRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(MateriaRepository $materiaRepo, AuditoriaService $auditoriaService)
+    public function __construct()
     {
-        $this->materiaRepo = $materiaRepo;
-        $this->auditoriaService = $auditoriaService;
+        $this->materiaRepo = new MateriaRepository();
+        $this->auditoriaService = new AuditoriaService();
     }
 
     public function obtenerTodos(): array
@@ -38,55 +38,78 @@ class MateriaService
         return $this->materiaRepo->obtenerPorGrado($grado_id);
     }
 
-    public function crear(array $datos, int $usuario_id_sesion): int
+    /**
+     * Crea una materia a partir de los datos enviados por el controlador
+     */
+    public function crear(array $datos): int
     {
-        $id = $this->materiaRepo->crear($datos);
-        
+        // Mapeo de campos del AdminController a lo que espera el repositorio
+        $datosRepo = [
+            'nombre'       => $datos['nombre'],
+            'descripcion'  => $datos['descripcion'] ?? null,
+            'estado'       => ($datos['activo'] ?? 1) ? 'activo' : 'inactivo'
+        ];
+        $id = $this->materiaRepo->crear($datosRepo);
+
         $this->auditoriaService->registrar(
-            $usuario_id_sesion,
-            'crear',
+            $_SESSION['usuario_id'] ?? 0,
+            'CREATE',
             'materias',
             $id,
             "Materia creada: {$datos['nombre']}"
         );
-        
+
         return $id;
     }
 
-    public function actualizar(int $id, array $datos, int $usuario_id_sesion): bool
+    /**
+     * Actualiza una materia
+     */
+    public function actualizar(int $id, array $datos): bool
     {
-        $resultado = $this->materiaRepo->actualizar($id, $datos);
-        
+        $datosRepo = [
+            'nombre'       => $datos['nombre'],
+            'descripcion'  => $datos['descripcion'] ?? null,
+            'estado'       => ($datos['activo'] ?? 1) ? 'activo' : 'inactivo'
+        ];
+        $resultado = $this->materiaRepo->actualizar($id, $datosRepo);
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'actualizar',
+                $_SESSION['usuario_id'] ?? 0,
+                'UPDATE',
                 'materias',
                 $id,
                 "Materia actualizada: {$datos['nombre']}"
             );
         }
-        
+
         return $resultado;
     }
 
-    public function eliminar(int $id, int $usuario_id_sesion): bool
+    /**
+     * Elimina una materia (soft delete)
+     */
+    public function eliminar(int $id): bool
     {
         $resultado = $this->materiaRepo->eliminar($id);
-        
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'eliminar',
+                $_SESSION['usuario_id'] ?? 0,
+                'DELETE',
                 'materias',
                 $id,
                 "Materia eliminada: ID $id"
             );
         }
-        
+
         return $resultado;
     }
 
+    /**
+     * Obtiene materias con estadísticas adicionales (total de asignaciones activas)
+     */
     public function obtenerTodasConEstadisticas(): array
     {
         $db = \Src\Core\Database::getInstance()->getConnection();
@@ -98,5 +121,4 @@ class MateriaService
         $stmt = $db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-
 }

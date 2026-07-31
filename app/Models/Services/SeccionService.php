@@ -12,10 +12,18 @@ class SeccionService
     private SeccionRepository $seccionRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(SeccionRepository $seccionRepo, AuditoriaService $auditoriaService)
+    public function __construct()
     {
-        $this->seccionRepo = $seccionRepo;
-        $this->auditoriaService = $auditoriaService;
+        $this->seccionRepo = new SeccionRepository();
+        $this->auditoriaService = new AuditoriaService();
+    }
+
+    /**
+     * Obtiene todas las secciones con detalles del grado
+     */
+    public function obtenerTodosConDetalles(): array
+    {
+        return $this->seccionRepo->obtenerTodos();
     }
 
     public function obtenerTodos(): array
@@ -44,52 +52,67 @@ class SeccionService
         return $cupo_actual < $cupo_maximo;
     }
 
-    public function crear(array $datos, int $usuario_id_sesion): int
+    public function crear(array $datos): int
     {
-        $id = $this->seccionRepo->crear($datos);
-        
+        // Adaptamos nombres si vienen de AdminController
+        $datosRepo = [
+            'nombre' => $datos['nombre'],
+            'grado_id' => $datos['id_grado'] ?? $datos['grado_id'] ?? 0,
+            'cupo_maximo' => $datos['cup_maximo'] ?? $datos['cupo_maximo'] ?? 30,
+            'estado' => ($datos['activo'] ?? 1) ? 'activo' : 'inactivo'
+        ];
+
+        $id = $this->seccionRepo->crear($datosRepo);
+
         $this->auditoriaService->registrar(
-            $usuario_id_sesion,
-            'crear',
+            $_SESSION['usuario_id'] ?? 0,
+            'CREATE',
             'secciones',
             $id,
             "Sección creada: {$datos['nombre']}"
         );
-        
+
         return $id;
     }
 
-    public function actualizar(int $id, array $datos, int $usuario_id_sesion): bool
+    public function actualizar(int $id, array $datos): bool
     {
-        $resultado = $this->seccionRepo->actualizar($id, $datos);
-        
+        $datosRepo = [
+            'nombre' => $datos['nombre'],
+            'grado_id' => $datos['id_grado'] ?? $datos['grado_id'] ?? 0,
+            'cupo_maximo' => $datos['cup_maximo'] ?? $datos['cupo_maximo'] ?? 30,
+            'estado' => ($datos['activo'] ?? 1) ? 'activo' : 'inactivo'
+        ];
+
+        $resultado = $this->seccionRepo->actualizar($id, $datosRepo);
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'actualizar',
+                $_SESSION['usuario_id'] ?? 0,
+                'UPDATE',
                 'secciones',
                 $id,
                 "Sección actualizada: {$datos['nombre']}"
             );
         }
-        
+
         return $resultado;
     }
 
-    public function eliminar(int $id, int $usuario_id_sesion): bool
+    public function eliminar(int $id): bool
     {
         $resultado = $this->seccionRepo->eliminar($id);
-        
+
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'eliminar',
+                $_SESSION['usuario_id'] ?? 0,
+                'DELETE',
                 'secciones',
                 $id,
                 "Sección eliminada: ID $id"
             );
         }
-        
+
         return $resultado;
     }
 }

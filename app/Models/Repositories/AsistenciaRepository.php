@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Src\Models\Repositories;
 
+use Src\Core\Database;
+
 use PDO;
 
 class AsistenciaRepository

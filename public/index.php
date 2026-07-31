@@ -3,6 +3,8 @@
  * Front Controller - Punto de entrada único de la aplicación
  */
 
+use Src\Core\Router;
+
 // Cargar bootstrap
 require_once __DIR__ . '/../bootstrap/app.php';
 

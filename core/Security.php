@@ -1,4 +1,7 @@
 <?php
+
+namespace Src\Core;
+
 /**
  * Security - Funciones de seguridad: CSRF, sanitización, headers
  */

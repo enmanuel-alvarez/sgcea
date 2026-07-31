@@ -12,12 +12,10 @@ class PermisoService
     private PermisoRepository $permisoRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(
-        ?PermisoRepository $permisoRepo = null,
-        ?AuditoriaService $auditoriaService = null
-    ) {
-        $this->permisoRepo = $permisoRepo ?? new PermisoRepository();
-        $this->auditoriaService = $auditoriaService ?? new AuditoriaService();
+    public function __construct()
+    {
+        $this->permisoRepo = new PermisoRepository();
+        $this->auditoriaService = new AuditoriaService();
     }
 
     public function obtenerTodos(): array
@@ -30,52 +28,35 @@ class PermisoService
         return $this->permisoRepo->obtenerPorId($id);
     }
 
-    public function obtenerPorRol(int $rol_id): array
+    public function obtenerPorModulo(string $modulo): array
     {
-        return $this->permisoRepo->obtenerPorRol($rol_id);
+        return $this->permisoRepo->obtenerPorModulo($modulo);
     }
 
-    public function tienePermiso(int $rol_id, string $modulo, string $accion): bool
+    public function obtenerPermisosPorUsuario(int $usuario_id): array
     {
-        return $this->permisoRepo->tienePermiso($rol_id, $modulo, $accion);
+        return $this->permisoRepo->obtenerPermisosPorUsuario($usuario_id);
     }
 
-    public function asignarPermisosRol(int $rol_id, array $permiso_ids, int $usuario_id_sesion): bool
+    public function tienePermiso(int $usuario_id, string $permiso_nombre): bool
     {
-        $resultado = $this->permisoRepo->asignarPermisosRol($rol_id, $permiso_ids);
+        return $this->permisoRepo->tienePermiso($usuario_id, $permiso_nombre);
+    }
+
+    public function asignarPermisos(int $usuario_id, array $permiso_ids): bool
+    {
+        $resultado = $this->permisoRepo->asignarPermisos($usuario_id, $permiso_ids);
 
         if ($resultado) {
             $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'actualizar',
-                'permisos_rol',
-                $rol_id,
-                "Permisos actualizados para el rol ID $rol_id"
+                $_SESSION['usuario_id'] ?? 0,
+                'UPDATE',
+                'usuario_permisos',
+                $usuario_id,
+                'Permisos actualizados'
             );
         }
 
         return $resultado;
     }
-
-    public function obtenerPermisosPorUsuario(int $usuario_id): array
-    {
-        return $this->permisoRepo->obtenerPermisosPorUsuario($usuario_id);
-    }
-
-    public function asignarPermisos(int $usuario_id, array $permiso_ids, ?int $asignado_por = null): bool
-    {
-        return $this->permisoRepo->asignarPermisos($usuario_id, $permiso_ids, $asignado_por);
-    }
-
-    public function asignarPermisosUsuario(int $usuario_id, array $permiso_ids, ?int $asignado_por = null): bool
-    {
-        return $this->permisoRepo->asignarPermisosUsuario($usuario_id, $permiso_ids, $asignado_por);
-    }
-
-
-    public function obtenerPermisosPorUsuario(int $usuario_id): array
-    {
-        return $this->permisoRepo->obtenerPermisosPorUsuario($usuario_id);
-    }
-
 }

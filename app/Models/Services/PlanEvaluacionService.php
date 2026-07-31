@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Src\Models\Services;
 
+use Src\Core\Database;
+
 use Src\Models\Repositories\PlanEvaluacionRepository;
 use Src\Models\Services\AuditoriaService;
 
@@ -101,7 +103,7 @@ class PlanEvaluacionService
         $sql = "SELECT COUNT(*) 
                 FROM planes_evaluacion pe 
                 INNER JOIN asignaciones a ON pe.asignacion_id = a.id 
-                WHERE a.docente_id = ? AND pe.estado = 'activo' AND a.estado = 'activa'";
+                WHERE a.profesor_id = ? AND pe.estado = 'activo' AND a.estado = 'activa'";
         $stmt = $db->prepare($sql);
         $stmt->execute([$profesor_id]);
         return (int) $stmt->fetchColumn();

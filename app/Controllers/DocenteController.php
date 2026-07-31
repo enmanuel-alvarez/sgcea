@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Src\Controllers;
 
+use Src\Core\Controller;
+
 use Src\Models\Services\AsignacionService;
 use Src\Models\Services\PlanEvaluacionService;
 use Src\Models\Services\CalificacionService;

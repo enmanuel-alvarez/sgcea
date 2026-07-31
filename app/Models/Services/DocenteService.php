@@ -14,16 +14,24 @@ class DocenteService
     private UsuarioRepository $usuarioRepo;
     private AuditoriaService $auditoriaService;
 
-    public function __construct(
-        DocenteRepository $docenteRepo,
-        UsuarioRepository $usuarioRepo,
-        AuditoriaService $auditoriaService
-    ) {
-        $this->docenteRepo = $docenteRepo;
-        $this->usuarioRepo = $usuarioRepo;
-        $this->auditoriaService = $auditoriaService;
+    public function __construct()
+    {
+        $this->docenteRepo = new DocenteRepository();
+        $this->usuarioRepo = new UsuarioRepository();
+        $this->auditoriaService = new AuditoriaService();
     }
 
+    /**
+     * Obtiene todos los docentes con detalles (correo, etc.)
+     */
+    public function obtenerTodosConDetalles(): array
+    {
+        return $this->docenteRepo->obtenerTodos();
+    }
+
+    /**
+     * Obtiene todos los docentes (alias simple)
+     */
     public function obtenerTodos(): array
     {
         return $this->docenteRepo->obtenerTodos();
@@ -39,92 +47,115 @@ class DocenteService
         return $this->docenteRepo->obtenerPorUsuario($usuario_id);
     }
 
-    public function crear(array $datos, int $usuario_id_sesion): array
+    /**
+     * Crea un docente a partir de datos de usuario + datos de docente
+     * Ajustado al llamado del AdminController: crear($datos_usuario, $datos_docente)
+     */
+    public function crear(array $datosUsuario, array $datosDocente): array
     {
-        if (!$this->docenteRepo->verificarCodigoUnico($datos['codigo'])) {
-            throw new \Exception('El código de docente ya está registrado');
-        }
-
-        $usuario_data = [
-            'correo' => $datos['correo'] ?? $datos['codigo'] . '@docente.sgcea.com',
-            'password' => password_hash($datos['codigo'], PASSWORD_DEFAULT),
-            'nombre' => $datos['nombre'],
-            'apellido' => $datos['apellido'],
-            'tipo' => 'docente',
-            'estado' => 'activo'
+        // Crear usuario
+        $passwordHash = password_hash($datosUsuario['password'], PASSWORD_DEFAULT);
+        $usuarioData = [
+            'correo' => $datosUsuario['correo'],
+            'cedula' => $datosUsuario['cedula'],
+            'contrasena_hash' => $passwordHash,
+            'estado_cuenta' => $datosUsuario['activo'] ?? 1,
+            'primer_login' => 1
         ];
+        $idUsuario = $this->usuarioRepo->crear($usuarioData);
 
-        $usuario_id = $this->usuarioRepo->crear($usuario_data);
-
-        $docente_data = [
-            'usuario_id' => $usuario_id,
-            'codigo' => $datos['codigo'],
-            'nombre' => $datos['nombre'],
-            'apellido' => $datos['apellido'],
-            'especialidad' => $datos['especialidad'] ?? null,
-            'telefono' => $datos['telefono'] ?? null,
-            'titulo' => $datos['titulo'] ?? null,
-            'estado' => 'activo'
+        // Crear docente vinculado
+        $docenteData = [
+            'id_usuario' => $idUsuario,
+            'nombres' => $datosUsuario['nombre'],
+            'apellidos' => $datosUsuario['apellido'],
+            'cedula_identidad' => $datosUsuario['cedula'],
+            'especialidad' => $datosDocente['especialidad'] ?? null,
+            'telefono' => $datosDocente['telefono'] ?? null,
+            // 'titulo' => $datosDocente['titulo'] ?? null, // si la tabla docentes no tiene 'titulo', ajustar según esquema real
+            'fecha_contratacion' => $datosDocente['fecha_ingreso'] ?? date('Y-m-d')
         ];
+        $idDocente = $this->docenteRepo->crear($docenteData);
 
-        $docente_id = $this->docenteRepo->crear($docente_data);
-
+        // Auditoría
         $this->auditoriaService->registrar(
-            $usuario_id_sesion,
-            'crear',
+            $_SESSION['usuario_id'] ?? 0,
+            'CREATE',
             'docentes',
-            $docente_id,
-            "Docente creado: {$datos['nombre']} {$datos['apellido']}"
+            $idDocente,
+            "Docente registrado: {$datosUsuario['cedula']}"
         );
 
-        return ['id' => $docente_id, 'usuario_id' => $usuario_id];
+        return ['id' => $idDocente, 'usuario_id' => $idUsuario];
     }
 
-    public function actualizar(int $id, array $datos, int $usuario_id_sesion): bool
+    /**
+     * Actualiza datos de un docente (usuario + perfil)
+     * Ajustado al llamado: actualizar($id, $datos_usuario, $datos_docente)
+     */
+    public function actualizar(int $id, array $datosUsuario, array $datosDocente): bool
     {
         $docente = $this->docenteRepo->obtenerPorId($id);
         if (!$docente) {
             throw new \Exception('Docente no encontrado');
         }
 
-        if (!$this->docenteRepo->verificarCodigoUnico($datos['codigo'], $id)) {
-            throw new \Exception('El código de docente ya está registrado');
+        // Actualizar usuario
+        $usuarioData = [
+            'correo' => $datosUsuario['correo'],
+            'cedula' => $datosUsuario['cedula'],
+            'estado_cuenta' => $datosUsuario['activo'] ?? 1
+        ];
+        if (!empty($datosUsuario['password'])) {
+            $usuarioData['contrasena_hash'] = password_hash($datosUsuario['password'], PASSWORD_DEFAULT);
         }
+        $this->usuarioRepo->actualizar($docente['usuario_id'], $usuarioData);
 
-        $resultado = $this->docenteRepo->actualizar($id, $datos);
+        // Actualizar perfil docente
+        $docenteData = [
+            'nombres' => $datosUsuario['nombre'],
+            'apellidos' => $datosUsuario['apellido'],
+            'cedula_identidad' => $datosUsuario['cedula'],
+            'especialidad' => $datosDocente['especialidad'] ?? null,
+            'telefono' => $datosDocente['telefono'] ?? null,
+            // 'titulo' => $datosDocente['titulo'] ?? null,
+            'fecha_contratacion' => $datosDocente['fecha_ingreso'] ?? date('Y-m-d')
+        ];
+        $this->docenteRepo->actualizar($id, $docenteData);
 
-        if ($resultado) {
-            $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'actualizar',
-                'docentes',
-                $id,
-                "Docente actualizado: {$datos['nombre']} {$datos['apellido']}"
-            );
-        }
+        // Auditoría
+        $this->auditoriaService->registrar(
+            $_SESSION['usuario_id'] ?? 0,
+            'UPDATE',
+            'docentes',
+            $id,
+            "Docente actualizado: {$datosUsuario['cedula']}"
+        );
 
-        return $resultado;
+        return true;
     }
 
-    public function eliminar(int $id, int $usuario_id_sesion): bool
+    public function eliminar(int $id): bool
     {
         $docente = $this->docenteRepo->obtenerPorId($id);
         if (!$docente) {
             throw new \Exception('Docente no encontrado');
         }
 
-        $resultado = $this->docenteRepo->eliminar($id);
+        // Desactivar usuario asociado
+        $this->usuarioRepo->actualizar($docente['usuario_id'], ['estado_cuenta' => 0]);
+        // Soft delete al docente
+        $this->docenteRepo->eliminar($id);
 
-        if ($resultado) {
-            $this->auditoriaService->registrar(
-                $usuario_id_sesion,
-                'eliminar',
-                'docentes',
-                $id,
-                "Docente eliminado: {$docente['nombre']} {$docente['apellido']}"
-            );
-        }
+        // Auditoría
+        $this->auditoriaService->registrar(
+            $_SESSION['usuario_id'] ?? 0,
+            'DELETE',
+            'docentes',
+            $id,
+            'Docente eliminado'
+        );
 
-        return $resultado;
+        return true;
     }
 }

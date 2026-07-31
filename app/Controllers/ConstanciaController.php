@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Src\Controllers;
 
+use Src\Core\Controller;
+
 use Src\Models\Services\ConstanciaService;
 use Src\Models\Services\EstudianteService;
 use Src\Models\Services\AuditoriaService;

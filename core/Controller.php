@@ -1,4 +1,9 @@
 <?php
+
+namespace Src\Core;
+
+use Exception;
+
 /**
  * Controlador base con métodos comunes
  */
