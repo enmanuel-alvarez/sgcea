@@ -11,6 +11,7 @@ use Src\Models\Services\SeccionService;
 use Src\Models\Services\MateriaService;
 use Src\Models\Services\AsignacionService;
 use Src\Models\Services\ConstanciaService;
+use Src\Models\Services\InscripcionService;
 use Src\Models\Services\PermisoService;
 use Src\Models\Services\AuditoriaService;
 use Src\Core\Security;
@@ -25,6 +26,7 @@ class AdminController extends Controller
     private MateriaService $materiaService;
     private AsignacionService $asignacionService;
     private ConstanciaService $constanciaService;
+    private InscripcionService $inscripcionService;
     private PermisoService $permisoService;
     private AuditoriaService $auditoriaService;
 
@@ -38,6 +40,7 @@ class AdminController extends Controller
         $this->materiaService = new MateriaService();
         $this->asignacionService = new AsignacionService();
         $this->constanciaService = new ConstanciaService();
+        $this->inscripcionService = new InscripcionService();
         $this->permisoService = new PermisoService();
         $this->auditoriaService = new AuditoriaService();
     }
@@ -1013,4 +1016,83 @@ class AdminController extends Controller
 
         $this->redirigir('/admin/usuarios');
     }
+
+    // ==================== INSCRIPCIONES ====================
+
+    /**
+     * Mostrar formulario de inscripción de un estudiante existente
+     */
+    public function mostrarInscribirEstudiante(int $id): void
+    {
+        $estudiante = $this->estudianteService->obtenerPorId($id);
+        if (!$estudiante) {
+            $_SESSION['flash_error'] = 'Estudiante no encontrado';
+            $this->redirigir('/admin/estudiantes');
+            return;
+        }
+
+        $grados = $this->gradoService->obtenerTodos();
+        $secciones = $this->seccionService->obtenerTodos();
+
+        $this->render('admin/estudiantes/inscribir', [
+            'titulo' => 'Inscribir Estudiante',
+            'estudiante' => $estudiante,
+            'grados' => $grados,
+            'secciones' => $secciones
+        ]);
+    }
+
+    /**
+     * Procesar inscripción de un estudiante existente
+     */
+    public function inscribirEstudiante(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirigir('/admin/estudiantes');
+            return;
+        }
+
+        Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
+
+        $estudianteId = (int)($_POST['estudiante_id'] ?? 0);
+        $seccionId = (int)($_POST['seccion_id'] ?? 0);
+        $anoAcademico = $_POST['ano_academico'] ?? date('Y') . '-' . (date('Y') + 1);
+
+        if ($estudianteId <= 0 || $seccionId <= 0) {
+            $_SESSION['flash_error'] = 'Datos de inscripción no válidos';
+            $this->redirigir('/admin/estudiantes');
+            return;
+        }
+
+        try {
+            // Verificar que no tenga inscripción activa en el mismo año
+            if ($this->inscripcionService->verificarInscripcionActiva($estudianteId, $anoAcademico)) {
+                $_SESSION['flash_error'] = 'El estudiante ya tiene una inscripción activa para este año académico';
+                $this->redirigir('/admin/estudiantes/inscribir/' . $estudianteId);
+                return;
+            }
+
+            $this->inscripcionService->crear([
+                'estudiante_id' => $estudianteId,
+                'seccion_id' => $seccionId,
+                'ano_academico' => $anoAcademico,
+                'estado' => 'activa'
+            ]);
+
+            $this->auditoriaService->registrar(
+                $_SESSION['usuario_id'],
+                'INSCRIBIR_ESTUDIANTE',
+                'inscripciones',
+                $estudianteId,
+                "Estudiante inscrito en sección $seccionId, año $anoAcademico"
+            );
+
+            $_SESSION['flash_success'] = 'Estudiante inscrito exitosamente';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Error al inscribir: ' . $e->getMessage();
+        }
+
+        $this->redirigir('/admin/estudiantes');
+    }
 }
+

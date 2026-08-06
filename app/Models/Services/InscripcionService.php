@@ -25,4 +25,14 @@ class InscripcionService
     {
         return $this->inscripcionRepo->obtenerPorEstudiante($estudiante_id);
     }
+
+    public function crear(array $datos): int
+    {
+        return $this->inscripcionRepo->crear($datos);
+    }
+
+    public function verificarInscripcionActiva(int $estudiante_id, string $ano_academico): bool
+    {
+        return $this->inscripcionRepo->verificarInscripcionActiva($estudiante_id, $ano_academico);
+    }
 }

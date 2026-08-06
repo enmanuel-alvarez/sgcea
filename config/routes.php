@@ -6,28 +6,28 @@ return [
         '/admin' => ['AdminController@index', 'admin.dashboard'],
         '/admin/usuarios' => ['AdminController@listarUsuarios', 'admin.usuarios.ver'],
         '/admin/usuarios/crear' => ['AdminController@mostrarCrearUsuario', 'admin.usuarios.crear'],
-        '/admin/usuarios/editar/{id}' => ['AdminController@editarUsuario', 'admin.usuarios.editar'],
+        '/admin/usuarios/editar/{id}' => ['AdminController@mostrarEditarUsuario', 'admin.usuarios.editar'],
         '/admin/usuarios/eliminar/{id}' => ['AdminController@eliminarUsuario', 'admin.usuarios.eliminar'],
         
         '/admin/estudiantes' => ['AdminController@listarEstudiantes', 'admin.estudiantes.ver'],
         '/admin/estudiantes/crear' => ['AdminController@mostrarCrearEstudiante', 'admin.estudiantes.crear'],
-        '/admin/estudiantes/editar/{id}' => ['AdminController@editarEstudiante', 'admin.estudiantes.editar'],
+        '/admin/estudiantes/editar/{id}' => ['AdminController@mostrarEditarEstudiante', 'admin.estudiantes.editar'],
         '/admin/estudiantes/eliminar/{id}' => ['AdminController@eliminarEstudiante', 'admin.estudiantes.eliminar'],
         '/admin/estudiantes/inscribir/{id}' => ['AdminController@mostrarInscribirEstudiante', 'admin.estudiantes.inscribir'],
         
         '/admin/docentes' => ['AdminController@listarDocentes', 'admin.docentes.ver'],
         '/admin/docentes/crear' => ['AdminController@mostrarCrearDocente', 'admin.docentes.crear'],
-        '/admin/docentes/editar/{id}' => ['AdminController@editarDocente', 'admin.docentes.editar'],
+        '/admin/docentes/editar/{id}' => ['AdminController@mostrarEditarDocente', 'admin.docentes.editar'],
         '/admin/docentes/eliminar/{id}' => ['AdminController@eliminarDocente', 'admin.docentes.eliminar'],
         
         '/admin/materias' => ['AdminController@listarMaterias', 'admin.materias.ver'],
         '/admin/materias/crear' => ['AdminController@mostrarCrearMateria', 'admin.materias.crear'],
-        '/admin/materias/editar/{id}' => ['AdminController@editarMateria', 'admin.materias.editar'],
+        '/admin/materias/editar/{id}' => ['AdminController@mostrarEditarMateria', 'admin.materias.editar'],
         '/admin/materias/eliminar/{id}' => ['AdminController@eliminarMateria', 'admin.materias.eliminar'],
         
         '/admin/secciones' => ['AdminController@listarSecciones', 'admin.secciones.ver'],
         '/admin/secciones/crear' => ['AdminController@mostrarCrearSeccion', 'admin.secciones.crear'],
-        '/admin/secciones/editar/{id}' => ['AdminController@editarSeccion', 'admin.secciones.editar'],
+        '/admin/secciones/editar/{id}' => ['AdminController@mostrarEditarSeccion', 'admin.secciones.editar'],
         '/admin/secciones/eliminar/{id}' => ['AdminController@eliminarSeccion', 'admin.secciones.eliminar'],
         
         '/admin/asignaciones' => ['AdminController@listarAsignaciones', 'admin.asignaciones.ver'],
