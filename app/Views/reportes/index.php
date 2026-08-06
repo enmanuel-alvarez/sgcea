@@ -1,5 +1,6 @@
 <?php
 use Core\Security;
+$basePath = defined('BASE_PATH') ? BASE_PATH : '/sgcea/public';
 $titulo = 'Reportes';
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../layouts/sidebar.php';
@@ -13,7 +14,7 @@ require_once __DIR__ . '/../layouts/sidebar.php';
                 <div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="bi bi-people me-2"></i>Estudiantes</h5></div>
                 <div class="card-body">
                     <p class="text-muted">Total de estudiantes matriculados por grado y sección.</p>
-                    <a href="?route=reportes/estudiantes" class="btn btn-outline-primary w-100"><i class="bi bi-eye me-1"></i>Ver Reporte</a>
+                    <a href="<?= $basePath ?>/reportes?tipo=estudiantes" class="btn btn-outline-primary w-100"><i class="bi bi-eye me-1"></i>Ver Reporte</a>
                 </div>
             </div>
         </div>
@@ -22,7 +23,7 @@ require_once __DIR__ . '/../layouts/sidebar.php';
                 <div class="card-header bg-success text-white"><h5 class="mb-0"><i class="bi bi-mortarboard me-2"></i>Rendimiento Académico</h5></div>
                 <div class="card-body">
                     <p class="text-muted">Análisis de calificaciones por materia y período.</p>
-                    <a href="?route=reportes/rendimiento" class="btn btn-outline-success w-100"><i class="bi bi-eye me-1"></i>Ver Reporte</a>
+                    <a href="<?= $basePath ?>/reportes/rendimiento" class="btn btn-outline-success w-100"><i class="bi bi-eye me-1"></i>Ver Reporte</a>
                 </div>
             </div>
         </div>
@@ -31,7 +32,7 @@ require_once __DIR__ . '/../layouts/sidebar.php';
                 <div class="card-header bg-info text-white"><h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Asistencia</h5></div>
                 <div class="card-body">
                     <p class="text-muted">Resumen de asistencia por estudiante y período.</p>
-                    <a href="?route=reportes/asistencia" class="btn btn-outline-info w-100"><i class="bi bi-eye me-1"></i>Ver Reporte</a>
+                    <a href="<?= $basePath ?>/reportes/asistencia" class="btn btn-outline-info w-100"><i class="bi bi-eye me-1"></i>Ver Reporte</a>
                 </div>
             </div>
         </div>

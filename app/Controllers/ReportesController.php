@@ -168,4 +168,47 @@ class ReportesController extends Controller
         fclose($output);
         exit;
     }
+
+    /**
+     * Reporte de rendimiento académico
+     */
+    public function rendimiento(): void
+    {
+        $secciones = $this->estudianteService->obtenerSecciones();
+        $materias = $this->materiaService->obtenerTodas();
+
+        $this->render('reportes/rendimiento', [
+            'titulo' => 'Reporte de Rendimiento Académico',
+            'secciones' => $secciones ?? [],
+            'materias' => $materias ?? []
+        ]);
+    }
+
+    /**
+     * Reporte de asistencia
+     */
+    public function asistencia(): void
+    {
+        $secciones = $this->estudianteService->obtenerSecciones();
+
+        $this->render('reportes/asistencia', [
+            'titulo' => 'Reporte de Asistencia',
+            'secciones' => $secciones ?? []
+        ]);
+    }
+
+    /**
+     * API: Obtener datos de un estudiante por ID
+     */
+    public function obtenerEstudiante(int $id): void
+    {
+        $estudiante = $this->estudianteService->obtenerPorId($id);
+
+        if (!$estudiante) {
+            $this->json(['success' => false, 'message' => 'Estudiante no encontrado'], 404);
+            return;
+        }
+
+        $this->json(['success' => true, 'data' => $estudiante]);
+    }
 }

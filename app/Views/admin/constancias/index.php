@@ -1,5 +1,6 @@
 <?php
 use Core\Security;
+$basePath = defined('BASE_PATH') ? BASE_PATH : '/sgcea/public';
 $titulo = 'Solicitudes de Constancias';
 require_once __DIR__ . '/../../layouts/header.php';
 require_once __DIR__ . '/../../layouts/sidebar.php';
@@ -38,7 +39,7 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
                                     <button class="btn btn-sm btn-success" onclick="aprobar(<?= $sol['id'] ?>)"><i class="bi bi-check-lg"></i></button>
                                     <button class="btn btn-sm btn-danger" onclick="rechazar(<?= $sol['id'] ?>)"><i class="bi bi-x-lg"></i></button>
                                 <?php elseif ($sol['estado'] === 'aprobada'): ?>
-                                    <a href="?route=constancias/imprimir&id=<?= $sol['id'] ?>" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-printer"></i></a>
+                                    <a href="<?= $basePath ?>/constancias/imprimir/<?= $sol['id'] ?>" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-printer"></i></a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -49,11 +50,11 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
         </div>
     </div>
 
-<form id="formAprobar" method="POST" action="?route=admin/constancias/aprobar" style="display:none;"><input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>"><input type="hidden" name="id" id="idAprobar"></form>
-<form id="formRechazar" method="POST" action="?route=admin/constancias/rechazar" style="display:none;"><input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>"><input type="hidden" name="id" id="idRechazar"><input type="hidden" name="motivo_rechazo" id="motivoRechazo"></form>
+<form id="formAprobar" method="POST" action="" style="display:none;"><input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>"></form>
+<form id="formRechazar" method="POST" action="" style="display:none;"><input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>"><input type="hidden" name="motivo_rechazo" id="motivoRechazo"></form>
 <script>
 $(document).ready(function() { $('#tablaConstancias').DataTable({ language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' }, order: [[2, 'desc']] }); });
-function aprobar(id) { if(confirm('¿Aprobar esta constancia?')) { document.getElementById('idAprobar').value = id; document.getElementById('formAprobar').submit(); } }
-function rechazar(id) { var motivo = prompt('Motivo del rechazo:'); if(motivo) { document.getElementById('idRechazar').value = id; document.getElementById('motivoRechazo').value = motivo; document.getElementById('formRechazar').submit(); } }
+function aprobar(id) { if(confirm('¿Aprobar esta constancia?')) { var form = document.getElementById('formAprobar'); form.action = '<?= $basePath ?>/admin/constancias/aprobar/' + id; form.submit(); } }
+function rechazar(id) { var motivo = prompt('Motivo del rechazo:'); if(motivo) { document.getElementById('motivoRechazo').value = motivo; var form = document.getElementById('formRechazar'); form.action = '<?= $basePath ?>/admin/constancias/rechazar/' + id; form.submit(); } }
 </script>
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

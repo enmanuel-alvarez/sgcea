@@ -369,7 +369,7 @@ INSERT INTO `configuraciones` (`clave`, `valor`, `descripcion`) VALUES
 ('nombre_sistema', 'SGCEA - Sistema de Gestión y Control Escolar-Académico', 'Nombre completo del sistema'),
 ('nombre_institucion', 'Institución Educativa Demo', 'Nombre de la institución'),
 ('ano_academico_actual', '2024-2025', 'Año académico en curso'),
-('nota_minima_aprobacion', '60', 'Nota mínima para aprobar (0-100)'),
+('nota_minima_aprobacion', '10', 'Nota mínima para aprobar (escala 0-20)'),
 ('periodos_academicos', '4', 'Número de períodos académicos'),
 ('max_solicitudes_constancia', '5', 'Máximo de solicitudes de constancia pendientes por estudiante');
 

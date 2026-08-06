@@ -228,4 +228,43 @@ class EstudianteController extends Controller
             'inscripcion' => $inscripcion
         ]);
     }
+
+    /**
+     * Actualizar perfil del estudiante
+     */
+    public function actualizarPerfil(): void
+    {
+        if (!Security::validarTokenCSRF($_POST['csrf_token'] ?? null)) {
+            $this->setFlash('error', 'Token de seguridad inválido');
+            $this->redirigir('/estudiante/perfil');
+            return;
+        }
+
+        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+
+        $datos = [
+            'telefono' => trim($_POST['telefono'] ?? ''),
+            'direccion' => trim($_POST['direccion'] ?? ''),
+            'nombre_representante' => trim($_POST['nombre_representante'] ?? ''),
+            'telefono_representante' => trim($_POST['telefono_representante'] ?? '')
+        ];
+
+        try {
+            $this->estudianteService->actualizar($idEstudiante, $datos);
+
+            $this->auditoriaService->registrar(
+                $_SESSION['usuario_id'] ?? null,
+                'actualizar_perfil',
+                'estudiantes',
+                $idEstudiante,
+                'Perfil de estudiante actualizado'
+            );
+
+            $this->setFlash('success', 'Perfil actualizado exitosamente');
+        } catch (\Exception $e) {
+            $this->setFlash('error', 'Error al actualizar el perfil: ' . $e->getMessage());
+        }
+
+        $this->redirigir('/estudiante/perfil');
+    }
 }

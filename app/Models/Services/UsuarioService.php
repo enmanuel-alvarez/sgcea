@@ -91,10 +91,13 @@ class UsuarioService
 
         if ($usuarioId) {
             // Asignar permisos si se proporcionan
-            if (isset($datos['permisos']) && is_array($datos['permisos'])) {
+            if (isset($datos['permisos']) && is_array($datos['permisos']) && !empty($datos['permisos'])) {
                 foreach ($datos['permisos'] as $permisoId) {
                     $this->permisoRepo->asignarPermiso($usuarioId, (int)$permisoId, $_SESSION['usuario_id'] ?? null);
                 }
+            } else {
+                // Asignar permisos predeterminados según el tipo de usuario (RN-001)
+                $this->asignarPermisosPredeterminados($usuarioId, $datos['tipo'] ?? 'estudiante');
             }
 
             // Registrar en auditoría
@@ -232,5 +235,56 @@ class UsuarioService
             'docente' => $this->usuarioRepo->contarPorTipo('docente'),
             'estudiante' => $this->usuarioRepo->contarPorTipo('estudiante')
         ];
+    }
+
+    /**
+     * Asignar permisos predeterminados según el tipo de usuario (RN-001)
+     * Garantiza que todo usuario tenga al menos los permisos básicos de su rol
+     */
+    private function asignarPermisosPredeterminados(int $usuarioId, string $tipo): void
+    {
+        $permisosPorTipo = [
+            'admin' => [
+                'admin.dashboard', 'admin.usuarios.ver', 'admin.usuarios.crear',
+                'admin.usuarios.editar', 'admin.usuarios.eliminar',
+                'admin.estudiantes.ver', 'admin.estudiantes.crear',
+                'admin.estudiantes.editar', 'admin.estudiantes.eliminar',
+                'admin.estudiantes.inscribir',
+                'admin.docentes.ver', 'admin.docentes.crear',
+                'admin.docentes.editar', 'admin.docentes.eliminar',
+                'admin.materias.ver', 'admin.materias.crear',
+                'admin.materias.editar', 'admin.materias.eliminar',
+                'admin.secciones.ver', 'admin.secciones.crear',
+                'admin.secciones.editar', 'admin.secciones.eliminar',
+                'admin.asignaciones.ver', 'admin.asignaciones.crear',
+                'admin.asignaciones.eliminar',
+                'admin.constancias.ver', 'admin.constancias.aprobar',
+                'admin.permisos.asignar',
+                'admin.configuracion.ver', 'admin.configuracion.editar',
+                'reportes.ver'
+            ],
+            'docente' => [
+                'docente.dashboard',
+                'docente.calificaciones.ver', 'docente.calificaciones.registrar',
+                'docente.asistencia.ver', 'docente.asistencia.registrar',
+                'docente.planevaluacion.gestionar'
+            ],
+            'estudiante' => [
+                'estudiante.dashboard',
+                'estudiante.boletin.ver',
+                'estudiante.asistencia.ver',
+                'estudiante.constancias.solicitar', 'estudiante.constancias.ver',
+                'estudiante.perfil.ver', 'estudiante.perfil.editar'
+            ]
+        ];
+
+        $permisosNombres = $permisosPorTipo[$tipo] ?? [];
+
+        foreach ($permisosNombres as $nombrePermiso) {
+            $permiso = $this->permisoRepo->obtenerPorNombre($nombrePermiso);
+            if ($permiso) {
+                $this->permisoRepo->asignarPermiso($usuarioId, (int)$permiso['id'], $_SESSION['usuario_id'] ?? null);
+            }
+        }
     }
 }
