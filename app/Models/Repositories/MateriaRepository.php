@@ -18,7 +18,14 @@ class MateriaRepository
 
     public function obtenerTodos(): array
     {
-        $sql = "SELECT * FROM materias ORDER BY nombre";
+        $sql = "SELECT 
+                    m.id,
+                    m.codigo,
+                    m.nombre,
+                    m.creditos,
+                    m.estado AS activo
+                FROM materias m 
+                ORDER BY m.nombre";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -34,38 +41,44 @@ class MateriaRepository
 
     public function crear(array $datos): int
     {
-        $sql = "INSERT INTO materias (nombre, descripcion, estado) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO materias (codigo, nombre, descripcion, creditos, estado) 
+                VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
+            $datos['codigo'] ?? '',
             $datos['nombre'],
             $datos['descripcion'] ?? null,
-            $datos['estado'] ?? 'activo'
+            $datos['creditos'] ?? 1,
+            $datos['estado'] ?? 1
         ]);
         return (int) $this->db->lastInsertId();
     }
 
     public function actualizar(int $id, array $datos): bool
     {
-        $sql = "UPDATE materias SET nombre = ?, descripcion = ?, estado = ? WHERE id = ?";
+        $sql = "UPDATE materias SET codigo = ?, nombre = ?, descripcion = ?, creditos = ?, estado = ? 
+                WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
+            $datos['codigo'] ?? '',
             $datos['nombre'],
             $datos['descripcion'] ?? null,
-            $datos['estado'],
+            $datos['creditos'] ?? 1,
+            $datos['estado'] ?? 1,
             $id
         ]);
     }
 
     public function eliminar(int $id): bool
     {
-        $sql = "UPDATE materias SET estado = 'eliminado' WHERE id = ?";
+        $sql = "UPDATE materias SET estado = 0 WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
     }
 
     public function obtenerActivas(): array
     {
-        $sql = "SELECT * FROM materias WHERE estado = 'activo' ORDER BY nombre";
+        $sql = "SELECT * FROM materias WHERE estado = 1 ORDER BY nombre";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -76,7 +89,7 @@ class MateriaRepository
                 FROM materias m 
                 INNER JOIN asignaciones a ON m.id = a.materia_id 
                 INNER JOIN secciones s ON a.seccion_id = s.id 
-                WHERE s.grado_id = ? AND m.estado = 'activo' AND a.estado = 'activa'
+                WHERE s.grado_id = ? AND m.estado = 1 AND a.estado = 1
                 ORDER BY m.nombre";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$grado_id]);

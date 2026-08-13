@@ -2,7 +2,6 @@
 /**
  * Vista: Admin - Listado de Docentes
  */
-use Core\Security;
 
 $titulo = 'Gestión de Docentes';
 require_once __DIR__ . '/../../layouts/header.php';

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Src\Models\Repositories;
 
 use Src\Core\Database;
@@ -16,9 +14,24 @@ class DocenteRepository
         $this->db = Database::getInstance()->getConnection();
     }
 
+    /**
+     * Obtiene todos los docentes con detalles para la vista:
+     * - 'nombres' y 'apellidos' (alias de u.nombre, u.apellido)
+     * - 'correo' (alias de u.email)
+     * - 'activo' (alias de p.estado)
+     */
     public function obtenerTodos(): array
     {
-        $sql = "SELECT p.*, u.nombre, u.apellido, u.cedula, u.email 
+        $sql = "SELECT 
+                    p.id,
+                    u.cedula,
+                    u.nombre AS nombres,
+                    u.apellido AS apellidos,
+                    p.especialidad,
+                    p.titulo,
+                    p.fecha_ingreso,
+                    u.email AS correo,
+                    p.estado AS activo
                 FROM profesores p 
                 INNER JOIN usuarios u ON p.usuario_id = u.id 
                 WHERE p.estado = 1 

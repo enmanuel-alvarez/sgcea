@@ -121,4 +121,9 @@ class MateriaService
         $stmt = $db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+        public function obtenerTodas(): array
+    {
+        return $this->obtenerTodos();
+    }
 }

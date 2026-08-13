@@ -122,31 +122,43 @@ class CalificacionRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerRendimientoPorMateria(): array
+        public function obtenerRendimientoPorMateria(?int $materia_id = null): array
     {
         $sql = "SELECT m.nombre as materia, AVG(c.nota) as promedio 
                 FROM calificaciones c 
                 INNER JOIN planes_evaluacion pe ON c.plan_evaluacion_id = pe.id 
                 INNER JOIN asignaciones a ON pe.asignacion_id = a.id 
-                INNER JOIN materias m ON a.materia_id = m.id 
-                GROUP BY m.id, m.nombre 
-                ORDER BY promedio DESC";
-        $stmt = $this->db->query($sql);
+                INNER JOIN materias m ON a.materia_id = m.id";
+        $params = [];
+
+        if ($materia_id) {
+            $sql .= " WHERE m.id = ?";
+            $params[] = $materia_id;
+        }
+
+        $sql .= " GROUP BY m.id, m.nombre ORDER BY promedio DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerPromediosPorSeccion(int $seccion_id): array
+        public function obtenerPromediosPorSeccion(?int $seccion_id = null): array
     {
         $sql = "SELECT m.nombre as materia, AVG(c.nota) as promedio 
                 FROM calificaciones c 
                 INNER JOIN planes_evaluacion pe ON c.plan_evaluacion_id = pe.id 
                 INNER JOIN asignaciones a ON pe.asignacion_id = a.id 
-                INNER JOIN materias m ON a.materia_id = m.id 
-                WHERE a.seccion_id = ? 
-                GROUP BY m.id, m.nombre 
-                ORDER BY m.nombre";
+                INNER JOIN materias m ON a.materia_id = m.id";
+        $params = [];
+
+        if ($seccion_id) {
+            $sql .= " WHERE a.seccion_id = ?";
+            $params[] = $seccion_id;
+        }
+
+        $sql .= " GROUP BY m.id, m.nombre ORDER BY m.nombre";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$seccion_id]);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

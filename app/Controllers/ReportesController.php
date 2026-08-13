@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Src\Controllers;
 
 use Src\Core\Controller;
-
 use Src\Models\Services\DashboardService;
 use Src\Models\Services\EstudianteService;
 use Src\Models\Services\DocenteService;
 use Src\Models\Services\MateriaService;
 use Src\Models\Services\CalificacionService;
 use Src\Models\Services\AsistenciaService;
+use Src\Models\Services\SeccionService;
 
 class ReportesController extends Controller
 {
@@ -21,6 +21,7 @@ class ReportesController extends Controller
     private MateriaService $materiaService;
     private CalificacionService $calificacionService;
     private AsistenciaService $asistenciaService;
+    private SeccionService $seccionService;
 
     public function __construct()
     {
@@ -30,15 +31,13 @@ class ReportesController extends Controller
         $this->materiaService = new MateriaService();
         $this->calificacionService = new CalificacionService();
         $this->asistenciaService = new AsistenciaService();
+        $this->seccionService = new SeccionService();
     }
 
-    /**
-     * Página principal de reportes
-     */
     public function index(): void
     {
         $tipoReporte = $_GET['tipo'] ?? 'general';
-        
+
         $datos = [
             'tipoReporte' => $tipoReporte,
             'estadisticas' => null,
@@ -49,34 +48,31 @@ class ReportesController extends Controller
             case 'estudiantes':
                 $datos['tablaDatos'] = $this->estudianteService->obtenerTodosConDetalles();
                 break;
-            
+
             case 'docentes':
                 $datos['tablaDatos'] = $this->docenteService->obtenerTodosConDetalles();
                 break;
-            
+
             case 'materias':
                 $datos['tablaDatos'] = $this->materiaService->obtenerTodasConEstadisticas();
                 break;
-            
+
             case 'rendimiento_materia':
                 $idMateria = (int)($_GET['materia'] ?? 0);
-                if ($idMateria > 0) {
-                    $datos['tablaDatos'] = $this->calificacionService->obtenerRendimientoPorMateria($idMateria);
-                }
+                $datos['tablaDatos'] = $this->calificacionService->obtenerRendimientoPorMateria($idMateria);
                 break;
-            
+
             case 'asistencia_general':
                 $mes = $_GET['mes'] ?? date('m');
                 $ano = $_GET['ano'] ?? date('Y');
                 $datos['tablaDatos'] = $this->asistenciaService->obtenerResumenGeneral($mes, $ano);
                 break;
-            
+
             case 'promedios_por_seccion':
-                $datos['tablaDatos'] = $this->calificacionService->obtenerPromediosPorSeccion();
+                $datos['tablaDatos'] = $this->calificacionService->obtenerPromediosPorSeccion(null);
                 break;
-            
+
             default:
-                // Reporte general
                 $datos['estadisticas'] = $this->dashboardService->obtenerDatosAdmin();
                 break;
         }
@@ -84,22 +80,12 @@ class ReportesController extends Controller
         $this->render('reportes/index', $datos);
     }
 
-    /**
-     * Reporte de estudiantes por sección
-     */
     public function estudiantesPorSeccion(int $idSeccion): void
     {
         $estudiantes = $this->estudianteService->obtenerPorSeccion($idSeccion);
-        
-        $this->json([
-            'success' => true,
-            'data' => $estudiantes
-        ]);
+        $this->json(['success' => true, 'data' => $estudiantes]);
     }
 
-    /**
-     * Reporte de calificaciones por período
-     */
     public function calificacionesPorPeriodo(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -116,33 +102,26 @@ class ReportesController extends Controller
         }
 
         $calificaciones = $this->calificacionService->obtenerPorPeriodoYSeccion($periodo, $idSeccion);
-
-        $this->json([
-            'success' => true,
-            'data' => $calificaciones
-        ]);
+        $this->json(['success' => true, 'data' => $calificaciones]);
     }
 
-    /**
-     * Exportar reporte a CSV (básico)
-     */
     public function exportarCSV(string $tipo): void
     {
         $datos = [];
-        
+
         switch ($tipo) {
             case 'estudiantes':
                 $datos = $this->estudianteService->obtenerTodosConDetalles();
                 $nombreArchivo = 'estudiantes.csv';
                 $columnas = ['Cédula', 'Nombre', 'Apellido', 'Fecha Nacimiento', 'Género', 'Teléfono', 'Dirección'];
                 break;
-            
+
             case 'docentes':
                 $datos = $this->docenteService->obtenerTodosConDetalles();
                 $nombreArchivo = 'docentes.csv';
                 $columnas = ['Cédula', 'Nombre', 'Apellido', 'Especialidad', 'Teléfono', 'Email'];
                 break;
-            
+
             default:
                 $_SESSION['flash_error'] = 'Tipo de reporte no válido';
                 $this->redirigir('/reportes');
@@ -151,31 +130,27 @@ class ReportesController extends Controller
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
-        
+
         $output = fopen('php://output', 'w');
-        
-        // BOM para UTF-8
-        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-        
-        // Encabezados
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
         fputcsv($output, $columnas);
-        
-        // Datos
+
         foreach ($datos as $fila) {
-            fputcsv($output, array_values(array_intersect_key($fila, array_flip($columnas))));
+            $valores = [];
+            foreach ($columnas as $col) {
+                $valores[] = $fila[$col] ?? '';
+            }
+            fputcsv($output, $valores);
         }
-        
+
         fclose($output);
         exit;
     }
 
-    /**
-     * Reporte de rendimiento académico
-     */
     public function rendimiento(): void
     {
-        $secciones = $this->estudianteService->obtenerSecciones();
-        $materias = $this->materiaService->obtenerTodas();
+        $secciones = $this->seccionService->obtenerTodosConDetalles();
+        $materias = $this->materiaService->obtenerTodos();
 
         $this->render('reportes/rendimiento', [
             'titulo' => 'Reporte de Rendimiento Académico',
@@ -184,12 +159,9 @@ class ReportesController extends Controller
         ]);
     }
 
-    /**
-     * Reporte de asistencia
-     */
     public function asistencia(): void
     {
-        $secciones = $this->estudianteService->obtenerSecciones();
+        $secciones = $this->seccionService->obtenerTodosConDetalles();
 
         $this->render('reportes/asistencia', [
             'titulo' => 'Reporte de Asistencia',
@@ -197,9 +169,6 @@ class ReportesController extends Controller
         ]);
     }
 
-    /**
-     * API: Obtener datos de un estudiante por ID
-     */
     public function obtenerEstudiante(int $id): void
     {
         $estudiante = $this->estudianteService->obtenerPorId($id);

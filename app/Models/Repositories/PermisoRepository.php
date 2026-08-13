@@ -45,8 +45,8 @@ class PermisoRepository
     {
         $sql = "SELECT p.id, p.nombre, p.descripcion, p.modulo
                 FROM permisos p
-                INNER JOIN usuario_permisos up ON p.id = up.id_permiso
-                WHERE up.id_usuario = ?
+                INNER JOIN usuario_permisos up ON p.id = up.permiso_id
+                WHERE up.usuario_id = ?
                 ORDER BY p.modulo, p.nombre";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$usuarioId]);
@@ -57,8 +57,8 @@ class PermisoRepository
     {
         $sql = "SELECT COUNT(*) as total 
                 FROM usuario_permisos up
-                INNER JOIN permisos p ON up.id_permiso = p.id
-                WHERE up.id_usuario = ? AND p.nombre = ?";
+                INNER JOIN permisos p ON up.permiso_id = p.id
+                WHERE up.usuario_id = ? AND p.nombre = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$usuarioId, $permisoNombre]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -71,16 +71,16 @@ class PermisoRepository
             $this->db->beginTransaction();
 
             // Eliminar permisos actuales
-            $sqlDelete = "DELETE FROM usuario_permisos WHERE id_usuario = ?";
+            $sqlDelete = "DELETE FROM usuario_permisos WHERE usuario_id = ?";
             $stmtDelete = $this->db->prepare($sqlDelete);
             $stmtDelete->execute([$usuarioId]);
 
             // Insertar nuevos permisos
             if (!empty($permisoIds)) {
-                $sqlInsert = "INSERT INTO usuario_permisos (id_usuario, id_permiso) VALUES (?, ?)";
+                $sqlInsert = "INSERT INTO usuario_permisos (usuario_id, permiso_id) VALUES (?, ?)";
                 $stmtInsert = $this->db->prepare($sqlInsert);
                 foreach ($permisoIds as $permisoId) {
-                    $stmtInsert->execute([$usuarioId, $permisoId]);
+                    $stmtInsert->execute([$usuarioId, (int)$permisoId]);
                 }
             }
 

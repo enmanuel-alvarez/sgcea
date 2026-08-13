@@ -16,12 +16,44 @@ class EstudianteRepository
         $this->db = Database::getInstance()->getConnection();
     }
 
+    /**
+     * Obtiene todos los estudiantes con datos básicos (usuario)
+     */
     public function obtenerTodos(): array
     {
         $sql = "SELECT e.*, u.nombre, u.apellido, u.cedula, u.email 
                 FROM estudiantes e 
                 INNER JOIN usuarios u ON e.usuario_id = u.id 
                 WHERE e.estado = 1 
+                ORDER BY u.apellido, u.nombre";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtiene todos los estudiantes con detalles completos para la vista:
+     * - 'nombres' y 'apellidos' (alias de u.nombre, u.apellido)
+     * - 'grado_nombre' y 'seccion_nombre' desde inscripción activa
+     * - 'activo' (estado)
+     */
+    public function obtenerTodosConDetalles(): array
+    {
+        $sql = "SELECT 
+                    e.id,
+                    u.cedula,
+                    u.nombre AS nombres,
+                    u.apellido AS apellidos,
+                    e.fecha_nacimiento,
+                    e.genero,
+                    g.nombre AS grado_nombre,
+                    s.nombre AS seccion_nombre,
+                    e.estado AS activo
+                FROM estudiantes e
+                INNER JOIN usuarios u ON e.usuario_id = u.id
+                LEFT JOIN inscripciones i ON e.id = i.estudiante_id AND i.estado = 'activo'
+                LEFT JOIN secciones s ON i.seccion_id = s.id
+                LEFT JOIN grados g ON s.grado_id = g.id
+                WHERE e.estado = 1
                 ORDER BY u.apellido, u.nombre";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -97,7 +129,7 @@ class EstudianteRepository
 
     public function verificarCodigoUnico(string $codigo, ?int $excluir_id = null): bool
     {
-        // Código no existe en estudiantes, se omite o se puede adaptar a cédula en usuarios
+        // Código no existe en la tabla estudiantes; la unicidad está en usuarios.cedula
         return true;
     }
 
