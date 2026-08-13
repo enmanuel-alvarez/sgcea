@@ -63,7 +63,7 @@ return [
         // NUEVO: Ruta para descargar constancia
         '/estudiante/constancias/descargar/{id}' => ['EstudianteController@descargarConstancia', 'estudiante.constancias.ver'],
         '/estudiante/perfil' => ['EstudianteController@perfil', 'estudiante.perfil.ver'],
-        '/constancias/imprimir/{id}' => ['ConstanciaController@imprimir', null],
+        '/constancias/imprimir/{id}' => ['ConstanciaController@imprimir', 'estudiante.constancias.ver'],
 
         '/reportes' => ['ReportesController@index', 'reportes.ver'],
         '/reportes/rendimiento' => ['ReportesController@rendimiento', 'reportes.ver'],

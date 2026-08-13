@@ -12,10 +12,9 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
         <div class="alert alert-success alert-dismissible fade show"><?= htmlspecialchars($_SESSION['flash_success']) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
         <?php unset($_SESSION['flash_success']); ?>
     <?php endif; ?>
-    <div class="card shadow-sm">
-        <div class="card-body">
+    
             <div class="table-responsive">
-                <table id="tablaConstancias" class="table table-hover table-striped">
+                <table id="tablaConstancias" class="table table-striped table-sm">
                     <thead class="table-dark">
                         <tr><th>Estudiante</th><th>Tipo</th><th>Fecha Solicitud</th><th>Estado</th><th>Acciones</th></tr>
                     </thead>

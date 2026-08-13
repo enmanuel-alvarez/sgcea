@@ -28,11 +28,7 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
     <form method="POST" action="?route=admin/materias/guardar">
         <input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>">
         
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-book me-2"></i>Datos de la Materia</h5>
-            </div>
-            <div class="card-body">
+        <div class="mb-4">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="codigo" class="form-label">Código *</label>
@@ -70,7 +66,6 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
                         <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="500"></textarea>
                     </div>
                 </div>
-            </div>
         </div>
 
         <div class="d-flex justify-content-end gap-2">

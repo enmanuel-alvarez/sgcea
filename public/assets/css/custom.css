@@ -1,5 +1,6 @@
 /**
  * CSS personalizado — SGCEA (Bootstrap 5 Dashboard Template)
+ * Estilo limpio sin cards en tablas/formularios CRUD
  */
 
 :root {
@@ -42,7 +43,7 @@ body {
     display: flex;
     align-items: center;
     padding: .5rem 1rem;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
 .sidebar .nav-link:hover {
@@ -120,23 +121,6 @@ main {
 }
 
 /*
- * Cards
- */
-.card {
-    border: none;
-    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
-    transition: box-shadow 0.2s ease;
-}
-
-.card:hover {
-    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .1);
-}
-
-.card-header {
-    font-weight: 600;
-}
-
-/*
  * Tablas
  */
 .table th {
@@ -179,22 +163,18 @@ main {
 }
 
 /*
- * Stat cards (Dashboard)
+ * Stat cards (Solo para Dashboard)
  */
 .stat-card {
-    border-left: 4px solid;
-    transition: transform 0.15s ease;
+    border: none;
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .1);
 }
-
-.stat-card.border-primary { border-left-color: #0d6efd; }
-.stat-card.border-success { border-left-color: #198754; }
-.stat-card.border-info { border-left-color: #0dcaf0; }
-.stat-card.border-warning { border-left-color: #ffc107; }
-.stat-card.border-danger { border-left-color: #dc3545; }
 
 /*
  * DataTables personalizado

@@ -291,7 +291,7 @@ class DocenteController extends Controller
         $actividades = $this->planEvaluacionService->obtenerPorAsignacion($idAsignacion);
         $totalPonderacion = array_sum(array_column($actividades, 'ponderacion'));
 
-        $this->render('docente/calificaciones/plan_evaluacion', [
+        $this->render('docente/planevaluacion', [
             'asignacion' => $asignacion,
             'actividades' => $actividades,
             'totalPonderacion' => $totalPonderacion

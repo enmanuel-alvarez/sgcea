@@ -7,10 +7,9 @@ require_once __DIR__ . '/../../../layouts/sidebar.php';
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Gestión de Calificaciones</h1>
 </div>
-<div class="card shadow-sm">
-        <div class="card-body">
+
             <div class="table-responsive">
-                <table id="tablaAsignaciones" class="table table-hover">
+                <table id="tablaAsignaciones" class="table table-striped table-sm">
                     <thead class="table-dark"><tr><th>Materia</th><th>Grado</th><th>Sección</th><th>Año</th><th>Acciones</th></tr></thead>
                     <tbody>
                         <?php foreach ($asignaciones as $asn): ?>

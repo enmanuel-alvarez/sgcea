@@ -13,9 +13,7 @@ require_once __DIR__ . '/../layouts/sidebar.php';
     <?php endif; ?>
     <form method="POST" action="?route=configuracion/guardar">
         <input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="bi bi-building me-2"></i>Datos Institucionales</h5></div>
-            <div class="card-body">
+        <div class="mb-4">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="nombre_sistema" class="form-label">Nombre del Sistema *</label>
@@ -38,7 +36,6 @@ require_once __DIR__ . '/../layouts/sidebar.php';
                         <input type="number" class="form-control" id="nota_maxima" name="nota_maxima" value="<?= htmlspecialchars($config['nota_maxima'] ?? 100) ?>" min="1" max="100" required>
                     </div>
                 </div>
-            </div>
         </div>
         <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Guardar Configuración</button>
     </form>

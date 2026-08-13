@@ -13,8 +13,7 @@ require_once __DIR__ . '/../../../layouts/sidebar.php';
     <form method="POST" action="?route=docente/calificaciones/guardar">
         <input type="hidden" name="csrf_token" value="<?= Security::generarTokenCSRF() ?>">
         <input type="hidden" name="id_asignacion" value="<?= $asignacion['id'] ?>">
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
+        
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead class="table-light">

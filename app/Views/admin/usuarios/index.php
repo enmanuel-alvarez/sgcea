@@ -7,16 +7,15 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Gestión de Usuarios</h1>
     <?php if (in_array('admin_crear_usuario', $_SESSION['usuario_permisos'] ?? [])): ?>
-        <a href="/admin/usuarios/crear" class="btn btn-primary btn-sm">
+        <a href="<?= url(\'/admin/usuarios/crear\') ?>" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-circle"></i> Nuevo Usuario
         </a>
     <?php endif; ?>
 </div>
 
-    <div class="card shadow">
-        <div class="card-body">
+    
             <div class="table-responsive">
-                <table class="table table-hover" id="tablaUsuarios">
+                <table class="table table-striped table-sm" id="tablaUsuarios">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -48,12 +47,12 @@
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <?php if (in_array('admin_editar_usuario', $_SESSION['usuario_permisos'] ?? [])): ?>
-                                            <a href="/admin/usuarios/editar/<?= $usuario['id'] ?>" class="btn btn-info">
+                                            <a href="<?= url(\'/admin/usuarios/editar/<?= $usuario['id'] ?>\') ?>" class="btn btn-info">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         <?php endif; ?>
                                         <?php if (in_array('admin_asignar_permisos', $_SESSION['usuario_permisos'] ?? [])): ?>
-                                            <a href="/admin/permisos/asignar/<?= $usuario['id'] ?>" class="btn btn-warning">
+                                            <a href="<?= url(\'/admin/permisos/asignar/<?= $usuario['id'] ?>\') ?>" class="btn btn-warning">
                                                 <i class="bi bi-key"></i>
                                             </a>
                                         <?php endif; ?>
@@ -72,7 +71,7 @@
         </div>
     </div>
 
-<form id="formEliminar" method="POST" action="/admin/usuarios/eliminar">
+<form id="formEliminar" method="POST" action="<?= url(\'/admin/usuarios/eliminar\') ?>">
     <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
     <input type="hidden" name="id_usuario" id="idUsuarioEliminar">
 </form>

@@ -29,86 +29,62 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
                         <span>Gestión</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
-                        <?php if (in_array('admin.usuarios.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/usuarios') !== false ? 'active' : '' ?>" href="<?= url('/admin/usuarios') ?>">
                                 <i class="bi bi-people me-2"></i> Usuarios
                             </a>
                         </li>
-                        <?php endif; ?>
                         
-                        <?php if (in_array('admin.estudiantes.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/estudiantes') !== false ? 'active' : '' ?>" href="<?= url('/admin/estudiantes') ?>">
                                 <i class="bi bi-person-badge me-2"></i> Estudiantes
                             </a>
                         </li>
-                        <?php endif; ?>
                         
-                        <?php if (in_array('admin.docentes.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/docentes') !== false ? 'active' : '' ?>" href="<?= url('/admin/docentes') ?>">
                                 <i class="bi bi-person-workspace me-2"></i> Docentes
                             </a>
                         </li>
-                        <?php endif; ?>
                         
-                        <?php if (in_array('admin.materias.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/materias') !== false ? 'active' : '' ?>" href="<?= url('/admin/materias') ?>">
                                 <i class="bi bi-book me-2"></i> Materias
                             </a>
                         </li>
-                        <?php endif; ?>
                         
-                        <?php if (in_array('admin.secciones.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/secciones') !== false ? 'active' : '' ?>" href="<?= url('/admin/secciones') ?>">
                                 <i class="bi bi-door-open me-2"></i> Secciones
                             </a>
                         </li>
-                        <?php endif; ?>
                         
-                        <?php if (in_array('admin.asignaciones.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/asignaciones') !== false ? 'active' : '' ?>" href="<?= url('/admin/asignaciones') ?>">
                                 <i class="bi bi-diagram-3 me-2"></i> Asignaciones
                             </a>
                         </li>
-                        <?php endif; ?>
 
-                        <?php if (in_array('admin.constancias.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/constancias') !== false ? 'active' : '' ?>" href="<?= url('/admin/constancias') ?>">
                                 <i class="bi bi-file-earmark-text me-2"></i> Constancias
                             </a>
                         </li>
-                        <?php endif; ?>
                     </ul>
                     
                     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                         <span>Sistema</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
-                        <?php if (in_array('admin.configuracion.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/admin/configuracion') !== false || strpos($currentUri, '/configuracion') !== false ? 'active' : '' ?>" href="<?= url('/admin/configuracion') ?>">
                                 <i class="bi bi-gear me-2"></i> Configuración
                             </a>
                         </li>
-                        <?php endif; ?>
                         
-                        <?php if (in_array('reportes.ver', $permisos_sesion) || $tipoUsuario === 'admin'): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/reportes') !== false ? 'active' : '' ?>" href="<?= url('/reportes') ?>">
                                 <i class="bi bi-bar-chart-line me-2"></i> Reportes
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/permisos') !== false ? 'active' : '' ?>" href="<?= url('/admin/permisos') ?>">
-                                <i class="bi bi-shield-lock me-2"></i> Permisos
                             </a>
                         </li>
                     </ul>
@@ -131,7 +107,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
                         <span>Académico</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
-                        <?php if (in_array('docente.calificaciones.ver', $permisos_sesion) || $tipoUsuario === 'docente'): ?>
+                        <?php if (in_array('docente.calificaciones.ver', $permisos_sesion)): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/docente/calificaciones') !== false ? 'active' : '' ?>" href="<?= url('/docente/calificaciones') ?>">
                                 <i class="bi bi-journal-check me-2"></i> Calificaciones
@@ -139,7 +115,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
                         </li>
                         <?php endif; ?>
                         
-                        <?php if (in_array('docente.asistencia.ver', $permisos_sesion) || $tipoUsuario === 'docente'): ?>
+                        <?php if (in_array('docente.asistencia.ver', $permisos_sesion)): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/docente/asistencia') !== false ? 'active' : '' ?>" href="<?= url('/docente/asistencia') ?>">
                                 <i class="bi bi-calendar-check me-2"></i> Asistencia
@@ -166,7 +142,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
                         <span>Académico</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
-                        <?php if (in_array('estudiante.boletin.ver', $permisos_sesion) || $tipoUsuario === 'estudiante'): ?>
+                        <?php if (in_array('estudiante.boletin.ver', $permisos_sesion)): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/estudiante/boletin') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/boletin') ?>">
                                 <i class="bi bi-file-earmark-bar-graph me-2"></i> Boletín
@@ -174,7 +150,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
                         </li>
                         <?php endif; ?>
                         
-                        <?php if (in_array('estudiante.asistencia.ver', $permisos_sesion) || $tipoUsuario === 'estudiante'): ?>
+                        <?php if (in_array('estudiante.asistencia.ver', $permisos_sesion)): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/estudiante/asistencia') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/asistencia') ?>">
                                 <i class="bi bi-calendar-check me-2"></i> Asistencia
@@ -182,7 +158,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
                         </li>
                         <?php endif; ?>
                         
-                        <?php if (in_array('estudiante.constancias.solicitar', $permisos_sesion) || $tipoUsuario === 'estudiante'): ?>
+                        <?php if (in_array('estudiante.constancias.solicitar', $permisos_sesion)): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($currentUri, '/estudiante/constancias') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/constancias/solicitar') ?>">
                                 <i class="bi bi-file-earmark-text me-2"></i> Constancias

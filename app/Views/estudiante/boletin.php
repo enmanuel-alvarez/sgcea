@@ -12,21 +12,14 @@
 
     
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Información del Estudiante</h6>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <p><strong>Estudiante:</strong> <?= e($estudiante['nombres'] ?? '') ?> <?= e($estudiante['apellidos'] ?? '') ?></p>
+            <p><strong>Cédula:</strong> <?= e($estudiante['cedula'] ?? '') ?></p>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Estudiante:</strong> <?= e($estudiante['nombres'] ?? '') ?> <?= e($estudiante['apellidos'] ?? '') ?></p>
-                    <p><strong>Cédula:</strong> <?= e($estudiante['cedula'] ?? '') ?></p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Grado:</strong> <?= e($inscripcion['grado'] ?? 'N/A') ?></p>
-                    <p><strong>Sección:</strong> <?= e($inscripcion['seccion'] ?? 'N/A') ?></p>
-                </div>
-            </div>
+        <div class="col-md-6">
+            <p><strong>Grado:</strong> <?= e($inscripcion['grado'] ?? 'N/A') ?></p>
+            <p><strong>Sección:</strong> <?= e($inscripcion['seccion'] ?? 'N/A') ?></p>
         </div>
     </div>
 

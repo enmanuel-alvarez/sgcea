@@ -11,7 +11,7 @@
     <!-- Tarjetas de estadísticas -->
     <div class="row">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card bg-primary text-white h-100">
+            <div class="card stat-card bg-primary text-white h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -25,7 +25,7 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card bg-success text-white h-100">
+            <div class="card stat-card bg-success text-white h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -39,7 +39,7 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card bg-info text-white h-100">
+            <div class="card stat-card bg-info text-white h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -53,7 +53,7 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card bg-warning text-dark h-100">
+            <div class="card stat-card bg-warning text-dark h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -70,11 +70,6 @@
     <!-- Gráficos y tablas recientes -->
     <div class="row">
         <div class="col-lg-6 mb-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Últimos Estudiantes Registrados</h6>
-                </div>
-                <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <thead>
@@ -99,16 +94,9 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
         </div>
 
         <div class="col-lg-6 mb-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-success">Solicitudes de Constancias</h6>
-                </div>
-                <div class="card-body">
                     <div class="row text-center">
                         <div class="col-4">
                             <h4 class="text-warning"><?= $estadisticas['constancias_pendientes'] ?? 0 ?></h4>
@@ -123,7 +111,5 @@
                             <small>Rechazadas</small>
                         </div>
                     </div>
-                </div>
-            </div>
         </div>
     </div>

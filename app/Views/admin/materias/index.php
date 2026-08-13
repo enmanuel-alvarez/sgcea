@@ -34,10 +34,9 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
         <?php unset($_SESSION['flash_error']); ?>
     <?php endif; ?>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    
             <div class="table-responsive">
-                <table id="tablaMaterias" class="table table-hover table-striped">
+                <table id="tablaMaterias" class="table table-striped table-sm">
                     <thead class="table-dark">
                         <tr>
                             <th>Código</th>

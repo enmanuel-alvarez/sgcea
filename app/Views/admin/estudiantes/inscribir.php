@@ -7,21 +7,12 @@
 
     
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Datos del Estudiante</h6>
-        </div>
-        <div class="card-body">
+    <div class="mb-4">
             <p><strong>Nombre:</strong> <?= e($estudiante['nombre'] ?? '') ?> <?= e($estudiante['apellido'] ?? '') ?></p>
             <p><strong>Cédula:</strong> <?= e($estudiante['cedula'] ?? '') ?></p>
-        </div>
     </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Nueva Inscripción</h6>
-        </div>
-        <div class="card-body">
+    <div class="mb-4">
             <form action="<?= url('/admin/estudiantes/inscribir') ?>" method="POST">
                 <?= csrf_field() ?>
                 <input type="hidden" name="estudiante_id" value="<?= e($estudiante['id'] ?? '') ?>">
@@ -59,7 +50,6 @@
                     </button>
                 </div>
             </form>
-        </div>
     </div>
 
 <script>

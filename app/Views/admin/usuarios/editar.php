@@ -8,15 +8,14 @@ $editar = isset($usuario);
 
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2"><?= $editar ? 'Editar' : 'Nuevo' ?> Usuario</h1>
-        <a href="/admin/usuarios" class="btn btn-secondary btn-sm">
+        <a href="<?= url(\'/admin/usuarios\') ?>" class="btn btn-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Volver
         </a>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-body">
+            
                     <form method="POST" action="<?= $editar ? '/admin/usuarios/actualizar/' . $usuario['id'] : '/admin/usuarios/guardar' ?>">
                         <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
 
@@ -95,7 +94,7 @@ $editar = isset($usuario);
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="/admin/usuarios" class="btn btn-secondary">Cancelar</a>
+                            <a href="<?= url(\'/admin/usuarios\') ?>" class="btn btn-secondary">Cancelar</a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-save"></i> <?= $editar ? 'Actualizar' : 'Crear' ?> Usuario
                             </button>
@@ -106,11 +105,6 @@ $editar = isset($usuario);
         </div>
 
         <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header bg-info text-white">
-                    <h6 class="m-0"><i class="bi bi-info-circle"></i> Información</h6>
-                </div>
-                <div class="card-body">
                     <p class="mb-2"><strong>Nota:</strong></p>
                     <ul class="small mb-0">
                         <li>El email debe ser único en el sistema.</li>
@@ -118,8 +112,6 @@ $editar = isset($usuario);
                         <li>Después de crear el usuario, puede asignarle permisos específicos desde la sección de permisos.</li>
                         <li>Los administradores tienen acceso completo por defecto.</li>
                     </ul>
-                </div>
-            </div>
         </div>
     </div>
 
