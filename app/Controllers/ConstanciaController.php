@@ -176,8 +176,10 @@ class ConstanciaController extends Controller
 
         $inscripcion = $this->constanciaService->obtenerInscripcionPorEstudiante((int)$estudianteId);
         
-        // Obtener configuraciones del sistema
+        // Obtener configuraciones del sistema y datos de la institución
         $configuraciones = $this->constanciaService->obtenerConfiguraciones();
+        $institucionRepo = new \Src\Models\Repositories\InstitucionRepository();
+        $institucion = $institucionRepo->obtenerPorId(1) ?? [];
 
         // Generar contenido según el tipo de constancia
         $contenido = $this->generarContenidoConstancia($solicitud, $estudiante, $inscripcion, $configuraciones);
@@ -188,8 +190,8 @@ class ConstanciaController extends Controller
             'inscripcion' => $inscripcion,
             'contenido' => $contenido,
             'configuraciones' => $configuraciones,
-            'layout_print' => true
-        ], true);
+            'institucion' => $institucion,
+        ], false);
     }
 
     /**

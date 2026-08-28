@@ -42,7 +42,7 @@
                                     </td>
                                     <td>
                                         <?php if ($s['estado'] == 'aprobada'): ?>
-                                            <a href="<?= url('/constancias/imprimir/' . $s['id']) ?>" class="btn btn-sm btn-primary" target="_blank" title="Imprimir">
+                                            <a href="<?= url('/constancias/imprimir/' . $s['id']) ?>" class="btn btn-sm btn-primary" title="Imprimir">
                                                 <i class="bi bi-printer"></i>
                                             </a>
                                         <?php else: ?>

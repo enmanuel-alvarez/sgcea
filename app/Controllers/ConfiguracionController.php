@@ -36,6 +36,17 @@ class ConfiguracionController extends Controller
             $config[$c['clave']] = $c['valor'];
         }
 
+        $instRepo = new \Src\Models\Repositories\InstitucionRepository();
+        $institucion = $instRepo->obtenerPorId(1) ?? [];
+        if (!empty($institucion)) {
+            $config['codigo_dependencia'] = $institucion['codigo_dependencia'] ?? ($config['codigo_dependencia'] ?? '');
+            $config['direccion'] = $institucion['direccion'] ?? ($config['direccion'] ?? '');
+            $config['telefono'] = $institucion['telefono'] ?? ($config['telefono'] ?? '');
+            $config['email'] = $institucion['email'] ?? ($config['email'] ?? '');
+            $config['director_nombre'] = $institucion['director_nombre'] ?? ($config['director_nombre'] ?? '');
+            $config['director_cedula'] = $institucion['director_cedula'] ?? ($config['director_cedula'] ?? '');
+        }
+
         $this->render('configuracion/index', ['config' => $config]);
     }
 
@@ -58,6 +69,12 @@ class ConfiguracionController extends Controller
         $datos = [
             'nombre_sistema' => trim($_POST['nombre_sistema'] ?? ''),
             'nombre_institucion' => trim($_POST['nombre_institucion'] ?? ''),
+            'codigo_dependencia' => trim($_POST['codigo_dependencia'] ?? ''),
+            'direccion' => trim($_POST['direccion'] ?? ''),
+            'telefono' => trim($_POST['telefono'] ?? ''),
+            'email' => trim($_POST['email'] ?? ''),
+            'director_nombre' => trim($_POST['director_nombre'] ?? ''),
+            'director_cedula' => trim($_POST['director_cedula'] ?? ''),
             'ano_academico_actual' => trim($_POST['ano_academico_actual'] ?? '2024-2025'),
             'nota_minima_aprobacion' => (float)($_POST['nota_minima_aprobacion'] ?? 10),
             'max_solicitudes_constancia' => (int)($_POST['max_solicitudes_constancia'] ?? 5)
@@ -74,12 +91,30 @@ class ConfiguracionController extends Controller
                 $this->configuracionService->actualizar($clave, (string)$valor);
             }
 
+            // Sincronizar en la tabla instituciones (ID 1)
+            $instRepo = new \Src\Models\Repositories\InstitucionRepository();
+            $instActual = $instRepo->obtenerPorId(1);
+            $datosInst = [
+                'nombre' => $datos['nombre_institucion'],
+                'codigo_dependencia' => $datos['codigo_dependencia'],
+                'direccion' => $datos['direccion'],
+                'telefono' => $datos['telefono'],
+                'email' => $datos['email'],
+                'director_nombre' => $datos['director_nombre'],
+                'director_cedula' => $datos['director_cedula']
+            ];
+            if ($instActual) {
+                $instRepo->actualizar(1, $datosInst);
+            } else {
+                $instRepo->crear($datosInst);
+            }
+
             $this->auditoriaService->registrar(
                 $_SESSION['usuario_id'] ?? 0,
                 'ACTUALIZAR_CONFIGURACION',
                 'configuraciones',
                 null,
-                'Configuración general del sistema actualizada'
+                'Configuración general e institucional del sistema actualizada'
             );
 
             $_SESSION['flash_success'] = 'Configuración guardada exitosamente';

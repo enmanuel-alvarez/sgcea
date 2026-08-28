@@ -34,26 +34,40 @@ class InstitucionRepository
 
     public function crear(array $datos): int
     {
-        $sql = "INSERT INTO instituciones (nombre, direccion, telefono, email) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO instituciones (nombre, codigo_dependencia, direccion, telefono, email, director_nombre, director_cedula) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $datos['nombre'],
+            $datos['codigo_dependencia'] ?? null,
             $datos['direccion'] ?? null,
             $datos['telefono'] ?? null,
-            $datos['email'] ?? null
+            $datos['email'] ?? null,
+            $datos['director_nombre'] ?? null,
+            $datos['director_cedula'] ?? null
         ]);
         return (int) $this->db->lastInsertId();
     }
 
     public function actualizar(int $id, array $datos): bool
     {
-        $sql = "UPDATE instituciones SET nombre = ?, direccion = ?, telefono = ?, email = ? WHERE id = ?";
+        $sql = "UPDATE instituciones 
+                SET nombre = ?, 
+                    codigo_dependencia = ?, 
+                    direccion = ?, 
+                    telefono = ?, 
+                    email = ?, 
+                    director_nombre = ?, 
+                    director_cedula = ? 
+                WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $datos['nombre'],
+            $datos['codigo_dependencia'] ?? null,
             $datos['direccion'] ?? null,
             $datos['telefono'] ?? null,
             $datos['email'] ?? null,
+            $datos['director_nombre'] ?? null,
+            $datos['director_cedula'] ?? null,
             $id
         ]);
     }

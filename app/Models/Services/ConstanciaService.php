@@ -26,9 +26,51 @@ class ConstanciaService
         return $this->constanciaRepo->obtenerTodos();
     }
 
+    public function obtenerTodas(?string $estado = null): array
+    {
+        if ($estado && $estado !== 'todas') {
+            $todas = $this->constanciaRepo->obtenerTodos();
+            return array_values(array_filter($todas, fn($item) => ($item['estado'] ?? '') === $estado));
+        }
+        return $this->constanciaRepo->obtenerTodos();
+    }
+
     public function obtenerTodos(): array
     {
         return $this->constanciaRepo->obtenerTodos();
+    }
+
+    public function obtenerInscripcionPorEstudiante(int $estudianteId): ?array
+    {
+        $inscripcionRepo = new \Src\Models\Repositories\InscripcionRepository();
+        $inscripcion = $inscripcionRepo->obtenerInscripcionActivaPorEstudiante($estudianteId);
+        if (!$inscripcion) {
+            return null;
+        }
+
+        $seccionRepo = new \Src\Models\Repositories\SeccionRepository();
+        $seccion = $seccionRepo->obtenerPorId((int)$inscripcion['seccion_id']);
+        if ($seccion) {
+            $inscripcion['seccion_nombre'] = $seccion['nombre'] ?? '';
+            $gradoRepo = new \Src\Models\Repositories\GradoRepository();
+            $grado = $gradoRepo->obtenerPorId((int)$seccion['grado_id']);
+            $inscripcion['grado_nombre'] = $grado['nombre'] ?? '';
+        }
+
+        return $inscripcion;
+    }
+
+    public function obtenerConfiguraciones(): array
+    {
+        $configRepo = new \Src\Models\Repositories\ConfiguracionRepository();
+        $configs = $configRepo->obtenerTodos();
+        $resultado = [];
+        foreach ($configs as $c) {
+            if (isset($c['clave'])) {
+                $resultado[$c['clave']] = $c['valor'] ?? '';
+            }
+        }
+        return $resultado;
     }
 
     public function obtenerPorId(int $id): ?array

@@ -11,7 +11,7 @@ require_once __DIR__ . '/../layouts/sidebar.php';
 <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
     <div>
         <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Configuración General del Sistema</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ajustes institucionales, escala de calificaciones y parámetros globales.</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ajustes institucionales, RIF, ubicación, autoridad escolar y parámetros globales.</p>
     </div>
 </div>
 
@@ -22,7 +22,7 @@ require_once __DIR__ . '/../layouts/sidebar.php';
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 sm:p-8 space-y-6">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2 border-b border-slate-100 dark:border-slate-700/50 pb-3">
             <i class="bi bi-building text-blue-500"></i>
-            <span>Identidad Institucional</span>
+            <span>Identidad y Datos Institucionales</span>
         </h3>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -34,7 +34,43 @@ require_once __DIR__ . '/../layouts/sidebar.php';
 
             <div>
                 <label for="nombre_institucion" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Nombre de la Institución *</label>
-                <input type="text" id="nombre_institucion" name="nombre_institucion" value="<?= htmlspecialchars($config['nombre_institucion'] ?? 'Institución Educativa Demo') ?>" required
+                <input type="text" id="nombre_institucion" name="nombre_institucion" value="<?= htmlspecialchars($config['nombre_institucion'] ?? 'Unidad Educativa SGCEA') ?>" required
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+
+            <div>
+                <label for="codigo_dependencia" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Código / RIF Institucional</label>
+                <input type="text" id="codigo_dependencia" name="codigo_dependencia" value="<?= htmlspecialchars($config['codigo_dependencia'] ?? 'J-12345678-0') ?>" placeholder="Ej: J-12345678-0 / DEP-001"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+
+            <div>
+                <label for="telefono" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Teléfono Institucional</label>
+                <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($config['telefono'] ?? '0212-5550000') ?>" placeholder="Ej: 0212-5550000"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+
+            <div>
+                <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Correo Electrónico Institucional</label>
+                <input type="email" id="email" name="email" value="<?= htmlspecialchars($config['email'] ?? 'contacto@sgcea.edu') ?>" placeholder="Ej: contacto@sgcea.edu"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+
+            <div>
+                <label for="direccion" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Ubicación / Dirección Física</label>
+                <input type="text" id="direccion" name="direccion" value="<?= htmlspecialchars($config['direccion'] ?? 'Av. Principal, Sector Centro') ?>" placeholder="Ej: Av. Principal, Sector Centro"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+
+            <div>
+                <label for="director_nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Nombre del Director(a) / Autoridad</label>
+                <input type="text" id="director_nombre" name="director_nombre" value="<?= htmlspecialchars($config['director_nombre'] ?? 'Prof. Director General') ?>" placeholder="Ej: Prof. Director General"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+
+            <div>
+                <label for="director_cedula" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Cédula del Director(a)</label>
+                <input type="text" id="director_cedula" name="director_cedula" value="<?= htmlspecialchars($config['director_cedula'] ?? '12345678') ?>" placeholder="Ej: 12345678"
                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </div>
         </div>

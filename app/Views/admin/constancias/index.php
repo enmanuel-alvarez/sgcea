@@ -63,7 +63,7 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             <?php elseif ($sol['estado'] === 'aprobada'): ?>
-                                <a href="<?= url('/constancias/imprimir/' . $sol['id']) ?>" target="_blank" class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors" title="Imprimir / PDF">
+                                <a href="<?= url('/constancias/imprimir/' . $sol['id']) ?>" class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors" title="Imprimir / PDF">
                                     <i class="bi bi-printer"></i>
                                 </a>
                             <?php endif; ?>
