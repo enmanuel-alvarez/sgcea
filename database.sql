@@ -344,6 +344,10 @@ INSERT INTO `permisos` (`nombre`, `descripcion`, `modulo`) VALUES
 ('admin.permisos.asignar', 'Asignar permisos a usuarios', 'admin'),
 ('admin.configuracion.ver', 'Ver configuración del sistema', 'admin'),
 ('admin.configuracion.editar', 'Editar configuración', 'admin'),
+('admin.configuracion.reiniciar', 'Reiniciar datos del sistema (Zona de Peligro)', 'admin'),
+('admin.backup.ver', 'Acceso al módulo de respaldo (Importar/Exportar)', 'admin'),
+('admin.backup.exportar', 'Exportar datos del sistema en JSON', 'admin'),
+('admin.backup.importar', 'Importar datos al sistema desde JSON', 'admin'),
 -- Módulo Docente
 ('docente.dashboard', 'Acceso al dashboard de docente', 'docente'),
 ('docente.calificaciones.ver', 'Ver calificaciones de sus asignaciones', 'docente'),

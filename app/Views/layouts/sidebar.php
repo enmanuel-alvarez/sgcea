@@ -1,186 +1,183 @@
 <?php
 /**
- * Layout - Sidebar (Bootstrap 5 Dashboard Template)
- * Sidebar dinámico según permisos y tipo de usuario
+ * Layout - Sidebar (Tailwind CSS v3)
+ * Menú lateral dinámico de navegación operacional
  */
 $tipoUsuario = $_SESSION['usuario_tipo'] ?? '';
 $permisos_sesion = $_SESSION['usuario_permisos'] ?? [];
 $currentUri = $_SERVER['REQUEST_URI'] ?? '';
+
+// Helper para verificar permiso individual
+$tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
+    if ($tipoUsuario === 'admin') return true; // Superadmin
+    return in_array($permiso, $permisos_sesion);
+};
 ?>
 
-            <!-- SIDEBAR -->
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                <div class="position-sticky pt-3">
-                    
-                    <?php if ($tipoUsuario === 'admin'): ?>
-                    <!-- ═══ Menú Administrador ═══ -->
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted">
-                        <span>Principal</span>
-                    </h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentUri === '/admin' || $currentUri === '/admin/' ? 'active' : '' ?>" href="<?= url('/admin') ?>">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-                    </ul>
+<!-- SIDEBAR BACKDROP FOR MOBILE -->
+<div id="mobileSidebarBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
 
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Gestión</span>
-                    </h6>
-                    <ul class="nav flex-column mb-2">
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/usuarios') !== false ? 'active' : '' ?>" href="<?= url('/admin/usuarios') ?>">
-                                <i class="bi bi-people me-2"></i> Usuarios
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/estudiantes') !== false ? 'active' : '' ?>" href="<?= url('/admin/estudiantes') ?>">
-                                <i class="bi bi-person-badge me-2"></i> Estudiantes
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/docentes') !== false ? 'active' : '' ?>" href="<?= url('/admin/docentes') ?>">
-                                <i class="bi bi-person-workspace me-2"></i> Docentes
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/materias') !== false ? 'active' : '' ?>" href="<?= url('/admin/materias') ?>">
-                                <i class="bi bi-book me-2"></i> Materias
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/secciones') !== false ? 'active' : '' ?>" href="<?= url('/admin/secciones') ?>">
-                                <i class="bi bi-door-open me-2"></i> Secciones
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/asignaciones') !== false ? 'active' : '' ?>" href="<?= url('/admin/asignaciones') ?>">
-                                <i class="bi bi-diagram-3 me-2"></i> Asignaciones
-                            </a>
-                        </li>
+<!-- SIDEBAR NAVIGATION -->
+<aside id="sidebarMenu" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700/80 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out shrink-0 overflow-y-auto">
+    <div class="p-4 space-y-6 flex-1">
+        
+        <?php if ($tipoUsuario === 'admin'): ?>
+        <!-- ═══ Menú Administrador ═══ -->
+        <div>
+            <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Principal</h3>
+            <nav class="space-y-1">
+                <?php if ($tienePermiso('admin.dashboard')): ?>
+                <?php $isActive = $currentUri === '/admin' || $currentUri === '/admin/' || $currentUri === '/sgcea/public/admin'; ?>
+                <a href="<?= url('/admin') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isActive ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-speedometer2 text-lg"></i>
+                    <span>Dashboard</span>
+                </a>
+                <?php endif; ?>
 
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/constancias') !== false ? 'active' : '' ?>" href="<?= url('/admin/constancias') ?>">
-                                <i class="bi bi-file-earmark-text me-2"></i> Constancias
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Sistema</span>
-                    </h6>
-                    <ul class="nav flex-column mb-2">
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/admin/configuracion') !== false || strpos($currentUri, '/configuracion') !== false ? 'active' : '' ?>" href="<?= url('/admin/configuracion') ?>">
-                                <i class="bi bi-gear me-2"></i> Configuración
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/reportes') !== false ? 'active' : '' ?>" href="<?= url('/reportes') ?>">
-                                <i class="bi bi-bar-chart-line me-2"></i> Reportes
-                            </a>
-                        </li>
-                    </ul>
-                    <?php endif; ?>
-                    
-                    <?php if ($tipoUsuario === 'docente'): ?>
-                    <!-- ═══ Menú Docente ═══ -->
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted">
-                        <span>Principal</span>
-                    </h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentUri === '/docente' || $currentUri === '/docente/' ? 'active' : '' ?>" href="<?= url('/docente') ?>">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Académico</span>
-                    </h6>
-                    <ul class="nav flex-column mb-2">
-                        <?php if (in_array('docente.calificaciones.ver', $permisos_sesion)): ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/docente/calificaciones') !== false ? 'active' : '' ?>" href="<?= url('/docente/calificaciones') ?>">
-                                <i class="bi bi-journal-check me-2"></i> Calificaciones
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        
-                        <?php if (in_array('docente.asistencia.ver', $permisos_sesion)): ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/docente/asistencia') !== false ? 'active' : '' ?>" href="<?= url('/docente/asistencia') ?>">
-                                <i class="bi bi-calendar-check me-2"></i> Asistencia
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                    </ul>
-                    <?php endif; ?>
-                    
-                    <?php if ($tipoUsuario === 'estudiante'): ?>
-                    <!-- ═══ Menú Estudiante ═══ -->
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted">
-                        <span>Principal</span>
-                    </h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentUri === '/estudiante' || $currentUri === '/estudiante/' ? 'active' : '' ?>" href="<?= url('/estudiante') ?>">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Académico</span>
-                    </h6>
-                    <ul class="nav flex-column mb-2">
-                        <?php if (in_array('estudiante.boletin.ver', $permisos_sesion)): ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/estudiante/boletin') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/boletin') ?>">
-                                <i class="bi bi-file-earmark-bar-graph me-2"></i> Boletín
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        
-                        <?php if (in_array('estudiante.asistencia.ver', $permisos_sesion)): ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/estudiante/asistencia') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/asistencia') ?>">
-                                <i class="bi bi-calendar-check me-2"></i> Asistencia
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        
-                        <?php if (in_array('estudiante.constancias.solicitar', $permisos_sesion)): ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/estudiante/constancias') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/constancias/solicitar') ?>">
-                                <i class="bi bi-file-earmark-text me-2"></i> Constancias
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                    </ul>
-                    
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Mi Cuenta</span>
-                    </h6>
-                    <ul class="nav flex-column mb-2">
-                        <li class="nav-item">
-                            <a class="nav-link <?= strpos($currentUri, '/estudiante/perfil') !== false ? 'active' : '' ?>" href="<?= url('/estudiante/perfil') ?>">
-                                <i class="bi bi-person-circle me-2"></i> Mi Perfil
-                            </a>
-                        </li>
-                    </ul>
-                    <?php endif; ?>
-
-                </div>
+                <?php if ($tienePermiso('reportes.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/reportes') !== false; ?>
+                <a href="<?= url('/reportes') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-bar-chart-line text-lg"></i>
+                    <span>Reportes</span>
+                </a>
+                <?php endif; ?>
             </nav>
+        </div>
 
-            <!-- CONTENIDO PRINCIPAL -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <div>
+            <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Gestión Escolar</h3>
+            <nav class="space-y-1">
+                <?php if ($tienePermiso('admin.estudiantes.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/admin/estudiantes') !== false; ?>
+                <a href="<?= url('/admin/estudiantes') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-person-badge text-lg"></i>
+                    <span>Estudiantes</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('admin.docentes.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/admin/docentes') !== false; ?>
+                <a href="<?= url('/admin/docentes') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-person-workspace text-lg"></i>
+                    <span>Docentes</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('admin.materias.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/admin/materias') !== false; ?>
+                <a href="<?= url('/admin/materias') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-book text-lg"></i>
+                    <span>Materias</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('admin.secciones.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/admin/secciones') !== false; ?>
+                <a href="<?= url('/admin/secciones') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-door-open text-lg"></i>
+                    <span>Secciones</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('admin.asignaciones.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/admin/asignaciones') !== false; ?>
+                <a href="<?= url('/admin/asignaciones') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-diagram-3 text-lg"></i>
+                    <span>Asignaciones</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('admin.constancias.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/admin/constancias') !== false; ?>
+                <a href="<?= url('/admin/constancias') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-file-earmark-text text-lg"></i>
+                    <span>Constancias</span>
+                </a>
+                <?php endif; ?>
+            </nav>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($tipoUsuario === 'docente'): ?>
+        <!-- ═══ Menú Docente ═══ -->
+        <div>
+            <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Principal</h3>
+            <nav class="space-y-1">
+                <?php $isActive = $currentUri === '/docente' || $currentUri === '/docente/' || $currentUri === '/sgcea/public/docente'; ?>
+                <a href="<?= url('/docente') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isActive ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-speedometer2 text-lg"></i>
+                    <span>Dashboard</span>
+                </a>
+            </nav>
+        </div>
+
+        <div>
+            <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Académico</h3>
+            <nav class="space-y-1">
+                <?php if ($tienePermiso('docente.calificaciones.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/docente/calificaciones') !== false; ?>
+                <a href="<?= url('/docente/calificaciones') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-journal-check text-lg"></i>
+                    <span>Calificaciones</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('docente.asistencia.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/docente/asistencia') !== false; ?>
+                <a href="<?= url('/docente/asistencia') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-calendar-check text-lg"></i>
+                    <span>Asistencia</span>
+                </a>
+                <?php endif; ?>
+            </nav>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($tipoUsuario === 'estudiante'): ?>
+        <!-- ═══ Menú Estudiante ═══ -->
+        <div>
+            <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Principal</h3>
+            <nav class="space-y-1">
+                <?php $isActive = $currentUri === '/estudiante' || $currentUri === '/estudiante/' || $currentUri === '/sgcea/public/estudiante'; ?>
+                <a href="<?= url('/estudiante') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isActive ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-speedometer2 text-lg"></i>
+                    <span>Dashboard</span>
+                </a>
+            </nav>
+        </div>
+
+        <div>
+            <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Académico</h3>
+            <nav class="space-y-1">
+                <?php if ($tienePermiso('estudiante.boletin.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/estudiante/boletin') !== false; ?>
+                <a href="<?= url('/estudiante/boletin') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-file-earmark-bar-graph text-lg"></i>
+                    <span>Boletín de Notas</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('estudiante.asistencia.ver')): ?>
+                <?php $isAct = strpos($currentUri, '/estudiante/asistencia') !== false; ?>
+                <a href="<?= url('/estudiante/asistencia') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-calendar-check text-lg"></i>
+                    <span>Asistencia</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if ($tienePermiso('estudiante.constancias.solicitar')): ?>
+                <?php $isAct = strpos($currentUri, '/estudiante/constancias') !== false; ?>
+                <a href="<?= url('/estudiante/constancias/solicitar') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-file-earmark-text text-lg"></i>
+                    <span>Constancias</span>
+                </a>
+                <?php endif; ?>
+            </nav>
+        </div>
+        <?php endif; ?>
+
+    </div>
+</aside>
+
+<!-- MAIN CONTENT CANVAS -->
+<main class="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto animate-fade-in min-w-0">

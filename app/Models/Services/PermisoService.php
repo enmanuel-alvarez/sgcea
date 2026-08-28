@@ -53,10 +53,56 @@ class PermisoService
                 'UPDATE',
                 'usuario_permisos',
                 $usuario_id,
-                'Permisos actualizados'
+                'Permisos de usuario actualizados'
             );
         }
 
         return $resultado;
+    }
+
+    /**
+     * Obtiene el catálogo de permisos estructurado por Vistas y Acciones
+     */
+    public function obtenerMatrizPermisosPorVista(): array
+    {
+        $todos = $this->obtenerTodos();
+        $vistas = [];
+
+        foreach ($todos as $p) {
+            $nombre = $p['nombre'];
+            $partes = explode('.', $nombre);
+            
+            // Determinar la vista / módulo
+            if (count($partes) >= 2) {
+                $moduloKey = $partes[0];
+                $vistaKey = $partes[1];
+                $accionKey = $partes[2] ?? 'ver';
+                $vistaTitulo = ucfirst($moduloKey) . ' - ' . ucfirst($vistaKey);
+            } else {
+                $vistaKey = $nombre;
+                $accionKey = 'ver';
+                $vistaTitulo = ucfirst($nombre);
+            }
+
+            $esAccesoVista = ($accionKey === 'ver' || $accionKey === 'dashboard' || count($partes) == 2);
+
+            if (!isset($vistas[$vistaTitulo])) {
+                $vistas[$vistaTitulo] = [
+                    'titulo' => $vistaTitulo,
+                    'modulo' => $partes[0] ?? 'general',
+                    'vista_key' => $vistaKey,
+                    'acceso_vista' => null,
+                    'acciones' => []
+                ];
+            }
+
+            if ($esAccesoVista && $vistas[$vistaTitulo]['acceso_vista'] === null) {
+                $vistas[$vistaTitulo]['acceso_vista'] = $p;
+            } else {
+                $vistas[$vistaTitulo]['acciones'][] = $p;
+            }
+        }
+
+        return $vistas;
     }
 }

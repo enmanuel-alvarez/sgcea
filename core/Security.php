@@ -83,8 +83,8 @@ class Security
         // Referrer Policy
         header('Referrer-Policy: strict-origin-when-cross-origin');
         
-        // Content Security Policy (básica)
-        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com; font-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com data:; img-src 'self' data:;");
+        // Content Security Policy
+        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net cdnjs.cloudflare.com cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com; font-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.gstatic.com data:; img-src 'self' data:;");
         
         // Permissions Policy
         header('Permissions-Policy: geolocation=(), microphone=(), camera=()');

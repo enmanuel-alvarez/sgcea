@@ -21,7 +21,7 @@ if (!function_exists('asset')) {
      */
     function asset(string $path): string
     {
-        $basePath = defined('BASE_PATH') ? BASE_PATH : '/sgcea/public';
+        $basePath = defined('BASE_PATH') ? BASE_PATH : '';
         return $basePath . '/assets/' . ltrim($path, '/');
     }
 }
@@ -30,10 +30,16 @@ if (!function_exists('url')) {
     /**
      * Genera URL relativa al basePath
      */
-    function url(string $path): string
+    function url(string $path = '/'): string
     {
-        $basePath = defined('BASE_PATH') ? BASE_PATH : '/sgcea/public';
-        return $basePath . '/' . ltrim($path, '/');
+        $basePath = defined('BASE_PATH') ? BASE_PATH : '';
+        $cleanPath = '/' . ltrim($path, '/');
+
+        if ($cleanPath === '/') {
+            return $basePath === '' ? '/' : $basePath;
+        }
+
+        return $basePath . $cleanPath;
     }
 }
 

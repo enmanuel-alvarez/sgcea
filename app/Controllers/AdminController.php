@@ -64,9 +64,20 @@ class AdminController extends Controller
     public function listarUsuarios(): void
     {
         $usuarios = $this->usuarioService->obtenerTodosConDetalles();
+        $todosPermisos = $this->permisoService->obtenerTodos();
+        
+        $usuarioPermisosMap = [];
+        foreach ($usuarios as $u) {
+            $uId = (int)$u['id'];
+            $pAsignados = $this->permisoService->obtenerPermisosPorUsuario($uId);
+            $usuarioPermisosMap[$uId] = array_column($pAsignados, 'id');
+        }
+
         $this->render('admin/usuarios/index', [
             'titulo' => 'Gestión de Usuarios',
-            'usuarios' => $usuarios
+            'usuarios' => $usuarios,
+            'todosPermisos' => $todosPermisos,
+            'usuarioPermisosMap' => $usuarioPermisosMap
         ]);
     }
 
@@ -968,8 +979,9 @@ class AdminController extends Controller
 
     // ==================== PERMISOS ====================
 
-    public function mostrarAsignarPermisos(int $id_usuario): void
+    public function mostrarAsignarPermisos($id = null): void
     {
+        $id_usuario = (int)$id;
         $usuario = $this->usuarioService->obtenerPorId($id_usuario);
         if (!$usuario) {
             $_SESSION['flash']['error'] = 'Usuario no encontrado';
@@ -983,13 +995,16 @@ class AdminController extends Controller
         $this->render('admin/permisos/asignar', [
             'titulo' => 'Asignar Permisos',
             'usuario' => $usuario,
+            'todosPermisos' => $permisos,
+            'permisosUsuario' => $ids_asignados,
             'permisos' => $permisos,
             'permisos_asignados' => $ids_asignados
         ]);
     }
 
-    public function guardarPermisos(int $id_usuario): void
+    public function guardarPermisos($id = null): void
     {
+        $id_usuario = (int)$id;
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirigir("/admin/permisos/asignar/$id_usuario");
         }
@@ -1093,6 +1108,18 @@ class AdminController extends Controller
         }
 
         $this->redirigir('/admin/estudiantes');
+    }
+
+    /**
+     * Mostrar vista de Logs de Auditoría
+     */
+    public function listarAuditoria(): void
+    {
+        $logs = $this->auditoriaService->obtenerRegistros(500, 0);
+        $this->render('admin/auditoria/index', [
+            'titulo' => 'Logs de Auditoría',
+            'logs' => $logs
+        ]);
     }
 }
 

@@ -41,7 +41,9 @@ class EstudianteRepository
         $sql = "SELECT 
                     e.id,
                     u.cedula,
+                    u.nombre,
                     u.nombre AS nombres,
+                    u.apellido,
                     u.apellido AS apellidos,
                     e.fecha_nacimiento,
                     e.genero,

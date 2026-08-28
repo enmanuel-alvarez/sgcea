@@ -5,38 +5,83 @@ namespace Src\Core;
 use Exception;
 
 /**
- * Router - Enrutador con verificación de permisos ACL
+ * Enrutador principal de la aplicación (PHP 8.3 Tailwind v3 ready - MVC Scheme)
+ * Maneja el mapeo de URLs a controladores y acciones con soporte de permisos ACL y auto-detección universal de subdirectorios
  */
-
 class Router
 {
-    private array $routes;
-    private string $basePath = '/sgcea/public';
+    private array $routes = [];
+    private string $basePath = '';
 
-    public function __construct()
+    public function __construct(string $basePath = '')
     {
-        $this->routes = require __DIR__ . '/../config/routes.php';
+        $this->basePath = rtrim($basePath, '/');
+    }
+
+    public function agregar(string $method, string $pattern, array $handler): void
+    {
+        $this->routes[strtoupper($method)][$pattern] = $handler;
     }
 
     public function resolver(string $uri, string $method): void
     {
-        // Remover basePath de la URI si existe
-        if (!empty($this->basePath) && strpos($uri, $this->basePath) === 0) {
-            $uri = substr($uri, strlen($this->basePath));
+        // Parsear la ruta de la URI
+        $cleanUri = parse_url($uri, PHP_URL_PATH) ?? '/';
+        
+        // Detección automática y remoción de prefijos de subdirectorio (/sgcea, /sgcea/public)
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $scriptDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/'); // ej: /sgcea/public
+        $projectDir = rtrim(str_replace('/public', '', $scriptDir), '/');     // ej: /sgcea
+
+        if (!empty($scriptDir) && strpos($cleanUri, $scriptDir) === 0) {
+            $cleanUri = substr($cleanUri, strlen($scriptDir));
+        } elseif (!empty($projectDir) && strpos($cleanUri, $projectDir) === 0) {
+            $cleanUri = substr($cleanUri, strlen($projectDir));
+        } elseif (!empty($this->basePath) && strpos($cleanUri, $this->basePath) === 0) {
+            $cleanUri = substr($cleanUri, strlen($this->basePath));
         }
 
-        // Normalizar URI
-        $uri = parse_url($uri, PHP_URL_PATH);
-        if ($uri === '/') {
-            $uri = '/login';
+        $cleanUri = '/' . trim($cleanUri, '/');
+
+        // Redirección inteligente de raíz /
+        if ($cleanUri === '/' || $cleanUri === '/index.php') {
+            if (isset($_SESSION['usuario_id'])) {
+                $tipo = $_SESSION['usuario_tipo'] ?? '';
+                $target = '/admin';
+                if ($tipo === 'docente') $target = '/docente';
+                if ($tipo === 'estudiante') $target = '/estudiante';
+                
+                header('Location: ' . url($target));
+                exit;
+            }
+            $cleanUri = '/login';
+        }
+
+        // Carga de respaldo de config/routes.php si aún no han sido registradas
+        if (empty($this->routes)) {
+            $routesFile = __DIR__ . '/../config/routes.php';
+            if (file_exists($routesFile)) {
+                $rutas = require $routesFile;
+                foreach ($rutas as $m => $lista) {
+                    foreach ($lista as $patron => $h) {
+                        $this->agregar($m, $patron, $h);
+                    }
+                }
+            }
         }
 
         // Buscar ruta coincidente
-        $route = $this->buscarRuta($uri, $method);
+        $route = $this->buscarRuta($cleanUri, $method);
 
         if (!$route) {
             http_response_code(404);
-            $this->renderError('404');
+            $this->renderError('404', [
+                'requestedUri' => $_SERVER['REQUEST_URI'] ?? '',
+                'evaluatedUri' => $cleanUri,
+                'method' => $method,
+                'basePath' => defined('BASE_PATH') ? BASE_PATH : '',
+                'registeredRoutes' => array_keys($this->routes[strtoupper($method)] ?? [])
+            ]);
             return;
         }
 
@@ -46,8 +91,8 @@ class Router
 
         // Verificar autenticación (excepto para rutas públicas)
         if ($permisoRequerido !== null && !isset($_SESSION['usuario_id'])) {
-            $_SESSION['redirect_after_login'] = $uri;
-            header('Location: ' . $this->basePath . '/login');
+            $_SESSION['redirect_after_login'] = $cleanUri;
+            header('Location: ' . url('/login'));
             exit;
         }
 
@@ -71,8 +116,23 @@ class Router
             throw new Exception("Método no encontrado: {$action} en {$controllerClass}");
         }
 
-        // Llamar al método con parámetros
-        call_user_func_array([$controller, $action], $params);
+        // Invocación segura mediante Reflection en PHP 8
+        $refMethod = new \ReflectionMethod($controller, $action);
+        $methodParams = $refMethod->getParameters();
+        $args = [];
+        $values = array_values($params);
+
+        foreach ($methodParams as $i => $param) {
+            if (isset($values[$i])) {
+                $args[] = $values[$i];
+            } elseif ($param->isDefaultValueAvailable()) {
+                $args[] = $param->getDefaultValue();
+            } else {
+                $args[] = null;
+            }
+        }
+
+        $refMethod->invokeArgs($controller, $args);
     }
 
     private function buscarRuta(string $uri, string $method): ?array
@@ -111,15 +171,7 @@ class Router
 
     private function extraerParametros(array $matches, string $pattern): array
     {
-        preg_match_all('/\{(\w+)\}/', $pattern, $paramNames);
-        $paramNames = $paramNames[1];
-        
-        $params = [];
-        foreach ($paramNames as $index => $name) {
-            $params[$name] = $matches[$index] ?? null;
-        }
-        
-        return $params;
+        return array_values($matches);
     }
 
     private function tienePermiso(string $permiso): bool
@@ -128,31 +180,22 @@ class Router
             return false;
         }
 
-        // El administrador tiene todos los permisos
-        if ($_SESSION['usuario_tipo'] === 'admin') {
-            return true;
+        $tipoUsuario = $_SESSION['usuario_tipo'] ?? '';
+        if ($tipoUsuario === 'admin') {
+            return true; // Superadmin acceso total
         }
 
         return in_array($permiso, $_SESSION['usuario_permisos']);
     }
 
-    private function renderError(string $codigo): void
+    private function renderError(string $codigo, array $debugData = []): void
     {
-        $vista = __DIR__ . '/../app/Views/errors/' . $codigo . '.php';
-        if (file_exists($vista)) {
-            require $vista;
+        $archivo = __DIR__ . "/../app/Views/errors/{$codigo}.php";
+        
+        if (file_exists($archivo)) {
+            require $archivo;
         } else {
             echo "<h1>Error {$codigo}</h1>";
         }
-    }
-
-    public function getBasePath(): string
-    {
-        return $this->basePath;
-    }
-
-    public function setBasePath(string $basePath): void
-    {
-        $this->basePath = rtrim($basePath, '/');
     }
 }

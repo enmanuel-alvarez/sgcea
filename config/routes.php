@@ -34,24 +34,23 @@ return [
         '/admin/asignaciones/crear' => ['AdminController@mostrarCrearAsignacion', 'admin.asignaciones.crear'],
         '/admin/asignaciones/eliminar/{id}' => ['AdminController@eliminarAsignacion', 'admin.asignaciones.eliminar'],
         
-        // FIX #1: listarConstancias → gestionarConstancias
         '/admin/constancias' => ['AdminController@gestionarConstancias', 'admin.constancias.ver'],
         '/admin/constancias/aprobar/{id}' => ['AdminController@aprobarConstancia', 'admin.constancias.aprobar'],
         '/admin/constancias/rechazar/{id}' => ['AdminController@rechazarConstancia', 'admin.constancias.aprobar'],
         
-        // FIX #4: asignarPermisos → mostrarAsignarPermisos
         '/admin/permisos/asignar/{id}' => ['AdminController@mostrarAsignarPermisos', 'admin.permisos.asignar'],
         
         '/admin/configuracion' => ['ConfiguracionController@index', 'admin.configuracion.ver'],
+        '/admin/backup' => ['BackupController@index', 'admin.backup.ver'],
+        '/admin/auditoria' => ['AdminController@listarAuditoria', 'admin.auditoria.ver'],
+
         '/docente' => ['DocenteController@index', 'docente.dashboard'],
         '/docente/calificaciones' => ['DocenteController@calificaciones', 'docente.calificaciones.ver'],
         '/docente/calificaciones/registrar/{id_asignacion}' => ['DocenteController@registrarCalificaciones', 'docente.calificaciones.registrar'],
         '/docente/asistencia' => ['DocenteController@asistencia', 'docente.asistencia.ver'],
         '/docente/asistencia/registrar/{id_asignacion}' => ['DocenteController@registrarAsistencia', 'docente.asistencia.registrar'],
         '/docente/planevaluacion/{id_asignacion}' => ['DocenteController@planEvaluacion', 'docente.planevaluacion.gestionar'],
-        // Alias con guión para compatibilidad con redirects del controller
         '/docente/plan-evaluacion/{id_asignacion}' => ['DocenteController@planEvaluacion', 'docente.planevaluacion.gestionar'],
-        // NUEVO: Ruta para eliminar actividad del plan de evaluación
         '/docente/planevaluacion/eliminar/{id}' => ['DocenteController@eliminarActividad', 'docente.planevaluacion.gestionar'],
         '/docente/plan-evaluacion/eliminar/{id}' => ['DocenteController@eliminarActividad', 'docente.planevaluacion.gestionar'],
 
@@ -60,18 +59,16 @@ return [
         '/estudiante/asistencia' => ['EstudianteController@asistencia', 'estudiante.asistencia.ver'],
         '/estudiante/constancias/solicitar' => ['EstudianteController@solicitarConstancia', 'estudiante.constancias.solicitar'],
         '/estudiante/constancias/historial' => ['EstudianteController@historialConstancias', 'estudiante.constancias.ver'],
-        // NUEVO: Ruta para descargar constancia
         '/estudiante/constancias/descargar/{id}' => ['EstudianteController@descargarConstancia', 'estudiante.constancias.ver'],
         '/estudiante/perfil' => ['EstudianteController@perfil', 'estudiante.perfil.ver'],
         '/constancias/imprimir/{id}' => ['ConstanciaController@imprimir', 'estudiante.constancias.ver'],
 
         '/reportes' => ['ReportesController@index', 'reportes.ver'],
+        '/reportes/ficha360/{id}' => ['ReportesController@ficha360', 'reportes.ver'],
         '/reportes/rendimiento' => ['ReportesController@rendimiento', 'reportes.ver'],
         '/reportes/asistencia' => ['ReportesController@asistencia', 'reportes.ver'],
-        // NUEVO: Rutas para API de reportes (ex-ApiController)
         '/reportes/api/estudiantes/{id}' => ['ReportesController@obtenerEstudiante', 'reportes.ver'],
         '/reportes/api/secciones/{id}/estudiantes' => ['ReportesController@estudiantesPorSeccion', 'reportes.ver'],
-        // NUEVO: Ruta para exportar CSV
         '/reportes/exportar/{tipo}' => ['ReportesController@exportarCSV', 'reportes.ver'],
     ],
     'POST' => [
@@ -94,22 +91,22 @@ return [
         
         '/admin/asignaciones/guardar' => ['AdminController@guardarAsignacion', 'admin.asignaciones.crear'],
         
-        // FIX #2/#3: POST con {id} apuntando a métodos correctos
         '/admin/constancias/aprobar/{id}' => ['AdminController@aprobarConstancia', 'admin.constancias.aprobar'],
         '/admin/constancias/rechazar/{id}' => ['AdminController@rechazarConstancia', 'admin.constancias.aprobar'],
         
-        // FIX #8: Agregar {id} al parámetro de guardarPermisos
         '/admin/permisos/guardar/{id}' => ['AdminController@guardarPermisos', 'admin.permisos.asignar'],
         
         '/admin/configuracion/guardar' => ['ConfiguracionController@guardar', 'admin.configuracion.editar'],
+        '/admin/configuracion/reiniciar' => ['ConfiguracionController@reiniciarSistema', 'admin.configuracion.reiniciar'],
+        
+        '/admin/backup/exportar' => ['BackupController@exportar', 'admin.backup.exportar'],
+        '/admin/backup/importar' => ['BackupController@importar', 'admin.backup.importar'],
+
         '/docente/calificaciones/guardar' => ['DocenteController@guardarCalificaciones', 'docente.calificaciones.registrar'],
         '/docente/asistencia/guardar' => ['DocenteController@guardarAsistencia', 'docente.asistencia.registrar'],
-        // FIX #9: guardarPlanEvaluacion → crearActividad
         '/docente/planevaluacion/guardar' => ['DocenteController@crearActividad', 'docente.planevaluacion.gestionar'],
         '/estudiante/constancias/guardar' => ['EstudianteController@guardarSolicitud', 'estudiante.constancias.solicitar'],
-        // FIX #10: actualizarPerfil ahora existe en EstudianteController
         '/estudiante/perfil/actualizar' => ['EstudianteController@actualizarPerfil', 'estudiante.perfil.editar'],
-        // NUEVO: API de calificaciones por período
         '/reportes/api/calificaciones' => ['ReportesController@calificacionesPorPeriodo', 'reportes.ver'],
     ]
 ];

@@ -12,6 +12,8 @@ use Src\Models\Services\MateriaService;
 use Src\Models\Services\CalificacionService;
 use Src\Models\Services\AsistenciaService;
 use Src\Models\Services\SeccionService;
+use Src\Models\Services\ReporteService;
+use Src\Models\Services\ConfiguracionService;
 
 class ReportesController extends Controller
 {
@@ -22,6 +24,8 @@ class ReportesController extends Controller
     private CalificacionService $calificacionService;
     private AsistenciaService $asistenciaService;
     private SeccionService $seccionService;
+    private ReporteService $reporteService;
+    private ConfiguracionService $configuracionService;
 
     public function __construct()
     {
@@ -32,98 +36,142 @@ class ReportesController extends Controller
         $this->calificacionService = new CalificacionService();
         $this->asistenciaService = new AsistenciaService();
         $this->seccionService = new SeccionService();
+        $this->reporteService = new ReporteService();
+        $this->configuracionService = new ConfiguracionService();
     }
 
+    /**
+     * Centro de Reportes del Sistema SGCEA
+     */
     public function index(): void
     {
         $tipoReporte = $_GET['tipo'] ?? 'general';
+        $seccionId = isset($_GET['seccion_id']) ? (int)$_GET['seccion_id'] : null;
+        $estudianteId = isset($_GET['estudiante_id']) ? (int)$_GET['estudiante_id'] : null;
 
-        $datos = [
-            'tipoReporte' => $tipoReporte,
-            'estadisticas' => null,
-            'tablaDatos' => null
-        ];
+        $secciones = $this->seccionService->obtenerTodosConDetalles();
+        $estudiantes = $this->estudianteService->obtenerTodosConDetalles();
+        $materias = $this->materiaService->obtenerTodos();
+        
+        $configuraciones = $this->configuracionService->obtenerTodas();
+        $config = [];
+        foreach ($configuraciones as $c) {
+            $config[$c['clave']] = $c['valor'];
+        }
+
+        $datosReporte = null;
 
         switch ($tipoReporte) {
+            case 'cuadro_honor':
+                $datosReporte = $this->reporteService->obtenerCuadroDeHonor($seccionId, 25);
+                break;
+
+            case 'riesgo_academico':
+                $datosReporte = $this->reporteService->obtenerEstudiantesEnRiesgo($seccionId, 10.0);
+                break;
+
+            case 'sabana_seccion':
+                if ($seccionId) {
+                    $datosReporte = $this->reporteService->obtenerSabanaNotasSeccion($seccionId);
+                }
+                break;
+
+            case 'ausentismo_critico':
+                $datosReporte = $this->reporteService->obtenerAlertaAusentismoCritico($seccionId, 3);
+                break;
+
+            case 'carga_docente':
+                $datosReporte = $this->reporteService->obtenerResumenCargaHorariaDocentes();
+                break;
+
+            case 'ficha_360':
+                if ($estudianteId) {
+                    $this->redirigir('/reportes/ficha360/' . $estudianteId);
+                    return;
+                }
+                break;
+
             case 'estudiantes':
-                $datos['tablaDatos'] = $this->estudianteService->obtenerTodosConDetalles();
+                $datosReporte = $this->estudianteService->obtenerTodosConDetalles();
                 break;
 
             case 'docentes':
-                $datos['tablaDatos'] = $this->docenteService->obtenerTodosConDetalles();
+                $datosReporte = $this->docenteService->obtenerTodosConDetalles();
                 break;
 
             case 'materias':
-                $datos['tablaDatos'] = $this->materiaService->obtenerTodasConEstadisticas();
-                break;
-
-            case 'rendimiento_materia':
-                $idMateria = (int)($_GET['materia'] ?? 0);
-                $datos['tablaDatos'] = $this->calificacionService->obtenerRendimientoPorMateria($idMateria);
-                break;
-
-            case 'asistencia_general':
-                $mes = $_GET['mes'] ?? date('m');
-                $ano = $_GET['ano'] ?? date('Y');
-                $datos['tablaDatos'] = $this->asistenciaService->obtenerResumenGeneral($mes, $ano);
-                break;
-
-            case 'promedios_por_seccion':
-                $datos['tablaDatos'] = $this->calificacionService->obtenerPromediosPorSeccion(null);
+                $datosReporte = $this->materiaService->obtenerTodasConEstadisticas();
                 break;
 
             default:
-                $datos['estadisticas'] = $this->dashboardService->obtenerDatosAdmin();
+                $datosReporte = $this->dashboardService->obtenerDatosAdmin();
                 break;
         }
 
-        $this->render('reportes/index', $datos);
+        $this->render('reportes/index', [
+            'tipoReporte' => $tipoReporte,
+            'datosReporte' => $datosReporte,
+            'secciones' => $secciones,
+            'estudiantes' => $estudiantes,
+            'materias' => $materias,
+            'seccionId' => $seccionId,
+            'estudianteId' => $estudianteId,
+            'config' => $config
+        ]);
     }
 
-    public function estudiantesPorSeccion(int $idSeccion): void
+    /**
+     * Vista de Ficha 360° imprimible del estudiante
+     */
+    public function ficha360(int $id): void
     {
-        $estudiantes = $this->estudianteService->obtenerPorSeccion($idSeccion);
-        $this->json(['success' => true, 'data' => $estudiantes]);
-    }
-
-    public function calificacionesPorPeriodo(): void
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->json(['success' => false, 'message' => 'Método no permitido'], 405);
+        $ficha = $this->reporteService->obtenerFicha360Estudiante($id);
+        
+        if (empty($ficha['estudiante'])) {
+            $_SESSION['flash_error'] = 'Estudiante no encontrado para Ficha 360°';
+            $this->redirigir('/reportes');
             return;
         }
 
-        $periodo = $_POST['periodo'] ?? '';
-        $idSeccion = (int)($_POST['id_seccion'] ?? 0);
-
-        if (empty($periodo)) {
-            $this->json(['success' => false, 'message' => 'Período requerido'], 400);
-            return;
+        $configuraciones = $this->configuracionService->obtenerTodas();
+        $config = [];
+        foreach ($configuraciones as $c) {
+            $config[$c['clave']] = $c['valor'];
         }
 
-        $calificaciones = $this->calificacionService->obtenerPorPeriodoYSeccion($periodo, $idSeccion);
-        $this->json(['success' => true, 'data' => $calificaciones]);
+        $this->render('reportes/ficha360', [
+            'titulo' => 'Ficha 360° del Estudiante',
+            'ficha' => $ficha,
+            'config' => $config
+        ]);
     }
 
+    /**
+     * Exportación CSV de datos
+     */
     public function exportarCSV(string $tipo): void
     {
         $datos = [];
+        $nombreArchivo = "reporte_{$tipo}_" . date('Ymd') . ".csv";
 
         switch ($tipo) {
-            case 'estudiantes':
-                $datos = $this->estudianteService->obtenerTodosConDetalles();
-                $nombreArchivo = 'estudiantes.csv';
-                $columnas = ['Cédula', 'Nombre', 'Apellido', 'Fecha Nacimiento', 'Género', 'Teléfono', 'Dirección'];
+            case 'cuadro_honor':
+                $datos = $this->reporteService->obtenerCuadroDeHonor(null, 100);
+                $columnas = ['cedula', 'nombre', 'apellido', 'grado', 'seccion', 'promedio_general'];
                 break;
 
-            case 'docentes':
-                $datos = $this->docenteService->obtenerTodosConDetalles();
-                $nombreArchivo = 'docentes.csv';
-                $columnas = ['Cédula', 'Nombre', 'Apellido', 'Especialidad', 'Teléfono', 'Email'];
+            case 'riesgo_academico':
+                $datos = $this->reporteService->obtenerEstudiantesEnRiesgo(null, 10.0);
+                $columnas = ['cedula', 'nombre', 'apellido', 'grado', 'seccion', 'promedio_general', 'materias_reprobadas'];
+                break;
+
+            case 'estudiantes':
+                $datos = $this->estudianteService->obtenerTodosConDetalles();
+                $columnas = ['cedula', 'nombre', 'apellido', 'genero', 'telefono_representante'];
                 break;
 
             default:
-                $_SESSION['flash_error'] = 'Tipo de reporte no válido';
+                $_SESSION['flash_error'] = 'Tipo de reporte CSV no soportado';
                 $this->redirigir('/reportes');
                 return;
         }
@@ -133,7 +181,7 @@ class ReportesController extends Controller
 
         $output = fopen('php://output', 'w');
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        fputcsv($output, $columnas);
+        fputcsv($output, array_map('ucfirst', $columnas));
 
         foreach ($datos as $fila) {
             $valores = [];
@@ -167,6 +215,12 @@ class ReportesController extends Controller
             'titulo' => 'Reporte de Asistencia',
             'secciones' => $secciones ?? []
         ]);
+    }
+
+    public function estudiantesPorSeccion(int $idSeccion): void
+    {
+        $estudiantes = $this->estudianteService->obtenerPorSeccion($idSeccion);
+        $this->json(['success' => true, 'data' => $estudiantes]);
     }
 
     public function obtenerEstudiante(int $id): void

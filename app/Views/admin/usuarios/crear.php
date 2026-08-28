@@ -1,120 +1,142 @@
 <?php
 /**
- * Vista: Crear/Editar Usuario (Admin)
+ * Vista: Crear/Editar Usuario (Admin - Tailwind CSS v3)
  */
 $editar = isset($usuario);
 ?>
 
-
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2"><?= $editar ? 'Editar' : 'Nuevo' ?> Usuario</h1>
-        <a href="<?= url(\'/admin/usuarios\') ?>" class="btn btn-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Volver
+<!-- Header -->
+<div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+    <div>
+        <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight"><?= $editar ? 'Editar' : 'Nuevo' ?> Usuario</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Complete los datos de la cuenta de usuario del sistema.</p>
+    </div>
+    <div>
+        <a href="<?= url('/admin/usuarios') ?>" class="inline-flex items-center space-x-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition-all">
+            <i class="bi bi-arrow-left"></i>
+            <span>Volver</span>
         </a>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            
-                    <form method="POST" action="<?= $editar ? '/admin/usuarios/actualizar/' . $usuario['id'] : '/admin/usuarios/guardar' ?>">
-                        <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Form Card -->
+    <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 sm:p-8">
+        <form method="POST" action="<?= $editar ? url('/admin/usuarios/actualizar/' . $usuario['id']) : url('/admin/usuarios/guardar') ?>" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="cedula" class="form-label">Cédula *</label>
-                                <input type="text" class="form-control" id="cedula" name="cedula" 
-                                       value="<?= htmlspecialchars($usuario['cedula'] ?? '') ?>" required>
-                            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="cedula" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Cédula *</label>
+                    <input type="text" id="cedula" name="cedula" value="<?= htmlspecialchars($usuario['cedula'] ?? '') ?>" required
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="nombre" class="form-label">Nombre *</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" 
-                                       value="<?= htmlspecialchars($usuario['nombre'] ?? '') ?>" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="apellido" class="form-label">Apellido *</label>
-                                <input type="text" class="form-control" id="apellido" name="apellido" 
-                                       value="<?= htmlspecialchars($usuario['apellido'] ?? '') ?>" required>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">Email *</label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       value="<?= htmlspecialchars($usuario['email'] ?? '') ?>" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="telefono" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control" id="telefono" name="telefono" 
-                                       value="<?= htmlspecialchars($usuario['telefono'] ?? '') ?>">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="rol" class="form-label">Rol *</label>
-                                <select class="form-select" id="rol" name="rol" required>
-                                    <option value="estudiante" <?= ($usuario['rol'] ?? '') === 'estudiante' ? 'selected' : '' ?>>Estudiante</option>
-                                    <option value="docente" <?= ($usuario['rol'] ?? '') === 'docente' ? 'selected' : '' ?>>Docente</option>
-                                    <option value="admin" <?= ($usuario['rol'] ?? '') === 'admin' ? 'selected' : '' ?>>Administrador</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <?php if (!$editar): ?>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label">Contraseña *</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                                <small class="text-muted">Mínimo 6 caracteres</small>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="password_confirm" class="form-label">Confirmar Contraseña *</label>
-                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
-                            </div>
-                        </div>
-                        <?php else: ?>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Nueva Contraseña (dejar vacío para no cambiar)</label>
-                            <input type="password" class="form-control" id="password" name="password">
-                            <small class="text-muted">Solo llenar si desea cambiar la contraseña</small>
-                        </div>
-                        <?php endif; ?>
-
-                        <div class="mb-3">
-                            <label for="estado" class="form-label">Estado</label>
-                            <select class="form-select" id="estado" name="estado">
-                                <option value="activo" <?= ($usuario['estado'] ?? 'activo') === 'activo' ? 'selected' : '' ?>>Activo</option>
-                                <option value="inactivo" <?= ($usuario['estado'] ?? '') === 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
-                            </select>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="<?= url(\'/admin/usuarios\') ?>" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> <?= $editar ? 'Actualizar' : 'Crear' ?> Usuario
-                            </button>
-                        </div>
-                    </form>
+                <div>
+                    <label for="nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Nombre *</label>
+                    <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($usuario['nombre'] ?? '') ?>" required
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-                    <p class="mb-2"><strong>Nota:</strong></p>
-                    <ul class="small mb-0">
-                        <li>El email debe ser único en el sistema.</li>
-                        <li>La cédula también debe ser única.</li>
-                        <li>Después de crear el usuario, puede asignarle permisos específicos desde la sección de permisos.</li>
-                        <li>Los administradores tienen acceso completo por defecto.</li>
-                    </ul>
-        </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="apellido" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Apellido *</label>
+                    <input type="text" id="apellido" name="apellido" value="<?= htmlspecialchars($usuario['apellido'] ?? '') ?>" required
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </div>
+
+                <div>
+                    <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Email *</label>
+                    <input type="email" id="email" name="email" value="<?= htmlspecialchars($usuario['email'] ?? '') ?>" required
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="telefono" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Teléfono</label>
+                    <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($usuario['telefono'] ?? '') ?>"
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </div>
+
+                <div>
+                    <label for="tipo" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Rol / Tipo *</label>
+                    <select id="tipo" name="tipo" required
+                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                        <option value="estudiante" <?= ($usuario['tipo'] ?? $usuario['rol'] ?? '') === 'estudiante' ? 'selected' : '' ?>>Estudiante</option>
+                        <option value="docente" <?= ($usuario['tipo'] ?? $usuario['rol'] ?? '') === 'docente' ? 'selected' : '' ?>>Docente</option>
+                        <option value="admin" <?= ($usuario['tipo'] ?? $usuario['rol'] ?? '') === 'admin' ? 'selected' : '' ?>>Administrador</option>
+                    </select>
+                </div>
+            </div>
+
+            <?php if (!$editar): ?>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Contraseña *</label>
+                    <input type="password" id="password" name="password" required minlength="6"
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <p class="text-xs text-slate-500 mt-1">Mínimo 6 caracteres</p>
+                </div>
+
+                <div>
+                    <label for="password_confirm" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Confirmar Contraseña *</label>
+                    <input type="password" id="password_confirm" name="password_confirm" required minlength="6"
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </div>
+            </div>
+            <?php else: ?>
+            <div>
+                <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Nueva Contraseña (dejar en blanco para conservar la actual)</label>
+                <input type="password" id="password" name="password" minlength="6"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+            <?php endif; ?>
+
+            <div>
+                <label for="estado" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Estado de la cuenta</label>
+                <select id="estado" name="estado"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <option value="1" <?= ($usuario['estado'] ?? 1) == 1 ? 'selected' : '' ?>>Activo</option>
+                    <option value="0" <?= ($usuario['estado'] ?? 1) == 0 ? 'selected' : '' ?>>Inactivo</option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                <a href="<?= url('/admin/usuarios') ?>" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition-all">Cancelar</a>
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 transition-all flex items-center space-x-2">
+                    <i class="bi bi-check-lg"></i>
+                    <span><?= $editar ? 'Actualizar Usuario' : 'Crear Usuario' ?></span>
+                </button>
+            </div>
+        </form>
     </div>
 
+    <!-- Info Panel -->
+    <div class="space-y-6">
+        <div class="bg-blue-50/50 dark:bg-slate-800/60 border border-blue-200/60 dark:border-slate-700/60 rounded-2xl p-6">
+            <h3 class="text-sm font-bold text-blue-900 dark:text-blue-300 flex items-center space-x-2 mb-3">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>Indicaciones Importantes</span>
+            </h3>
+            <ul class="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                <li class="flex items-start space-x-2">
+                    <i class="bi bi-dot text-lg leading-none"></i>
+                    <span>El correo institucional y la cédula deben ser únicos en la base de datos.</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                    <i class="bi bi-dot text-lg leading-none"></i>
+                    <span>Al crear un usuario se cargan los permisos predeterminados del rol asignado.</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                    <i class="bi bi-dot text-lg leading-none"></i>
+                    <span>Los administradores cuentan con acceso completo a todos los módulos por defecto.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
