@@ -27,6 +27,10 @@ define('APP_ROOT', dirname(__DIR__));
 require_once __DIR__ . '/../core/Autoloader.php';
 Autoloader::register();
 
+// 2.1 Cargar variables de entorno (.env) y helpers globales
+\Src\Core\Env::cargar();
+require_once __DIR__ . '/../core/helpers.php';
+
 // 3. Cargar configuración global de la aplicación
 $appConfig = require __DIR__ . '/app.php';
 

@@ -27,10 +27,12 @@ class AuditoriaService
         string $accion,
         ?string $tabla = null,
         ?int $registroId = null,
-        array|string $detalles = []
+        array|string|null $detalles = []
     ): int {
         if (is_string($detalles)) {
             $detalles = ['mensaje' => $detalles];
+        } elseif ($detalles === null) {
+            $detalles = [];
         }
 
         $sql = "INSERT INTO auditoria (usuario_id, accion, tabla, registro_id, detalles, ip, user_agent, fecha)

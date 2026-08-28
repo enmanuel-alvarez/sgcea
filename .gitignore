@@ -1,1 +1,18 @@
-Nothing should be ignored based on the provided file changes. The only added file is a PHP controller source file (`app/Controllers/AdminController.php`), which is legitimate source code that should be tracked in version control. No build artifacts, dependencies, temporary files, or other ignorable items are present in the changes.
+# Archivo de variables de entorno (credenciales sensibles)
+.env
+
+# Directorios de almacenamiento de sesión y logs
+storage/logs/*.log
+storage/sessions/*
+!storage/sessions/.gitkeep
+storage/backups/*.sql
+storage/backups/*.json
+
+# Archivos de sistema operativo y IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Configuración local de base de datos legado
+config/database.php.bak

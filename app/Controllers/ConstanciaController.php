@@ -160,8 +160,21 @@ class ConstanciaController extends Controller
             return;
         }
 
-        $estudiante = $this->estudianteService->obtenerPorId($solicitud['id_estudiante']);
-        $inscripcion = $this->constanciaService->obtenerInscripcionPorEstudiante($solicitud['id_estudiante']);
+        $estudianteId = $solicitud['estudiante_id'] ?? $solicitud['id_estudiante'] ?? null;
+        if (!$estudianteId) {
+            $_SESSION['flash_error'] = 'Estudiante no asociado a la solicitud';
+            $this->redirigir('/');
+            return;
+        }
+
+        $estudiante = $this->estudianteService->obtenerPorId((int)$estudianteId);
+        if (!$estudiante) {
+            $_SESSION['flash_error'] = 'Estudiante no encontrado';
+            $this->redirigir('/');
+            return;
+        }
+
+        $inscripcion = $this->constanciaService->obtenerInscripcionPorEstudiante((int)$estudianteId);
         
         // Obtener configuraciones del sistema
         $configuraciones = $this->constanciaService->obtenerConfiguraciones();

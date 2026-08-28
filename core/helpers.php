@@ -219,3 +219,13 @@ if (!function_exists('debug_log')) {
         }
     }
 }
+
+if (!function_exists('env')) {
+    /**
+     * Obtiene el valor de una variable de entorno
+     */
+    function env(string $key, $default = null)
+    {
+        return \Src\Core\Env::get($key, $default);
+    }
+}

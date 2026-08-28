@@ -196,7 +196,8 @@ class EstudianteController extends Controller
         }
 
         // Verificar que pertenece al estudiante
-        if ($solicitud['id_estudiante'] !== $_SESSION['estudiante_id']) {
+        $estudianteId = $solicitud['estudiante_id'] ?? $solicitud['id_estudiante'] ?? null;
+        if ((int)$estudianteId !== (int)($_SESSION['estudiante_id'] ?? 0)) {
             $_SESSION['flash_error'] = 'No tiene permiso para acceder a esta constancia';
             $this->redirigir('/estudiante/constancias/historial');
             return;

@@ -1,168 +1,123 @@
-# SGCEA - Sistema de Gestión y Control Escolar-Académico
+# SGCEA - Sistema de Gestión y Control Escolar-Académico 🎓
 
-## Descripción
+[![PHP Version](https://img.shields.io/badge/PHP-8.0%2B-777BB4?style=flat-square&logo=php)](https://www.php.net/)
+[![Database](https://img.shields.io/badge/MySQL-5.7%2B%20%7C%208.0%2B-4479A1?style=flat-square&logo=mysql)](https://www.mysql.com/)
+[![Architecture](https://img.shields.io/badge/Architecture-Vanilla%20MVC-brightgreen?style=flat-square)](#-arquitectura-del-sistema)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-Sistema web para la gestión integral de instituciones educativas, desarrollado con PHP 8.x, MySQL y arquitectura MVC.
+**SGCEA** es una solución web integral diseñada para la automatización, administración y control de procesos escolares y académicos en instituciones educativas (Educación Primaria, Secundaria y Bachillerato).
 
-## Requisitos del Sistema
+El sistema permite gestionar de forma eficiente usuarios, roles con matriz de permisos (**ACL**), docentes, estudiantes, materias, secciones, planes de evaluación, calificaciones, control diario de asistencias, emisión automatizada de constancias oficiales y registro de auditoría.
 
-- **PHP:** 8.0 o superior
-- **MySQL:** 5.7 o superior (motor InnoDB)
-- **Apache:** 2.4+ con mod_rewrite habilitado
-- **Extensiones PHP requeridas:** pdo, pdo_mysql, mbstring, json
+---
 
-## Estructura del Proyecto
+## 🌟 Características Principales
 
-```
-/sgcea/
-├── bootstrap/          # Inicialización de la aplicación
-├── config/             # Archivos de configuración
-├── core/               # Núcleo del framework (Router, Database, Security, etc.)
-├── public/             # DocumentRoot del servidor web
-│   ├── assets/         # CSS, JS, imágenes
-│   └── index.php       # Front Controller
-├── app/                # Lógica de la aplicación
-│   ├── Controllers/    # Controladores
-│   ├── Models/         # Repositorios y Servicios
-│   └── Views/          # Vistas HTML
-├── storage/            # Logs y sesiones
-└── database.sql        # Script de base de datos
-```
+- 👑 **Módulo Administrador**: Dashboard con métricas globales, gestión de usuarios, asignación dinámica de permisos (ACL), materias, secciones, grados, solicitudes de constancia, respaldos (exportar/importar) y configuración del sistema.
+- 👨‍🏫 **Módulo Docente**: Gestión de asignaciones de cátedra, creación y ponderación de planes de evaluación por lapso, carga de calificaciones cuantitativas y registro masivo de asistencias por fecha.
+- 🎓 **Módulo Estudiante**: Consulta de boletines de calificaciones, desglose por lapsos, historial de asistencias, actualización de perfil y autoservicio de solicitud y descarga de constancias (estudio, conducta, notas).
+- 🛡️ **Seguridad Avanzada**: Autenticación segura (hashes BCRYPT), protección contra ataques XSS y CSRF, *Rate Limiting* contra fuerza bruta en login, preparado de consultas SQL con PDO e inyección limpia de variables de entorno mediante `.env`.
 
-## Instalación
+---
 
-### 1. Clonar o copiar el proyecto
+## 📋 Requisitos del Sistema
 
+- **Servidor Web**: Apache / Nginx (MAMP, XAMPP, Laragon o servidor Linux).
+- **Lenguaje**: PHP 8.0 o superior (con extensiones `pdo`, `pdo_mysql`, `mbstring`, `json`, `session`).
+- **Base de Datos**: MySQL 5.7+ / MariaDB 10.3+.
+
+---
+
+## 🚀 Guía de Instalación Paso a Paso
+
+### 1. Clonar o descargar el repositorio
+Ubique el proyecto en el directorio raíz de su servidor web (ej: `/Applications/MAMP/htdocs/sgcea` o `C:/xampp/htdocs/sgcea`):
 ```bash
-cd /var/www/html
-# Copiar archivos del proyecto
+git clone https://github.com/tu-usuario/sgcea.git
+cd sgcea
 ```
 
-### 2. Configurar base de datos
-
+### 2. Configurar el archivo de Variables de Entorno (`.env`)
+Copie la plantilla `.env.example` para crear su archivo de configuración `.env`:
 ```bash
-# Crear base de datos
-mysql -u root -p -e "CREATE DATABASE sgcea CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+cp .env.example .env
+```
+Edite el archivo `.env` ajustando los valores de su entorno local o servidor:
+```env
+# Aplicación
+APP_NAME="SGCEA"
+APP_ENV=development
+APP_DEBUG=true
+APP_URL="http://localhost/sgcea/public"
 
-# Importar script SQL
-mysql -u root -p sgcea < database.sql
+# Base de Datos MySQL
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=sgcea
+DB_USER=root
+DB_PASS=root
 ```
 
-### 3. Configurar credenciales
+### 3. Importar la Base de Datos
+1. Inicie su servidor MySQL (ej: MAMP / XAMPP / MySQL Service).
+2. Cree la base de datos vacía `sgcea`:
+   ```sql
+   CREATE DATABASE sgcea CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   ```
+3. Importe el esquema DDL y la data base indispensable ([database.sql](file:///Applications/MAMP/htdocs/sgcea/database.sql)):
+   ```bash
+   mysql -u root -p sgcea < database.sql
+   ```
+4. **(Opcional para pruebas)**: Si desea cargar datos de demostración (docentes, estudiantes, materias, evaluaciones y constancias de prueba), ejecute el archivo ([seed.sql](file:///Applications/MAMP/htdocs/sgcea/seed.sql)):
+   ```bash
+   mysql -u root -p sgcea < seed.sql
+   ```
 
-```bash
-cd config
-cp database.template.php database.php
-# Editar database.php con las credenciales correctas
+### 4. Abrir la Aplicación
+Navegue desde su navegador a:
+`http://localhost/sgcea/public` (o la ruta configurada en su entorno).
+
+---
+
+## 🔑 Credenciales por Defecto
+
+### 👑 Usuario Administrador (Creado por `database.sql`)
+- **Email**: `admin@sgcea.com`
+- **Contraseña**: `admin123`
+
+### 👨‍🏫 Usuarios de Prueba (Cargados por `seed.sql`)
+- **Docente**: `carlos@docente.com` / `password123`
+- **Estudiante**: `juan@estudiante.com` / `password123`
+
+---
+
+## 📂 Estructura del Proyecto
+
+```
+sgcea/
+├── app/                        # Aplicación principal (MVC)
+│   ├── Controllers/            # Controladores del sistema
+│   ├── Models/                 # Capa de Modelo (Services y Repositories)
+│   └── Views/                  # Vistas PHP nativas y layouts
+├── config/                     # Configuraciones (app, database, rutas, inicializador)
+├── core/                       # Núcleo del Framework (Router, Controller, Database, Env, Security)
+├── documentacion/              # Manuales completos de Usuario y Técnico
+│   ├── manual_usuario.md       # Manual operativo para Admin, Docente y Estudiante
+│   └── manual_tecnico.md       # Documentación de arquitectura y desarrollador
+├── public/                     # Punto de entrada público (index.php, assets CSS/JS)
+├── storage/                    # Almacenamiento de logs, sesiones y respaldos
+├── .env                        # Archivo de credenciales (ignorado en git)
+├── .env.example                # Plantilla de variables de entorno
+├── database.sql                # Estructura DDL limpia y datos base del sistema
+├── seed.sql                    # Datos de prueba de demostración (seeding)
+└── README.md                   # Documento principal del proyecto
 ```
 
-### 4. Configurar Apache
+---
 
-Crear un VirtualHost o usar el .htaccess incluido:
+## 📚 Documentación Adicional
 
-```apache
-<VirtualHost *:80>
-    ServerName sgcea.local
-    DocumentRoot /var/www/html/sgcea/public
-    
-    <Directory /var/www/html/sgcea/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
+Para más información y detalle sobre el funcionamiento del sistema, consulte los manuales alojados en el directorio `documentacion/`:
 
-### 5. Permisos de carpetas
-
-```bash
-chmod -R 755 /var/www/html/sgcea
-chmod -R 777 /var/www/html/sgcea/storage/logs
-chmod -R 777 /var/www/html/sgcea/storage/sessions
-```
-
-### 6. Acceder al sistema
-
-Abrir navegador e ir a: `http://localhost/sgcea/public`
-
-**Credenciales por defecto:**
-- Email: admin@sgcea.com
-- Contraseña: admin123
-
-## Uso del Sistema
-
-### Módulos disponibles
-
-#### Administrador
-- Dashboard con estadísticas generales
-- Gestión de usuarios, estudiantes, docentes
-- Gestión de materias, secciones, asignaciones
-- Aprobación de constancias
-- Asignación de permisos ACL
-- Configuración del sistema
-
-#### Docente
-- Dashboard con sus asignaciones
-- Registro de calificaciones
-- Control de asistencia
-- Gestión de plan de evaluación
-
-#### Estudiante
-- Dashboard personal
-- Consulta de boletín de calificaciones
-- Historial de asistencia
-- Solicitud de constancias
-- Perfil personal
-
-## Seguridad
-
-El sistema incluye:
-- Hash de contraseñas con bcrypt
-- Protección CSRF en formularios
-- Rate limiting en login (5 intentos/15 min)
-- Headers de seguridad HTTP
-- Sanitización de entradas
-- Control de acceso basado en permisos (ACL)
-- Auditoría de acciones críticas
-
-## Desarrollo
-
-### Agregar nuevos controladores
-
-```php
-namespace Src\Controllers;
-
-class MiController extends Controller
-{
-    public function index()
-    {
-        $this->render('mi/vista', ['datos' => $valor]);
-    }
-}
-```
-
-### Agregar nuevas rutas
-
-Editar `config/routes.php`:
-
-```php
-'GET' => [
-    '/mi/ruta' => ['MiController@index', 'permiso.requerido'],
-],
-```
-
-### Agregar permisos
-
-Insertar en tabla `permisos`:
-
-```sql
-INSERT INTO permisos (nombre, descripcion, modulo) 
-VALUES ('mi.permiso', 'Descripción', 'modulo');
-```
-
-## Soporte
-
-Para reportar errores o solicitar funcionalidades, contactar al equipo de desarrollo.
-
-## Licencia
-
-Propiedad exclusiva de la institución educativa.
+- 📘 [Manual de Usuario](file:///Applications/MAMP/htdocs/sgcea/documentacion/manual_usuario.md): Guía de uso para Administradores, Docentes y Estudiantes.
+- 📙 [Manual Técnico y de Desarrollador](file:///Applications/MAMP/htdocs/sgcea/documentacion/manual_tecnico.md): Guía de arquitectura MVC, explicación de clases core, servicios, repositorios, mapa de rutas y esquema de base de datos.
