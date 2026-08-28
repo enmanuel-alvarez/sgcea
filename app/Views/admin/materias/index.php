@@ -1,6 +1,6 @@
 <?php
 /**
- * Vista: Admin - Listado de Materias (Tailwind CSS v3)
+ * Vista: Admin - Gestión de Materias con Modales Flotantes y Doble Factor (Tailwind CSS v3)
  */
 $titulo = 'Gestión de Materias';
 require_once __DIR__ . '/../../layouts/header.php';
@@ -14,24 +14,24 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Plan de estudios y asignaturas del plan curricular.</p>
     </div>
     <?php if (in_array('admin.materias.crear', $_SESSION['usuario_permisos'] ?? []) || in_array('materias.crear', $_SESSION['usuario_permisos'] ?? []) || $_SESSION['usuario_tipo'] === 'admin'): ?>
-        <a href="<?= url('/admin/materias/crear') ?>" class="inline-flex items-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 transition-all">
+        <button type="button" onclick="abrirModalCrearMateria()" class="inline-flex items-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 transition-all">
             <i class="bi bi-book"></i>
             <span>Nueva Materia</span>
-        </a>
+        </button>
     <?php endif; ?>
 </div>
 
-<!-- Table Card -->
+<!-- Tabla Principal -->
 <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 overflow-hidden">
     <div class="overflow-x-auto">
         <table id="tablaMaterias" class="w-full text-left border-collapse text-sm">
             <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Créditos</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                <tr class="border-b border-slate-200 dark:border-slate-700 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <th class="pb-3">Código</th>
+                    <th class="pb-3">Nombre</th>
+                    <th class="pb-3">Créditos</th>
+                    <th class="pb-3">Estado</th>
+                    <th class="pb-3 text-right">Acciones</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
@@ -51,12 +51,12 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
                             </span>
                         <?php endif; ?>
                     </td>
-                    <td>
-                        <div class="flex items-center space-x-2">
-                            <a href="<?= url('/admin/materias/editar/' . $mat['id']) ?>" class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <button type="button" onclick="confirmarEliminar(<?= $mat['id'] ?>, '<?= htmlspecialchars($mat['nombre'] ?? '') ?>')" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition-colors" title="Eliminar">
+                    <td class="text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <button type="button" onclick='abrirModalEditarMateria(<?= json_encode($mat) ?>)' class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors" title="Editar Materia">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button type="button" onclick="confirmarEliminar2FA('<?= url('/admin/materias/eliminar/' . $mat['id']) ?>', '<?= htmlspecialchars($mat['nombre'] ?? '') ?>')" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition-colors" title="Eliminar Materia">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -68,17 +68,206 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
     </div>
 </div>
 
-<form id="formEliminar" method="POST" action="<?= url('/admin/materias/eliminar') ?>" style="display:none;">
-    <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
-    <input type="hidden" name="id" id="idEliminar">
-</form>
+<!-- ════════════════ MODAL FLOTANTE: FORMULARIO MATERIA ════════════════ -->
+<div id="modalFormMateria" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] flex flex-col">
+        
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-4 shrink-0">
+            <div class="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+                <i class="bi bi-book text-2xl"></i>
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white" id="modalMateriaTitulo">Nueva Materia</h3>
+            </div>
+            <button type="button" onclick="cerrarModalMateria()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form id="formMateria" method="POST" action="" onsubmit="validarEnvioMateria(event)" class="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+            <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
+
+            <div>
+                <label for="mat_codigo" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Código de la Materia *</label>
+                <input type="text" id="mat_codigo" name="codigo" required placeholder="Ej: MAT-101" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm font-mono">
+            </div>
+
+            <div>
+                <label for="mat_nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Nombre de la Materia *</label>
+                <input type="text" id="mat_nombre" name="nombre" required placeholder="Ej: Matemáticas I" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+
+            <div>
+                <label for="mat_creditos" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Unidades de Crédito *</label>
+                <input type="number" id="mat_creditos" name="creditos" min="1" max="10" value="3" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+
+            <div>
+                <label for="mat_descripcion" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Descripción u Observaciones</label>
+                <textarea id="mat_descripcion" name="descripcion" rows="3" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+            </div>
+
+            <div class="flex items-center space-x-2 pt-2">
+                <input type="checkbox" id="mat_activo" name="activo" value="1" checked class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                <label for="mat_activo" class="text-xs font-semibold text-slate-800 dark:text-slate-200">Materia Activa en el Plan Escolar</label>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700/50 shrink-0">
+                <button type="button" onclick="cerrarModalMateria()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                    Cancelar
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs shadow-md shadow-blue-500/20 transition-all flex items-center space-x-2">
+                    <i class="bi bi-save"></i>
+                    <span id="btnMateriaSubmitTexto">Guardar Materia</span>
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- ════════════════ MODAL FLOTANTE: CONFIRMACIÓN DE MODIFICACIÓN ════════════════ -->
+<div id="modalConfirmarModificacion" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-900/50 shadow-2xl p-6 sm:p-8 space-y-5 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-3xl">
+            <i class="bi bi-question-circle-fill"></i>
+        </div>
+        <div class="space-y-2">
+            <h3 class="text-lg font-black text-slate-900 dark:text-white">Confirmar Modificación</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                ¿Está seguro de guardar los cambios realizados en este registro?
+            </p>
+        </div>
+        <div class="flex items-center space-x-3 pt-2">
+            <button type="button" onclick="cerrarModalConfirmarModificacion()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                Cancelar
+            </button>
+            <button type="button" onclick="ejecutarSubmitConfirmado()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-md shadow-blue-600/20 transition-all">
+                Sí, Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════ MODAL FLOTANTE: ELIMINACIÓN CON DOBLE FACTOR (2FA + FRASE) ════════════════ -->
+<div id="modalEliminar2FA" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl border border-rose-200 dark:border-rose-900/50 shadow-2xl p-6 sm:p-8 space-y-5 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-3xl">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div class="space-y-2">
+            <h3 class="text-lg font-black text-slate-900 dark:text-white">Confirmación de Eliminación</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed" id="delModalTexto">
+                Esta acción eliminará de forma permanente el registro seleccionado.
+            </p>
+        </div>
+
+        <form id="formEliminar2FA" method="POST" action="" class="space-y-4 text-left pt-1">
+            <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
+            
+            <div>
+                <label for="txtFrase2FA" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Para confirmar, escriba la palabra <span class="select-none font-mono font-bold text-rose-600 dark:text-rose-400">ELIMINAR</span>:
+                </label>
+                <input type="text" id="txtFrase2FA" oninput="validar2FA()" placeholder="Escriba ELIMINAR aquí" autocomplete="off"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 text-sm font-mono tracking-wider">
+            </div>
+
+            <div class="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl">
+                <label class="flex items-start space-x-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="chk2FA" onchange="validar2FA()" class="mt-0.5 h-4 w-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500">
+                    <span class="text-xs font-semibold text-rose-900 dark:text-rose-200 leading-tight">
+                        Entiendo las consecuencias y confirmo eliminar permanentemente este registro.
+                    </span>
+                </label>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-2">
+                <button type="button" onclick="cerrarModalEliminar2FA()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                    Cancelar
+                </button>
+                <button type="submit" id="btnSubmit2FA" disabled class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 transition-all">
+                    Eliminar Permanente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
-function confirmarEliminar(id, nombre) {
-    if (confirm('¿Está seguro de eliminar la materia "' + nombre + '"? Esta acción no se puede deshacer.')) {
-        document.getElementById('idEliminar').value = id;
-        document.getElementById('formEliminar').submit();
+let esEdicionMateria = false;
+let formPendienteSubmit = null;
+
+function abrirModalCrearMateria() {
+    esEdicionMateria = false;
+    const form = document.getElementById('formMateria');
+    form.reset();
+    form.action = '<?= url('/admin/materias/guardar') ?>';
+    document.getElementById('modalMateriaTitulo').innerText = 'Nueva Materia';
+    document.getElementById('btnMateriaSubmitTexto').innerText = 'Guardar Materia';
+    document.getElementById('modalFormMateria').classList.remove('hidden');
+}
+
+function abrirModalEditarMateria(mat) {
+    esEdicionMateria = true;
+    const form = document.getElementById('formMateria');
+    form.reset();
+    form.action = '<?= url('/admin/materias/actualizar/') ?>' + mat.id;
+    
+    document.getElementById('modalMateriaTitulo').innerText = 'Editar Materia: ' + (mat.nombre || '');
+    document.getElementById('btnMateriaSubmitTexto').innerText = 'Actualizar Materia';
+
+    document.getElementById('mat_codigo').value = mat.codigo || '';
+    document.getElementById('mat_nombre').value = mat.nombre || '';
+    document.getElementById('mat_creditos').value = mat.creditos || 3;
+    document.getElementById('mat_descripcion').value = mat.descripcion || '';
+    document.getElementById('mat_activo').checked = (mat.activo ?? mat.estado ?? 1) == 1;
+
+    document.getElementById('modalFormMateria').classList.remove('hidden');
+}
+
+function cerrarModalMateria() {
+    document.getElementById('modalFormMateria').classList.add('hidden');
+}
+
+function validarEnvioMateria(e) {
+    if (esEdicionMateria && !formPendienteSubmit) {
+        e.preventDefault();
+        formPendienteSubmit = document.getElementById('formMateria');
+        document.getElementById('modalConfirmarModificacion').classList.remove('hidden');
     }
+}
+
+function cerrarModalConfirmarModificacion() {
+    document.getElementById('modalConfirmarModificacion').classList.add('hidden');
+    formPendienteSubmit = null;
+}
+
+function ejecutarSubmitConfirmado() {
+    if (formPendienteSubmit) {
+        const temp = formPendienteSubmit;
+        formPendienteSubmit = null;
+        cerrarModalConfirmarModificacion();
+        temp.submit();
+    }
+}
+
+function confirmarEliminar2FA(actionUrl, nombre) {
+    const form = document.getElementById('formEliminar2FA');
+    form.action = actionUrl;
+    document.getElementById('delModalTexto').innerText = '¿Está seguro de eliminar la materia "' + nombre + '"? Esta operación no se puede deshacer.';
+    document.getElementById('txtFrase2FA').value = '';
+    document.getElementById('chk2FA').checked = false;
+    document.getElementById('btnSubmit2FA').disabled = true;
+    document.getElementById('modalEliminar2FA').classList.remove('hidden');
+}
+
+function cerrarModalEliminar2FA() {
+    document.getElementById('modalEliminar2FA').classList.add('hidden');
+}
+
+function validar2FA() {
+    const txt = document.getElementById('txtFrase2FA').value.trim().toUpperCase();
+    const chk = document.getElementById('chk2FA').checked;
+    document.getElementById('btnSubmit2FA').disabled = !(txt === 'ELIMINAR' && chk);
 }
 
 $(document).ready(function() {

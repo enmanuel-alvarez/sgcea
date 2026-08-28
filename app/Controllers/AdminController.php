@@ -83,11 +83,7 @@ class AdminController extends Controller
 
     public function mostrarCrearUsuario(): void
     {
-        $permisos = $this->permisoService->obtenerTodos();
-        $this->render('admin/usuarios/crear', [
-            'titulo' => 'Crear Usuario',
-            'permisos' => $permisos
-        ]);
+        $this->redirigir('/admin/usuarios');
     }
 
     public function guardarUsuario(): void
@@ -131,22 +127,7 @@ class AdminController extends Controller
 
     public function mostrarEditarUsuario(int $id): void
     {
-        $usuario = $this->usuarioService->obtenerPorId($id);
-        if (!$usuario) {
-            $_SESSION['flash']['error'] = 'Usuario no encontrado';
-            $this->redirigir('/admin/usuarios');
-        }
-
-        $permisos = $this->permisoService->obtenerTodos();
-        $permisos_asignados = $this->permisoService->obtenerPermisosPorUsuario($id);
-        $ids_asignados = array_column($permisos_asignados, 'id');
-
-        $this->render('admin/usuarios/editar', [
-            'titulo' => 'Editar Usuario',
-            'usuario' => $usuario,
-            'permisos' => $permisos,
-            'permisos_asignados' => $ids_asignados
-        ]);
+        $this->redirigir('/admin/usuarios');
     }
 
     public function actualizarUsuario(int $id): void
@@ -224,24 +205,19 @@ class AdminController extends Controller
     {
         $estudiantes = $this->estudianteService->obtenerTodosConDetalles();
         $grados = $this->gradoService->obtenerTodos();
+        $secciones = $this->seccionService->obtenerTodos();
         
         $this->render('admin/estudiantes/index', [
             'titulo' => 'Gestión de Estudiantes',
             'estudiantes' => $estudiantes,
-            'grados' => $grados
+            'grados' => $grados,
+            'secciones' => $secciones
         ]);
     }
 
     public function mostrarCrearEstudiante(): void
     {
-        $grados = $this->gradoService->obtenerTodos();
-        $secciones = $this->seccionService->obtenerTodos();
-        
-        $this->render('admin/estudiantes/crear', [
-            'titulo' => 'Inscribir Estudiante',
-            'grados' => $grados,
-            'secciones' => $secciones
-        ]);
+        $this->redirigir('/admin/estudiantes');
     }
 
     public function guardarEstudiante(): void
@@ -298,23 +274,7 @@ class AdminController extends Controller
 
     public function mostrarEditarEstudiante(int $id): void
     {
-        $estudiante = $this->estudianteService->obtenerPorId($id);
-        if (!$estudiante) {
-            $_SESSION['flash']['error'] = 'Estudiante no encontrado';
-            $this->redirigir('/admin/estudiantes');
-        }
-
-        $grados = $this->gradoService->obtenerTodos();
-        $secciones = $this->seccionService->obtenerTodos();
-        $inscripcion = $this->estudianteService->obtenerInscripcionActual($id);
-
-        $this->render('admin/estudiantes/editar', [
-            'titulo' => 'Editar Estudiante',
-            'estudiante' => $estudiante,
-            'grados' => $grados,
-            'secciones' => $secciones,
-            'inscripcion' => $inscripcion
-        ]);
+        $this->redirigir('/admin/estudiantes');
     }
 
     public function actualizarEstudiante(int $id): void
@@ -408,9 +368,7 @@ class AdminController extends Controller
 
     public function mostrarCrearDocente(): void
     {
-        $this->render('admin/docentes/crear', [
-            'titulo' => 'Registrar Docente'
-        ]);
+        $this->redirigir('/admin/docentes');
     }
 
     public function guardarDocente(): void
@@ -460,16 +418,7 @@ class AdminController extends Controller
 
     public function mostrarEditarDocente(int $id): void
     {
-        $docente = $this->docenteService->obtenerPorId($id);
-        if (!$docente) {
-            $_SESSION['flash']['error'] = 'Docente no encontrado';
-            $this->redirigir('/admin/docentes');
-        }
-
-        $this->render('admin/docentes/editar', [
-            'titulo' => 'Editar Docente',
-            'docente' => $docente
-        ]);
+        $this->redirigir('/admin/docentes');
     }
 
     public function actualizarDocente(int $id): void
@@ -560,9 +509,7 @@ class AdminController extends Controller
 
     public function mostrarCrearMateria(): void
     {
-        $this->render('admin/materias/crear', [
-            'titulo' => 'Crear Materia'
-        ]);
+        $this->redirigir('/admin/materias');
     }
 
     public function guardarMateria(): void
@@ -602,16 +549,7 @@ class AdminController extends Controller
 
     public function mostrarEditarMateria(int $id): void
     {
-        $materia = $this->materiaService->obtenerPorId($id);
-        if (!$materia) {
-            $_SESSION['flash']['error'] = 'Materia no encontrada';
-            $this->redirigir('/admin/materias');
-        }
-
-        $this->render('admin/materias/editar', [
-            'titulo' => 'Editar Materia',
-            'materia' => $materia
-        ]);
+        $this->redirigir('/admin/materias');
     }
 
     public function actualizarMateria(int $id): void
@@ -692,12 +630,7 @@ class AdminController extends Controller
 
     public function mostrarCrearSeccion(): void
     {
-        $grados = $this->gradoService->obtenerTodos();
-        
-        $this->render('admin/secciones/crear', [
-            'titulo' => 'Crear Sección',
-            'grados' => $grados
-        ]);
+        $this->redirigir('/admin/secciones');
     }
 
     public function guardarSeccion(): void
@@ -737,19 +670,7 @@ class AdminController extends Controller
 
     public function mostrarEditarSeccion(int $id): void
     {
-        $seccion = $this->seccionService->obtenerPorId($id);
-        if (!$seccion) {
-            $_SESSION['flash']['error'] = 'Sección no encontrada';
-            $this->redirigir('/admin/secciones');
-        }
-
-        $grados = $this->gradoService->obtenerTodos();
-        
-        $this->render('admin/secciones/editar', [
-            'titulo' => 'Editar Sección',
-            'seccion' => $seccion,
-            'grados' => $grados
-        ]);
+        $this->redirigir('/admin/secciones');
     }
 
     public function actualizarSeccion(int $id): void
@@ -834,16 +755,7 @@ class AdminController extends Controller
 
     public function mostrarCrearAsignacion(): void
     {
-        $docentes = $this->docenteService->obtenerTodos();
-        $materias = $this->materiaService->obtenerTodos();
-        $secciones = $this->seccionService->obtenerTodos();
-        
-        $this->render('admin/asignaciones/crear', [
-            'titulo' => 'Crear Asignación',
-            'docentes' => $docentes,
-            'materias' => $materias,
-            'secciones' => $secciones
-        ]);
+        $this->redirigir('/admin/asignaciones');
     }
 
     public function guardarAsignacion(): void

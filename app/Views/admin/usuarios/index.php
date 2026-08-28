@@ -1,6 +1,6 @@
 <?php
 /**
- * Vista: Listado de Usuarios y Roles con Modal de Permisos por 3 Tabs (Administrador, Docente, Estudiante)
+ * Vista: Listado de Usuarios con Modales Flotantes (Crear, Editar, Permisos ACL, Confirmación 2FA)
  */
 $titulo = 'Gestión de Usuarios y Roles';
 require_once __DIR__ . '/../../layouts/header.php';
@@ -105,10 +105,10 @@ if (!empty($todosPermisos)) {
     </div>
     <?php if (in_array('admin.usuarios.crear', $_SESSION['usuario_permisos'] ?? []) || $_SESSION['usuario_tipo'] === 'admin'): ?>
     <div>
-        <a href="<?= url('/admin/usuarios/crear') ?>" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 transition-all flex items-center space-x-2">
+        <button type="button" onclick="abrirModalCrearUsuario()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 transition-all flex items-center space-x-2">
             <i class="bi bi-person-plus-fill"></i>
-            <span>Crear Usuario</span>
-        </a>
+            <span>Nuevo Usuario</span>
+        </button>
     </div>
     <?php endif; ?>
 </div>
@@ -157,22 +157,30 @@ if (!empty($todosPermisos)) {
                         <?php endif; ?>
                     </td>
                     <td class="py-3.5">
-                        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                            Activo
-                        </span>
+                        <?php if (($u['activo'] ?? $u['estado'] ?? 1) == 1): ?>
+                            <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 me-1"></span> Activo
+                            </span>
+                        <?php else: ?>
+                            <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 me-1"></span> Inactivo
+                            </span>
+                        <?php endif; ?>
                     </td>
                     <td class="py-3.5 text-right space-x-2">
-                        <!-- BOTÓN MODAL PERMISOS ACL -->
+                        <!-- EDITAR INFORMACIÓN DEL USUARIO -->
+                        <button type="button" onclick='abrirModalEditarUsuario(<?= json_encode($u) ?>)' class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors" title="Editar Datos del Usuario">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+
+                        <!-- PERMISOS ACL (MODAL) -->
                         <button type="button" onclick='abrirModalPermisos(<?= $uId ?>, <?= json_encode($u["nombre"] . " " . $u["apellido"]) ?>, <?= json_encode($userPerms) ?>)' 
-                                class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors" title="Asignar Permisos ACL">
+                                class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors" title="Gestionar Permisos ACL">
                             <i class="bi bi-key-fill"></i>
                         </button>
-                        
-                        <a href="<?= url('/admin/permisos/asignar/' . $uId) ?>" class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors" title="Ver Matriz de Permisos">
-                            <i class="bi bi-sliders"></i>
-                        </a>
 
-                        <button type="button" onclick="confirmarEliminar(<?= $uId ?>)" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition-colors" title="Eliminar Usuario">
+                        <!-- ELIMINAR USUARIO -->
+                        <button type="button" onclick="confirmarEliminar2FA('<?= url('/admin/usuarios/eliminar/' . $uId) ?>', '<?= htmlspecialchars(($u['nombre'] ?? '') . ' ' . ($u['apellido'] ?? '')) ?>')" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition-colors" title="Eliminar Usuario">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
@@ -180,6 +188,79 @@ if (!empty($todosPermisos)) {
                 <?php endforeach; ?>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- ════════════════ MODAL FLOTANTE: REGISTRO / EDICIÓN DE USUARIO ════════════════ -->
+<div id="modalFormUsuario" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-xl bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] flex flex-col">
+        
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-4 shrink-0">
+            <div class="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+                <i class="bi bi-person-plus-fill text-2xl"></i>
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white" id="modalUsuarioTitulo">Nuevo Usuario</h3>
+            </div>
+            <button type="button" onclick="cerrarModalUsuario()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form id="formUsuario" method="POST" action="" onsubmit="validarEnvioUsuario(event)" class="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+            <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="usr_cedula" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Cédula *</label>
+                    <input type="text" id="usr_cedula" name="cedula" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+                <div>
+                    <label for="usr_correo" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Correo Electrónico *</label>
+                    <input type="email" id="usr_correo" name="correo" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="usr_nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Nombre *</label>
+                    <input type="text" id="usr_nombre" name="nombre" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+                <div>
+                    <label for="usr_apellido" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Apellido *</label>
+                    <input type="text" id="usr_apellido" name="apellido" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="usr_tipo_usuario" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Rol / Tipo de Cuenta *</label>
+                    <select id="usr_tipo_usuario" name="tipo_usuario" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+                        <option value="estudiante">Estudiante</option>
+                        <option value="docente">Docente</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="usr_password" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5" id="lblUsrPassword">Contraseña *</label>
+                    <input type="password" id="usr_password" name="password" minlength="6" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 pt-2">
+                <input type="checkbox" id="usr_activo" name="activo" value="1" checked class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                <label for="usr_activo" class="text-xs font-semibold text-slate-800 dark:text-slate-200">Cuenta Activa</label>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700/50 shrink-0">
+                <button type="button" onclick="cerrarModalUsuario()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                    Cancelar
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs shadow-md shadow-blue-500/20 transition-all flex items-center space-x-2">
+                    <i class="bi bi-save"></i>
+                    <span id="btnUsuarioSubmitTexto">Guardar Usuario</span>
+                </button>
+            </div>
+        </form>
+
     </div>
 </div>
 
@@ -245,7 +326,7 @@ if (!empty($todosPermisos)) {
             </div>
         </div>
 
-        <!-- Formulario -->
+        <!-- Formulario de Permisos -->
         <form id="formPermisosModal" method="POST" action="" class="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
             <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
 
@@ -333,27 +414,134 @@ if (!empty($todosPermisos)) {
     </div>
 </div>
 
-<form id="formEliminar" method="POST" action="<?= url('/admin/usuarios/eliminar') ?>">
-    <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
-    <input type="hidden" name="id_usuario" id="idUsuarioEliminar">
-</form>
+<!-- ════════════════ MODAL FLOTANTE: CONFIRMACIÓN DE MODIFICACIÓN ════════════════ -->
+<div id="modalConfirmarModificacion" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-900/50 shadow-2xl p-6 sm:p-8 space-y-5 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-3xl">
+            <i class="bi bi-question-circle-fill"></i>
+        </div>
+        <div class="space-y-2">
+            <h3 class="text-lg font-black text-slate-900 dark:text-white">Confirmar Modificación</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                ¿Está seguro de guardar los cambios realizados en este registro?
+            </p>
+        </div>
+        <div class="flex items-center space-x-3 pt-2">
+            <button type="button" onclick="cerrarModalConfirmarModificacion()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                Cancelar
+            </button>
+            <button type="button" onclick="ejecutarSubmitConfirmado()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-md shadow-blue-600/20 transition-all">
+                Sí, Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════ MODAL FLOTANTE: ELIMINACIÓN CON DOBLE FACTOR (2FA + FRASE) ════════════════ -->
+<div id="modalEliminar2FA" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl border border-rose-200 dark:border-rose-900/50 shadow-2xl p-6 sm:p-8 space-y-5 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-3xl">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div class="space-y-2">
+            <h3 class="text-lg font-black text-slate-900 dark:text-white">Confirmación de Eliminación</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed" id="delModalTexto">
+                Esta acción eliminará de forma permanente el registro seleccionado.
+            </p>
+        </div>
+
+        <form id="formEliminar2FA" method="POST" action="" class="space-y-4 text-left pt-1">
+            <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
+            
+            <div>
+                <label for="txtFrase2FA" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Para confirmar, escriba la palabra <span class="select-none font-mono font-bold text-rose-600 dark:text-rose-400">ELIMINAR</span>:
+                </label>
+                <input type="text" id="txtFrase2FA" oninput="validar2FA()" placeholder="Escriba ELIMINAR aquí" autocomplete="off"
+                       class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 text-sm font-mono tracking-wider">
+            </div>
+
+            <div class="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl">
+                <label class="flex items-start space-x-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="chk2FA" onchange="validar2FA()" class="mt-0.5 h-4 w-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500">
+                    <span class="text-xs font-semibold text-rose-900 dark:text-rose-200 leading-tight">
+                        Entiendo las consecuencias y confirmo eliminar permanentemente este registro.
+                    </span>
+                </label>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-2">
+                <button type="button" onclick="cerrarModalEliminar2FA()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                    Cancelar
+                </button>
+                <button type="submit" id="btnSubmit2FA" disabled class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs shadow-md shadow-rose-600/20 transition-all">
+                    Eliminar Permanente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
+let esEdicionUsuario = false;
+let formPendienteSubmit = null;
+
+function abrirModalCrearUsuario() {
+    esEdicionUsuario = false;
+    const form = document.getElementById('formUsuario');
+    form.reset();
+    form.action = '<?= url('/admin/usuarios/guardar') ?>';
+    document.getElementById('modalUsuarioTitulo').innerText = 'Nuevo Usuario';
+    document.getElementById('btnUsuarioSubmitTexto').innerText = 'Guardar Usuario';
+    document.getElementById('lblUsrPassword').innerText = 'Contraseña *';
+    document.getElementById('usr_password').required = true;
+    document.getElementById('modalFormUsuario').classList.remove('hidden');
+}
+
+function abrirModalEditarUsuario(u) {
+    esEdicionUsuario = true;
+    const form = document.getElementById('formUsuario');
+    form.reset();
+    form.action = '<?= url('/admin/usuarios/actualizar/') ?>' + u.id;
+    
+    document.getElementById('modalUsuarioTitulo').innerText = 'Editar Usuario: ' + (u.nombre || '') + ' ' + (u.apellido || '');
+    document.getElementById('btnUsuarioSubmitTexto').innerText = 'Actualizar Usuario';
+    document.getElementById('lblUsrPassword').innerText = 'Nueva Contraseña (Opcional)';
+    document.getElementById('usr_password').required = false;
+
+    document.getElementById('usr_cedula').value = u.cedula || '';
+    document.getElementById('usr_correo').value = u.correo || u.email || '';
+    document.getElementById('usr_nombre').value = u.nombre || '';
+    document.getElementById('usr_apellido').value = u.apellido || '';
+    document.getElementById('usr_tipo_usuario').value = (u.tipo_usuario || u.rol || 'estudiante').toLowerCase();
+    document.getElementById('usr_activo').checked = (u.activo ?? u.estado ?? 1) == 1;
+
+    document.getElementById('modalFormUsuario').classList.remove('hidden');
+}
+
+function cerrarModalUsuario() {
+    document.getElementById('modalFormUsuario').classList.add('hidden');
+}
+
+function validarEnvioUsuario(e) {
+    if (esEdicionUsuario && !formPendienteSubmit) {
+        e.preventDefault();
+        formPendienteSubmit = document.getElementById('formUsuario');
+        document.getElementById('modalConfirmarModificacion').classList.remove('hidden');
+    }
+}
+
 function switchModalRoleTab(rolKey) {
-    // Esconder todos los paneles
     document.querySelectorAll('.m-role-panel').forEach(panel => panel.classList.add('hidden'));
 
-    // Resetear estilos de todos los botones del modal
     document.querySelectorAll('.m-role-btn').forEach(btn => {
         btn.classList.remove('border-blue-600', 'bg-white', 'dark:bg-slate-800', 'text-blue-700', 'dark:text-blue-300', 'font-extrabold', 'shadow-sm', 'border-emerald-600', 'text-emerald-700', 'border-purple-600', 'text-purple-700');
         btn.classList.add('border-transparent', 'text-slate-500', 'font-semibold');
     });
 
-    // Mostrar panel activo
     const panel = document.getElementById('mRolePanel-' + rolKey);
     if (panel) panel.classList.remove('hidden');
 
-    // Resaltar botón activo
     const btn = document.getElementById('mRoleBtn-' + rolKey);
     if (btn) {
         btn.classList.remove('border-transparent', 'text-slate-500', 'font-semibold');
@@ -384,10 +572,8 @@ function abrirModalPermisos(userId, userName, activePerms) {
         titulo.innerText = 'Permisos ACL: ' + userName;
     }
 
-    // Desmarcar todos los checkboxes
     document.querySelectorAll('.modal-permiso-cb').forEach(cb => cb.checked = false);
 
-    // Marcar únicamente los permisos asignados a este usuario
     if (Array.isArray(activePerms)) {
         activePerms.forEach(pId => {
             const cb = document.getElementById('m_permiso_' + pId);
@@ -395,9 +581,7 @@ function abrirModalPermisos(userId, userName, activePerms) {
         });
     }
 
-    // Volver a la pestaña principal (Administrador) al abrir
     switchModalRoleTab('admin');
-
     if (modal) modal.classList.remove('hidden');
 }
 
@@ -417,11 +601,38 @@ function seleccionarTodosModal(state) {
     document.querySelectorAll('.modal-permiso-cb').forEach(cb => cb.checked = state);
 }
 
-function confirmarEliminar(id) {
-    if (confirm('¿Está seguro de eliminar este usuario? Esta acción no se puede deshacer.')) {
-        document.getElementById('idUsuarioEliminar').value = id;
-        document.getElementById('formEliminar').submit();
+function cerrarModalConfirmarModificacion() {
+    document.getElementById('modalConfirmarModificacion').classList.add('hidden');
+    formPendienteSubmit = null;
+}
+
+function ejecutarSubmitConfirmado() {
+    if (formPendienteSubmit) {
+        const temp = formPendienteSubmit;
+        formPendienteSubmit = null;
+        cerrarModalConfirmarModificacion();
+        temp.submit();
     }
+}
+
+function confirmarEliminar2FA(actionUrl, nombre) {
+    const form = document.getElementById('formEliminar2FA');
+    form.action = actionUrl;
+    document.getElementById('delModalTexto').innerText = '¿Está seguro de eliminar al usuario "' + nombre + '"? Esta operación no se puede deshacer.';
+    document.getElementById('txtFrase2FA').value = '';
+    document.getElementById('chk2FA').checked = false;
+    document.getElementById('btnSubmit2FA').disabled = true;
+    document.getElementById('modalEliminar2FA').classList.remove('hidden');
+}
+
+function cerrarModalEliminar2FA() {
+    document.getElementById('modalEliminar2FA').classList.add('hidden');
+}
+
+function validar2FA() {
+    const txt = document.getElementById('txtFrase2FA').value.trim().toUpperCase();
+    const chk = document.getElementById('chk2FA').checked;
+    document.getElementById('btnSubmit2FA').disabled = !(txt === 'ELIMINAR' && chk);
 }
 
 $(document).ready(function() {
