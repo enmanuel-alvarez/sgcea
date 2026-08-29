@@ -45,3 +45,4 @@ class Autoloader
         self::$namespaces[$namespace] = $baseDir;
     }
 }
+

@@ -58,3 +58,4 @@ class ConfiguracionService
         return $valor !== null ? (int)$valor : $default;
     }
 }
+

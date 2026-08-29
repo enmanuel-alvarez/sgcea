@@ -119,3 +119,4 @@ return [
         '/cambiar-password' => ['AuthController@cambiarPassword', null],
     ]
 ];
+

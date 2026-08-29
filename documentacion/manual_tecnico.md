@@ -196,3 +196,4 @@ Contienen la lógica de negocio pura, validaciones de reglas y registro de audit
 3. **Escapado XSS**: Todos los datos renderizados en vistas pasan por `e()` / `htmlspecialchars()`.
 4. **Protección CSRF**: Formularios mutation (POST) incluyen token anti-CSRF validado por `Security::validarTokenCSRF()`.
 5. **Cifrado de Claves**: BCRYPT con costo 10 nativo mediante `password_hash()`.
+

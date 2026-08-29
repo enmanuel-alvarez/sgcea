@@ -229,3 +229,4 @@ if (!function_exists('env')) {
         return \Src\Core\Env::get($key, $default);
     }
 }
+

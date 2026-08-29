@@ -308,3 +308,4 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
     </div>
 
     <div class="flex-1 flex overflow-hidden">
+

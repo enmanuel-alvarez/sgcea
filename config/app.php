@@ -13,3 +13,4 @@ return [
     'url_base'       => env('APP_URL', 'http://localhost/sgcea/public'),
     'debug'          => env('APP_DEBUG', true),
 ];
+

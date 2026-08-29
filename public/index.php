@@ -40,3 +40,4 @@ try {
         require __DIR__ . '/../app/Views/errors/500.php';
     }
 }
+

@@ -106,3 +106,4 @@ class UsuarioRepository
         return (int) ($result['total'] ?? 0);
     }
 }
+

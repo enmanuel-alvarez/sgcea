@@ -111,3 +111,4 @@ class RevisionRepository
         return (int) $stmt->fetchColumn();
     }
 }
+

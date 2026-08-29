@@ -104,3 +104,4 @@ class RateLimiter
         $stmt->execute();
     }
 }
+

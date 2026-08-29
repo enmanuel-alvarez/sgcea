@@ -137,3 +137,4 @@ class Security
         return !empty(trim($valor ?? ''));
     }
 }
+

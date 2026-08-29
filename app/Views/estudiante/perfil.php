@@ -76,3 +76,4 @@ require_once __DIR__ . '/../layouts/sidebar.php';
 </div>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+

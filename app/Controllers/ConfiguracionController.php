@@ -211,3 +211,4 @@ class ConfiguracionController extends Controller
         }
     }
 }
+

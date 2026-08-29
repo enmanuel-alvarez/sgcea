@@ -540,3 +540,4 @@ class DocenteController extends Controller
         $this->redirigir('/docente/revisiones');
     }
 }
+

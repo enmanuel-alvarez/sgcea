@@ -100,3 +100,4 @@ INSERT IGNORE INTO `solicitudes_constancia` (`id`, `estudiante_id`, `tipo`, `mot
 
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
+

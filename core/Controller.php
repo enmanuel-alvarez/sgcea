@@ -133,3 +133,4 @@ class Controller
         return $_SESSION['usuario_tipo'] ?? null;
     }
 }
+

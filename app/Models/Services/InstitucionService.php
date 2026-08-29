@@ -91,3 +91,4 @@ class InstitucionService
         return $this->institucionRepo->contarTotal();
     }
 }
+

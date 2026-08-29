@@ -267,3 +267,4 @@ function downloadCSV(csv, filename) {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
+

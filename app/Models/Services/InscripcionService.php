@@ -36,3 +36,4 @@ class InscripcionService
         return $this->inscripcionRepo->verificarInscripcionActiva($estudiante_id, $ano_academico);
     }
 }
+

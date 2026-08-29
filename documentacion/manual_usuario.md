@@ -150,3 +150,4 @@ El sistema limita las solicitudes a un máximo de 5 solicitudes pendientes en si
 
 **¿Por qué no veo mis materias asignadas como docente?**  
 Asegúrese de que el administrador del sistema le haya creado la **Asignación de Cátedra** formal para el año académico activo.
+

@@ -369,3 +369,4 @@ class EstudianteController extends Controller
         $this->redirigir('/estudiante/revisiones');
     }
 }
+

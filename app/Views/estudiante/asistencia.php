@@ -106,3 +106,4 @@ $(document).ready(function() {
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+

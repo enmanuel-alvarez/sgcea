@@ -87,3 +87,4 @@ class InstitucionRepository
         return (int) ($result['total'] ?? 0);
     }
 }
+

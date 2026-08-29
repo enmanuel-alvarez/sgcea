@@ -126,3 +126,4 @@ class Database
         throw new Exception("No se puede deserializar el singleton");
     }
 }
+
