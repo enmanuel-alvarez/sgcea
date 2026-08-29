@@ -77,7 +77,7 @@ class ReportesController extends Controller
                 break;
 
             case 'ausentismo_critico':
-                $datosReporte = $this->reporteService->obtenerAlertaAusentismoCritico($seccionId, 3);
+                $datosReporte = $this->reporteService->obtenerAlertaAusentismoCritico($seccionId, 20.0);
                 break;
 
             case 'carga_docente':
@@ -168,6 +168,11 @@ class ReportesController extends Controller
             case 'estudiantes':
                 $datos = $this->estudianteService->obtenerTodosConDetalles();
                 $columnas = ['cedula', 'nombre', 'apellido', 'genero', 'telefono_representante'];
+                break;
+
+            case 'ausentismo_critico':
+                $datos = $this->reporteService->obtenerAlertaAusentismoCritico(null, 20.0);
+                $columnas = ['cedula', 'nombre', 'apellido', 'grado', 'seccion', 'total_clases', 'ausencias', 'pct_ausencia'];
                 break;
 
             default:

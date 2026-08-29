@@ -126,13 +126,23 @@ class InscripcionRepository
         return (int) $stmt->fetchColumn();
     }
 
-    // Alias para compatibilidad con AdminController
-    public function obtenerInscripcionActivaPorEstudiante(int $estudiante_id): ?array
+    public function obtenerActivaPorEstudiante(int $estudiante_id): ?array
     {
-        $sql = "SELECT * FROM inscripciones WHERE estudiante_id = ? AND estado = 'activo' LIMIT 1";
+        $sql = "SELECT i.*, s.nombre as seccion_nombre, s.grado_id, g.nombre as grado_nombre 
+                FROM inscripciones i 
+                INNER JOIN secciones s ON i.seccion_id = s.id 
+                INNER JOIN grados g ON s.grado_id = g.id 
+                WHERE i.estudiante_id = ? AND (i.estado = 'activo' OR i.estado = 'activa' OR i.estado = '1' OR i.estado = 1) 
+                ORDER BY i.id DESC LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$estudiante_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
+    }
+
+    // Alias para compatibilidad
+    public function obtenerInscripcionActivaPorEstudiante(int $estudiante_id): ?array
+    {
+        return $this->obtenerActivaPorEstudiante($estudiante_id);
     }
 }

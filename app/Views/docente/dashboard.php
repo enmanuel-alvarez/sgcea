@@ -3,8 +3,8 @@
  * Vista: Panel del Docente Rediseñado (Tailwind CSS v3 + Chart.js)
  */
 $titulo = 'Dashboard Docente';
-require_once __DIR__ . '/../../layouts/header.php';
-require_once __DIR__ . '/../../layouts/sidebar.php';
+require_once __DIR__ . '/../layouts/header.php';
+require_once __DIR__ . '/../layouts/sidebar.php';
 
 $nombreDocente = $_SESSION['usuario_nombre'] ?? 'Docente';
 ?>
@@ -41,7 +41,7 @@ $nombreDocente = $_SESSION['usuario_nombre'] ?? 'Docente';
 </div>
 
 <!-- STAT CARDS GRID -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
     <!-- Asignaciones -->
     <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-3xl p-6 shadow-lg shadow-blue-600/20 relative overflow-hidden group hover:scale-[1.02] transition-all">
         <div class="absolute -right-4 -bottom-4 opacity-20 text-blue-200 group-hover:scale-110 transition-transform">
@@ -72,7 +72,7 @@ $nombreDocente = $_SESSION['usuario_nombre'] ?? 'Docente';
         </p>
     </div>
 
-    <!-- Pendientes -->
+    <!-- Evaluaciones -->
     <div class="bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-3xl p-6 shadow-lg shadow-amber-500/20 relative overflow-hidden group hover:scale-[1.02] transition-all">
         <div class="absolute -right-4 -bottom-4 opacity-20 text-amber-200 group-hover:scale-110 transition-transform">
             <i class="bi bi-pencil-square text-8xl"></i>
@@ -86,6 +86,21 @@ $nombreDocente = $_SESSION['usuario_nombre'] ?? 'Docente';
             <i class="bi bi-exclamation-circle me-1"></i> Notas por cargar
         </p>
     </div>
+
+    <!-- Revisiones de Notas -->
+    <a href="<?= url('/docente/revisiones') ?>" class="bg-gradient-to-br from-rose-600 to-pink-700 text-white rounded-3xl p-6 shadow-lg shadow-rose-600/20 relative overflow-hidden group hover:scale-[1.02] transition-all block">
+        <div class="absolute -right-4 -bottom-4 opacity-20 text-rose-200 group-hover:scale-110 transition-transform">
+            <i class="bi bi-chat-square-text-fill text-8xl"></i>
+        </div>
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-rose-100">Revisiones</span>
+            <span class="p-2 rounded-xl bg-white/20 text-white text-sm"><i class="bi bi-chat-left-dots"></i></span>
+        </div>
+        <h2 class="text-4xl font-black mb-1"><?= number_format($solicitudesRevision ?? $estadisticas['solicitudes_revision'] ?? 0) ?></h2>
+        <p class="text-xs text-rose-100/90 flex items-center font-medium">
+            <i class="bi bi-clock-history me-1"></i> Reclamos pendientes
+        </p>
+    </a>
 
     <!-- Promedio -->
     <div class="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-3xl p-6 shadow-lg shadow-indigo-600/20 relative overflow-hidden group hover:scale-[1.02] transition-all">
@@ -175,4 +190,4 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

@@ -68,7 +68,8 @@ foreach ($todosPermisos as $p) {
             'docente_dashboard' => 'Dashboard Docente',
             'docente_calificaciones' => 'Vista: Carga de Calificaciones',
             'docente_asistencia' => 'Vista: Tomador de Asistencias',
-            'docente_planevaluacion' => 'Vista: Plan de Evaluación'
+            'docente_planevaluacion' => 'Vista: Plan de Evaluación',
+            'docente_revisiones' => 'Vista: Solicitudes de Revisión de Notas'
         ];
         if (isset($nombresVistas[$vistaKey])) $vistaTitulo = $nombresVistas[$vistaKey];
     } elseif ($modulo === 'estudiante') {
@@ -77,7 +78,8 @@ foreach ($todosPermisos as $p) {
             'estudiante_boletin' => 'Vista: Boletín de Notas',
             'estudiante_asistencia' => 'Vista: Historial de Asistencias',
             'estudiante_constancias' => 'Vista: Solicitud de Constancias',
-            'estudiante_perfil' => 'Vista: Mi Perfil Estudiantil'
+            'estudiante_perfil' => 'Vista: Mi Perfil Estudiantil',
+            'estudiante_revisiones' => 'Vista: Solicitudes de Revisión de Notas'
         ];
         if (isset($nombresVistas[$vistaKey])) $vistaTitulo = $nombresVistas[$vistaKey];
     } elseif ($modulo === 'reportes') {

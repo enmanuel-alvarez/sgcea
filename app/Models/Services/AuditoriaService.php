@@ -39,7 +39,13 @@ class AuditoriaService
                 VALUES (:usuario_id, :accion, :tabla, :registro_id, :detalles, :ip, :user_agent, NOW())";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':usuario_id', $usuarioId, \PDO::PARAM_INT);
+
+        $usuarioVal = ($usuarioId && $usuarioId > 0) ? (int)$usuarioId : null;
+        if ($usuarioVal !== null) {
+            $stmt->bindValue(':usuario_id', $usuarioVal, \PDO::PARAM_INT);
+        } else {
+            $stmt->bindValue(':usuario_id', null, \PDO::PARAM_NULL);
+        }
         $stmt->bindValue(':accion', $accion, \PDO::PARAM_STR);
         $stmt->bindValue(':tabla', $tabla, \PDO::PARAM_STR);
         $stmt->bindValue(':registro_id', $registroId, \PDO::PARAM_INT);

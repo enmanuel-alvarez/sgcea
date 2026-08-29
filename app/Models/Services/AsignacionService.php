@@ -41,6 +41,11 @@ class AsignacionService
         return $this->asignacionRepo->obtenerPorDocente($docente_id);
     }
 
+    public function obtenerPorProfesor(int $profesor_id): array
+    {
+        return $this->obtenerPorDocente($profesor_id);
+    }
+
     public function obtenerConPlanEvaluacion(int $docente_id): array
     {
         return $this->asignacionRepo->obtenerConPlanEvaluacion($docente_id);

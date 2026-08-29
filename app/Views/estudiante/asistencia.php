@@ -3,8 +3,8 @@
  * Vista: Estudiante - Historial de Asistencia (Tailwind CSS v3)
  */
 $titulo = 'Historial de Asistencia';
-require_once __DIR__ . '/../../layouts/header.php';
-require_once __DIR__ . '/../../layouts/sidebar.php';
+require_once __DIR__ . '/../layouts/header.php';
+require_once __DIR__ . '/../layouts/sidebar.php';
 ?>
 
 <!-- Header -->
@@ -105,4 +105,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

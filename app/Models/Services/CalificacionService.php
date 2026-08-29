@@ -111,4 +111,29 @@ class CalificacionService
     {
         return $this->calificacionRepo->obtenerRendimientoPorSeccion($seccion_id, $materia_id, $periodo);
     }
+
+    public function obtenerPromedioPorEstudiante(int $estudiante_id): float
+    {
+        return $this->calificacionRepo->obtenerPromedioPorEstudiante($estudiante_id);
+    }
+
+    public function obtenerUltimasPorEstudiante(int $estudiante_id, int $limite = 5): array
+    {
+        return $this->calificacionRepo->obtenerUltimasPorEstudiante($estudiante_id, $limite);
+    }
+
+    public function obtenerBoletinPorEstudiante(int $estudiante_id, ?string $periodo = null): array
+    {
+        return $this->calificacionRepo->obtenerBoletinPorEstudiante($estudiante_id, $periodo);
+    }
+
+    public function obtenerBoletinConEstado(int $estudiante_id, ?string $periodo = null): array
+    {
+        return $this->calificacionRepo->obtenerBoletinConEstado($estudiante_id, $periodo);
+    }
+
+    public function obtenerPeriodosPorEstudiante(int $estudiante_id): array
+    {
+        return $this->calificacionRepo->obtenerPeriodosPorEstudiante($estudiante_id);
+    }
 }

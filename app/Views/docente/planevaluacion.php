@@ -3,8 +3,8 @@
  * Vista: Docente - Plan de Evaluación (Tailwind CSS v3)
  */
 $titulo = 'Plan de Evaluación';
-require_once __DIR__ . '/../../layouts/header.php';
-require_once __DIR__ . '/../../layouts/sidebar.php';
+require_once __DIR__ . '/../layouts/header.php';
+require_once __DIR__ . '/../layouts/sidebar.php';
 ?>
 
 <!-- Header -->
@@ -68,21 +68,31 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
                                 <th class="py-3 px-3">Ponderación</th>
                                 <th class="py-3 px-3">Fecha</th>
                                 <th class="py-3 px-3">Estado</th>
+                                <th class="py-3 px-3 text-right">Acción</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                             <?php foreach ($planes as $p): ?>
                             <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                 <td class="py-3 px-3 font-semibold text-slate-900 dark:text-white"><?= e($p['nombre']) ?></td>
-                                <td class="py-3 px-3 text-slate-600 dark:text-slate-300 capitalize"><?= e($p['tipo']) ?></td>
+                                <td class="py-3 px-3 text-slate-600 dark:text-slate-300 capitalize"><?= e($p['tipo'] ?? $p['tipo_evaluacion'] ?? 'examen') ?></td>
                                 <td class="py-3 px-3 font-mono font-bold text-blue-600 dark:text-blue-400"><?= e($p['ponderacion']) ?>%</td>
-                                <td class="py-3 px-3 text-slate-500 dark:text-slate-400 text-xs font-mono"><?= e($p['fecha_programada']) ?></td>
+                                <td class="py-3 px-3 text-slate-500 dark:text-slate-400 text-xs font-mono"><?= e($p['fecha_programada'] ?? $p['fecha'] ?? date('Y-m-d')) ?></td>
                                 <td class="py-3 px-3">
                                     <?php if (($p['estado'] ?? '') == 'realizada'): ?>
                                         <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Realizada</span>
                                     <?php else: ?>
-                                        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-400">Pendiente</span>
+                                        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-400">Activo</span>
                                     <?php endif; ?>
+                                </td>
+                                <td class="py-3 px-3 text-right">
+                                    <a href="<?= url('/docente/planevaluacion/eliminar/' . $p['id']) ?>" 
+                                       onclick="return confirm('¿Está seguro de eliminar esta actividad evaluativa?')"
+                                       class="inline-flex items-center space-x-1 px-2 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-semibold transition-colors"
+                                       title="Eliminar actividad">
+                                        <i class="bi bi-trash"></i>
+                                        <span>Eliminar</span>
+                                    </a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -141,4 +151,4 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
     </div>
 </div>
 
-<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

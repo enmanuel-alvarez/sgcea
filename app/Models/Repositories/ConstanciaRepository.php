@@ -97,6 +97,20 @@ class ConstanciaRepository
         return (int) $stmt->fetchColumn();
     }
 
+    public function obtenerPorEstudiante(int $estudiante_id): array
+    {
+        $sql = "SELECT s.*, 
+                       s.tipo as tipo_constancia,
+                       u.nombre as usuario_nombre, u.apellido as usuario_apellido
+                FROM solicitudes_constancia s 
+                LEFT JOIN usuarios u ON s.resuelto_por = u.id 
+                WHERE s.estudiante_id = ? 
+                ORDER BY s.fecha_solicitud DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$estudiante_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function obtenerAprobadasPorEstudiante(int $estudiante_id): array
     {
         $sql = "SELECT * FROM solicitudes_constancia 

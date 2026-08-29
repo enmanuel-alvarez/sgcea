@@ -115,10 +115,16 @@ $tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
             <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Académico</h3>
             <nav class="space-y-1">
                 <?php if ($tienePermiso('docente.calificaciones.ver')): ?>
-                <?php $isAct = strpos($currentUri, '/docente/calificaciones') !== false; ?>
+                <?php $isAct = strpos($currentUri, '/docente/calificaciones') !== false || strpos($currentUri, '/docente/planevaluacion') !== false || strpos($currentUri, '/docente/plan-evaluacion') !== false; ?>
                 <a href="<?= url('/docente/calificaciones') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
                     <i class="bi bi-journal-check text-lg"></i>
-                    <span>Calificaciones</span>
+                    <span>Calificaciones / Planes</span>
+                </a>
+
+                <?php $isRev = strpos($currentUri, '/docente/revisiones') !== false; ?>
+                <a href="<?= url('/docente/revisiones') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isRev ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-chat-square-text text-lg"></i>
+                    <span>Revisiones de Notas</span>
                 </a>
                 <?php endif; ?>
 
@@ -152,8 +158,14 @@ $tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
                 <?php if ($tienePermiso('estudiante.boletin.ver')): ?>
                 <?php $isAct = strpos($currentUri, '/estudiante/boletin') !== false; ?>
                 <a href="<?= url('/estudiante/boletin') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isAct ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
-                    <i class="bi bi-file-earmark-bar-graph text-lg"></i>
+                    <i class="bi bi-file-earmark-spreadsheet text-lg"></i>
                     <span>Boletín de Notas</span>
+                </a>
+
+                <?php $isRev = strpos($currentUri, '/estudiante/revisiones') !== false; ?>
+                <a href="<?= url('/estudiante/revisiones') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isRev ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-chat-left-dots text-lg"></i>
+                    <span>Solicitudes de Revisión</span>
                 </a>
                 <?php endif; ?>
 

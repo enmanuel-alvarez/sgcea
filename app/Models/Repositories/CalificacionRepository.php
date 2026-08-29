@@ -203,4 +203,151 @@ class CalificacionRepository
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function obtenerPromedioPorEstudiante(int $estudiante_id): float
+    {
+        $sql = "SELECT AVG(nota) FROM calificaciones WHERE estudiante_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$estudiante_id]);
+        $val = $stmt->fetchColumn();
+        return $val !== false && $val !== null ? round((float)$val, 2) : 0.0;
+    }
+
+    public function obtenerUltimasPorEstudiante(int $estudiante_id, int $limite = 5): array
+    {
+        $sql = "SELECT c.nota, c.fecha_registro, pe.nombre as evaluacion_nombre, m.nombre as materia_nombre
+                FROM calificaciones c
+                INNER JOIN planes_evaluacion pe ON c.plan_evaluacion_id = pe.id
+                INNER JOIN asignaciones a ON pe.asignacion_id = a.id
+                INNER JOIN materias m ON a.materia_id = m.id
+                WHERE c.estudiante_id = ?
+                ORDER BY c.fecha_registro DESC LIMIT ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(1, $estudiante_id, PDO::PARAM_INT);
+        $stmt->bindValue(2, $limite, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerBoletinConEstado(int $estudiante_id, ?string $periodo = null): array
+    {
+        $wherePeriodo = $periodo ? "AND i.ano_academico = :periodo" : "AND (i.estado = 'activo' OR i.estado = 'activa')";
+        $sqlInsc = "SELECT i.seccion_id, i.ano_academico 
+                    FROM inscripciones i 
+                    WHERE i.estudiante_id = :estudiante_id {$wherePeriodo} 
+                    ORDER BY i.id DESC LIMIT 1";
+        $stmtInsc = $this->db->prepare($sqlInsc);
+        $paramsInsc = [':estudiante_id' => $estudiante_id];
+        if ($periodo) $paramsInsc[':periodo'] = $periodo;
+        $stmtInsc->execute($paramsInsc);
+        $insc = $stmtInsc->fetch(PDO::FETCH_ASSOC);
+
+        if (!$insc) {
+            return [
+                'materias' => [],
+                'boletin_completo' => false,
+                'total_materias' => 0,
+                'materias_completas' => 0
+            ];
+        }
+
+        $seccionId = (int)$insc['seccion_id'];
+        $anoAcademico = $insc['ano_academico'];
+
+        $sqlMat = "SELECT DISTINCT a.id as asignacion_id, m.id as materia_id, m.nombre as materia_nombre, m.codigo
+                   FROM asignaciones a
+                   INNER JOIN materias m ON a.materia_id = m.id
+                   WHERE a.seccion_id = ? AND a.ano_academico = ? AND a.estado = 1
+                   ORDER BY m.nombre ASC";
+        $stmtMat = $this->db->prepare($sqlMat);
+        $stmtMat->execute([$seccionId, $anoAcademico]);
+        $materias = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+
+        $boletin = [];
+        $materiasCompletas = 0;
+        $totalMaterias = count($materias);
+
+        foreach ($materias as $mat) {
+            $asigId = (int)$mat['asignacion_id'];
+
+            $sqlEval = "SELECT pe.id, pe.nombre, pe.ponderacion, c.nota
+                        FROM planes_evaluacion pe
+                        LEFT JOIN calificaciones c ON pe.id = c.plan_evaluacion_id AND c.estudiante_id = ?
+                        WHERE pe.asignacion_id = ? AND (pe.estado = 'activo' OR pe.estado = '1' OR pe.estado = 1)
+                        ORDER BY pe.id ASC";
+            $stmtEval = $this->db->prepare($sqlEval);
+            $stmtEval->execute([$estudiante_id, $asigId]);
+            $evaluacionesRaw = $stmtEval->fetchAll(PDO::FETCH_ASSOC);
+
+            $evaluaciones = [];
+            $sumPonderada = 0;
+            $totalPonderacionEvaluada = 0;
+            $sumPonderacionTotalPlan = 0;
+            $actividadesEvaluadasCount = 0;
+            $actividadesTotalCount = count($evaluacionesRaw);
+
+            foreach ($evaluacionesRaw as $ev) {
+                $notaVal = $ev['nota'] !== null ? (float)$ev['nota'] : null;
+                $pond = (float)$ev['ponderacion'];
+                $sumPonderacionTotalPlan += $pond;
+
+                $evaluaciones[] = [
+                    'nombre' => $ev['nombre'],
+                    'ponderacion' => $pond,
+                    'nota' => $notaVal !== null ? number_format($notaVal, 2) : 'N/A',
+                    'evaluada' => ($notaVal !== null)
+                ];
+
+                if ($notaVal !== null) {
+                    $sumPonderada += ($notaVal * ($pond / 100));
+                    $totalPonderacionEvaluada += $pond;
+                    $actividadesEvaluadasCount++;
+                }
+            }
+
+            $promedio = $totalPonderacionEvaluada > 0 ? round($sumPonderada, 2) : 0.0;
+            
+            // Una materia está completa si tiene al menos 1 evaluación, la suma de ponderaciones es 100% y todas tienen nota registrada
+            $materiaCompleta = ($actividadesTotalCount > 0 && abs($sumPonderacionTotalPlan - 100) < 0.01 && $actividadesEvaluadasCount === $actividadesTotalCount);
+
+            if ($materiaCompleta) {
+                $materiasCompletas++;
+            }
+
+            $boletin[] = [
+                'materia' => $mat['materia_nombre'],
+                'materia_nombre' => $mat['materia_nombre'],
+                'evaluaciones' => $evaluaciones,
+                'promedio' => $promedio,
+                'materia_completa' => $materiaCompleta,
+                'evaluaciones_count' => $actividadesTotalCount,
+                'evaluadas_count' => $actividadesEvaluadasCount,
+                'ponderacion_plan' => $sumPonderacionTotalPlan,
+                'ponderacion_evaluada' => $totalPonderacionEvaluada
+            ];
+        }
+
+        $boletinCompleto = ($totalMaterias > 0 && $materiasCompletas === $totalMaterias);
+
+        return [
+            'materias' => $boletin,
+            'boletin_completo' => $boletinCompleto,
+            'total_materias' => $totalMaterias,
+            'materias_completas' => $materiasCompletas
+        ];
+    }
+
+    public function obtenerBoletinPorEstudiante(int $estudiante_id, ?string $periodo = null): array
+    {
+        $res = $this->obtenerBoletinConEstado($estudiante_id, $periodo);
+        return $res['materias'];
+    }
+
+    public function obtenerPeriodosPorEstudiante(int $estudiante_id): array
+    {
+        $sql = "SELECT DISTINCT ano_academico FROM inscripciones WHERE estudiante_id = ? ORDER BY ano_academico DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$estudiante_id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }

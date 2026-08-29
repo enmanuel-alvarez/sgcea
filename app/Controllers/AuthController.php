@@ -118,6 +118,20 @@ class AuthController extends Controller
         $_SESSION['usuario_permisos'] = $nombresPermisos;
         $_SESSION['ultima_actividad'] = time();
 
+        if ($usuario['tipo'] === 'docente') {
+            $docenteRepo = new \Src\Models\Repositories\DocenteRepository();
+            $docente = $docenteRepo->obtenerPorUsuario((int)$usuario['id']);
+            if ($docente) {
+                $_SESSION['profesor_id'] = (int)$docente['id'];
+            }
+        } elseif ($usuario['tipo'] === 'estudiante') {
+            $estudianteRepo = new \Src\Models\Repositories\EstudianteRepository();
+            $estudiante = $estudianteRepo->obtenerPorUsuario((int)$usuario['id']);
+            if ($estudiante) {
+                $_SESSION['estudiante_id'] = (int)$estudiante['id'];
+            }
+        }
+
         // Registrar login en auditoría
         $this->auditoriaService->registrarLogin($usuario['id']);
 
@@ -152,6 +166,84 @@ class AuthController extends Controller
 
         $this->setFlash('success', 'Sesión cerrada correctamente');
         $this->redirigir('/login');
+    }
+
+    /**
+     * Procesar cambio de contraseña del usuario autenticado
+     */
+    public function cambiarPassword(): void
+    {
+        if (!isset($_SESSION['usuario_id'])) {
+            $this->redirigir('/login');
+            return;
+        }
+
+        if (!Security::validarTokenCSRF($_POST['csrf_token'] ?? null)) {
+            $this->setFlash('error', 'Token de seguridad inválido.');
+            $this->redirigirReferer();
+            return;
+        }
+
+        $usuarioId = (int)$_SESSION['usuario_id'];
+        $claveActual = $_POST['clave_actual'] ?? '';
+        $claveNueva = $_POST['clave_nueva'] ?? '';
+        $claveConfirmar = $_POST['clave_confirmar'] ?? '';
+
+        if (empty($claveActual) || empty($claveNueva) || empty($claveConfirmar)) {
+            $this->setFlash('error', 'Debe completar todos los campos para cambiar su contraseña.');
+            $this->redirigirReferer();
+            return;
+        }
+
+        if ($claveNueva !== $claveConfirmar) {
+            $this->setFlash('error', 'La nueva contraseña y su confirmación no coinciden.');
+            $this->redirigirReferer();
+            return;
+        }
+
+        if (strlen($claveNueva) < 6) {
+            $this->setFlash('error', 'La nueva contraseña debe tener al menos 6 caracteres.');
+            $this->redirigirReferer();
+            return;
+        }
+
+        $usuario = $this->usuarioService->obtenerPorId($usuarioId);
+        if (!$usuario || !password_verify($claveActual, $usuario['password'])) {
+            $this->setFlash('error', 'La contraseña actual ingresada es incorrecta.');
+            $this->redirigirReferer();
+            return;
+        }
+
+        // Actualizar clave en base de datos
+        $nuevoHash = password_hash($claveNueva, PASSWORD_DEFAULT);
+        $db = \Src\Core\Database::getInstance()->getConnection();
+        $stmt = $db->prepare("UPDATE usuarios SET password = ? WHERE id = ?");
+        $res = $stmt->execute([$nuevoHash, $usuarioId]);
+
+        if ($res) {
+            $this->auditoriaService->registrar(
+                $usuarioId,
+                'CAMBIO_PASSWORD',
+                'usuarios',
+                $usuarioId,
+                "El usuario cambio su clave de acceso"
+            );
+            $this->setFlash('success', '¡Su contraseña se ha actualizado correctamente!');
+        } else {
+            $this->setFlash('error', 'No se pudo actualizar la contraseña. Intente nuevamente.');
+        }
+
+        $this->redirigirReferer();
+    }
+
+    private function redirigirReferer(): void
+    {
+        $referer = $_SERVER['HTTP_REFERER'] ?? null;
+        if ($referer && str_contains($referer, $_SERVER['HTTP_HOST'] ?? '')) {
+            header("Location: {$referer}");
+            exit;
+        }
+        $this->redirigirSegunTipo($_SESSION['usuario_tipo'] ?? 'admin');
     }
 
     /**

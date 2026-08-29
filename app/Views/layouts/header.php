@@ -171,6 +171,11 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
                                     <span>Mi Perfil</span>
                                 </a>
                             <?php endif; ?>
+
+                            <button type="button" onclick="abrirModalCambiarPassword()" class="w-full text-left flex items-center space-x-3 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-700/50 hover:text-amber-600 transition-colors">
+                                <i class="bi bi-key-fill text-base text-amber-500"></i>
+                                <span>Cambiar Contraseña</span>
+                            </button>
                         </div>
 
                         <!-- Logout Link -->
@@ -241,6 +246,65 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
             filterMenu.classList.add('hidden');
         }
     });
+
+    function abrirModalCambiarPassword() {
+        const modal = document.getElementById('modalCambiarPassword');
+        const menu = document.getElementById('userDropdownMenu');
+        if (menu) menu.classList.add('hidden');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function cerrarModalCambiarPassword() {
+        const modal = document.getElementById('modalCambiarPassword');
+        if (modal) modal.classList.add('hidden');
+    }
     </script>
+
+    <!-- MODAL: CAMBIAR CONTRASEÑA -->
+    <div id="modalCambiarPassword" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full overflow-hidden animate-fade-in">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-key-fill text-amber-400 text-lg"></i>
+                    <h3 class="font-bold text-base">Cambiar Contraseña</h3>
+                </div>
+                <button type="button" onclick="cerrarModalCambiarPassword()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+
+            <form method="POST" action="<?= url('/cambiar-password') ?>" class="p-6 space-y-4">
+                <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Contraseña Actual</label>
+                    <input type="password" name="clave_actual" required placeholder="••••••••"
+                           class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Nueva Contraseña</label>
+                    <input type="password" name="clave_nueva" required minlength="6" placeholder="Mínimo 6 caracteres"
+                           class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Confirmar Nueva Contraseña</label>
+                    <input type="password" name="clave_confirmar" required minlength="6" placeholder="Repita la nueva contraseña"
+                           class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-200 dark:border-slate-700">
+                    <button type="button" onclick="cerrarModalCambiarPassword()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs shadow-md shadow-amber-500/20 transition-all flex items-center space-x-1.5">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Actualizar Clave</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="flex-1 flex overflow-hidden">

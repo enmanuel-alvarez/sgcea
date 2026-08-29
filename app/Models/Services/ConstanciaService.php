@@ -93,9 +93,24 @@ class ConstanciaService
         return $this->constanciaRepo->obtenerAprobadasPorEstudiante($estudiante_id);
     }
 
-    public function solicitar(array $datos, int $usuario_id_sesion): int
+    public function contarPendientesPorEstudiante(int $estudiante_id): int
     {
-        $estudiante_id = $datos['estudiante_id'];
+        return $this->constanciaRepo->contarPendientesPorEstudiante($estudiante_id);
+    }
+
+    public function solicitar($datos, $tipoOrSesion = 0, ?string $motivo = null): int
+    {
+        if (is_array($datos)) {
+            $estudiante_id = (int)($datos['estudiante_id'] ?? 0);
+            $tipo = (string)($datos['tipo_constancia'] ?? $datos['tipo'] ?? '');
+            $motivoTxt = (string)($datos['motivo'] ?? '');
+            $usuario_id_sesion = is_numeric($tipoOrSesion) ? (int)$tipoOrSesion : ($_SESSION['usuario_id'] ?? 0);
+        } else {
+            $estudiante_id = (int)$datos;
+            $tipo = (string)$tipoOrSesion;
+            $motivoTxt = (string)($motivo ?? '');
+            $usuario_id_sesion = (int)($_SESSION['usuario_id'] ?? 0);
+        }
 
         $pendientes = $this->constanciaRepo->contarPendientesPorEstudiante($estudiante_id);
         if ($pendientes >= 3) {
@@ -105,17 +120,18 @@ class ConstanciaService
         $id = $this->constanciaRepo->crear([
             'estudiante_id'   => $estudiante_id,
             'usuario_id'      => $usuario_id_sesion,
-            'tipo_constancia' => $datos['tipo_constancia'],
-            'motivo'          => $datos['motivo'] ?? null,
+            'tipo_constancia' => $tipo,
+            'tipo'            => $tipo,
+            'motivo'          => $motivoTxt,
             'estado'          => 'pendiente'
         ]);
 
         $this->auditoriaService->registrar(
             $usuario_id_sesion,
-            'solicitar',
+            'SOLICITAR_CONSTANCIA',
             'solicitudes_constancia',
             $id,
-            "Solicitud de constancia tipo {$datos['tipo_constancia']}"
+            "Solicitud de constancia tipo {$tipo}"
         );
 
         return $id;

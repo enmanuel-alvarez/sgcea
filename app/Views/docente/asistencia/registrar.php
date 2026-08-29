@@ -3,8 +3,8 @@
  * Vista: Docente - Registrar Asistencia Masiva (Tailwind CSS v3)
  */
 $titulo = 'Registrar Asistencia';
-require_once __DIR__ . '/../../../layouts/header.php';
-require_once __DIR__ . '/../../../layouts/sidebar.php';
+require_once __DIR__ . '/../../layouts/header.php';
+require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
 
 <!-- Header -->
@@ -83,4 +83,4 @@ require_once __DIR__ . '/../../../layouts/sidebar.php';
     </div>
 </form>
 
-<?php require_once __DIR__ . '/../../../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

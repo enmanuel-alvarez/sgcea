@@ -4,6 +4,7 @@ return [
         '/login' => ['AuthController@mostrarLogin', null],
         '/logout' => ['AuthController@cerrarSesion', null],
         '/admin' => ['AdminController@index', 'admin.dashboard'],
+        '/admin/dashboard' => ['AdminController@index', 'admin.dashboard'],
         '/admin/usuarios' => ['AdminController@listarUsuarios', 'admin.usuarios.ver'],
         '/admin/usuarios/crear' => ['AdminController@mostrarCrearUsuario', 'admin.usuarios.crear'],
         '/admin/usuarios/editar/{id}' => ['AdminController@mostrarEditarUsuario', 'admin.usuarios.editar'],
@@ -45,6 +46,7 @@ return [
         '/admin/auditoria' => ['AdminController@listarAuditoria', 'admin.auditoria.ver'],
 
         '/docente' => ['DocenteController@index', 'docente.dashboard'],
+        '/docente/dashboard' => ['DocenteController@index', 'docente.dashboard'],
         '/docente/calificaciones' => ['DocenteController@calificaciones', 'docente.calificaciones.ver'],
         '/docente/calificaciones/registrar/{id_asignacion}' => ['DocenteController@registrarCalificaciones', 'docente.calificaciones.registrar'],
         '/docente/asistencia' => ['DocenteController@asistencia', 'docente.asistencia.ver'],
@@ -53,10 +55,13 @@ return [
         '/docente/plan-evaluacion/{id_asignacion}' => ['DocenteController@planEvaluacion', 'docente.planevaluacion.gestionar'],
         '/docente/planevaluacion/eliminar/{id}' => ['DocenteController@eliminarActividad', 'docente.planevaluacion.gestionar'],
         '/docente/plan-evaluacion/eliminar/{id}' => ['DocenteController@eliminarActividad', 'docente.planevaluacion.gestionar'],
+        '/docente/revisiones' => ['DocenteController@revisiones', 'docente.calificaciones.ver'],
 
         '/estudiante' => ['EstudianteController@index', 'estudiante.dashboard'],
+        '/estudiante/dashboard' => ['EstudianteController@index', 'estudiante.dashboard'],
         '/estudiante/boletin' => ['EstudianteController@boletin', 'estudiante.boletin.ver'],
         '/estudiante/asistencia' => ['EstudianteController@asistencia', 'estudiante.asistencia.ver'],
+        '/estudiante/revisiones' => ['EstudianteController@revisiones', 'estudiante.boletin.ver'],
         '/estudiante/constancias/solicitar' => ['EstudianteController@solicitarConstancia', 'estudiante.constancias.solicitar'],
         '/estudiante/constancias/historial' => ['EstudianteController@historialConstancias', 'estudiante.constancias.ver'],
         '/estudiante/constancias/descargar/{id}' => ['EstudianteController@descargarConstancia', 'estudiante.constancias.ver'],
@@ -105,8 +110,12 @@ return [
         '/docente/calificaciones/guardar' => ['DocenteController@guardarCalificaciones', 'docente.calificaciones.registrar'],
         '/docente/asistencia/guardar' => ['DocenteController@guardarAsistencia', 'docente.asistencia.registrar'],
         '/docente/planevaluacion/guardar' => ['DocenteController@crearActividad', 'docente.planevaluacion.gestionar'],
+        '/docente/planevaluacion/guardar-lote' => ['DocenteController@crearActividadesLote', 'docente.planevaluacion.gestionar'],
+        '/docente/revisiones/responder' => ['DocenteController@responderRevision', 'docente.calificaciones.registrar'],
+        '/estudiante/revisiones/guardar' => ['EstudianteController@guardarRevision', 'estudiante.boletin.ver'],
         '/estudiante/constancias/guardar' => ['EstudianteController@guardarSolicitud', 'estudiante.constancias.solicitar'],
         '/estudiante/perfil/actualizar' => ['EstudianteController@actualizarPerfil', 'estudiante.perfil.editar'],
         '/reportes/api/calificaciones' => ['ReportesController@calificacionesPorPeriodo', 'reportes.ver'],
+        '/cambiar-password' => ['AuthController@cambiarPassword', null],
     ]
 ];

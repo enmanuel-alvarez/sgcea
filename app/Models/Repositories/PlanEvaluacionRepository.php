@@ -26,8 +26,8 @@ class PlanEvaluacionRepository
     public function obtenerPorAsignacion(int $asignacion_id): array
     {
         $sql = "SELECT * FROM planes_evaluacion 
-                WHERE asignacion_id = ? AND estado = 'activo'
-                ORDER BY orden";
+                WHERE asignacion_id = ? AND (estado = 'activo' OR estado = '1' OR estado = 1)
+                ORDER BY id ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$asignacion_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -44,34 +44,44 @@ class PlanEvaluacionRepository
 
     public function crear(array $datos): int
     {
-        $sql = "INSERT INTO planes_evaluacion (asignacion_id, nombre, tipo_evaluacion, ponderacion, orden, descripcion, estado) 
+        $estado = 1;
+        if (isset($datos['estado'])) {
+            $estado = ($datos['estado'] === 'activo' || $datos['estado'] === '1' || $datos['estado'] === 1) ? 1 : 0;
+        }
+
+        $sql = "INSERT INTO planes_evaluacion (asignacion_id, nombre, tipo, ponderacion, fecha_programada, descripcion, estado) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
-            $datos['asignacion_id'],
+            $datos['asignacion_id'] ?? $datos['id_asignacion'] ?? 0,
             $datos['nombre'],
-            $datos['tipo_evaluacion'],
+            $datos['tipo'] ?? $datos['tipo_evaluacion'] ?? 'examen',
             $datos['ponderacion'],
-            $datos['orden'] ?? 0,
+            $datos['fecha_programada'] ?? date('Y-m-d'),
             $datos['descripcion'] ?? null,
-            $datos['estado'] ?? 'activo'
+            $estado
         ]);
         return (int) $this->db->lastInsertId();
     }
 
     public function actualizar(int $id, array $datos): bool
     {
+        $estado = 1;
+        if (isset($datos['estado'])) {
+            $estado = ($datos['estado'] === 'activo' || $datos['estado'] === '1' || $datos['estado'] === 1) ? 1 : 0;
+        }
+
         $sql = "UPDATE planes_evaluacion SET 
-                nombre = ?, tipo_evaluacion = ?, ponderacion = ?, orden = ?, descripcion = ?, estado = ? 
+                nombre = ?, tipo = ?, ponderacion = ?, fecha_programada = ?, descripcion = ?, estado = ? 
                 WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $datos['nombre'],
-            $datos['tipo_evaluacion'],
+            $datos['tipo'] ?? $datos['tipo_evaluacion'] ?? 'examen',
             $datos['ponderacion'],
-            $datos['orden'],
-            $datos['descripcion'],
-            $datos['estado'],
+            $datos['fecha_programada'] ?? date('Y-m-d'),
+            $datos['descripcion'] ?? null,
+            $estado,
             $id
         ]);
     }
@@ -86,29 +96,27 @@ class PlanEvaluacionRepository
     public function sumarPonderacionPorAsignacion(int $asignacion_id, ?int $excluir_id = null): float
     {
         $sql = "SELECT COALESCE(SUM(ponderacion), 0) FROM planes_evaluacion 
-                WHERE asignacion_id = ? AND estado = 'activo'";
+                WHERE asignacion_id = ? AND (estado = 'activo' OR estado = '1' OR estado = 1)";
+        $params = [$asignacion_id];
         if ($excluir_id) {
             $sql .= " AND id != ?";
+            $params[] = $excluir_id;
         }
         $stmt = $this->db->prepare($sql);
-        if ($excluir_id) {
-            $stmt->execute([$asignacion_id, $excluir_id]);
-        } else {
-            $stmt->execute([$asignacion_id]);
-        }
+        $stmt->execute($params);
         return (float) $stmt->fetchColumn();
     }
 
     public function obtenerConPromedios(int $asignacion_id): array
     {
-        $sql = "SELECT pe.id, pe.nombre, pe.ponderacion, pe.tipo_evaluacion,
+        $sql = "SELECT pe.id, pe.nombre, pe.ponderacion, pe.tipo, pe.fecha_programada,
                        COUNT(DISTINCT c.estudiante_id) as estudiantes_evaluados,
                        AVG(c.nota) as nota_promedio
                 FROM planes_evaluacion pe 
                 LEFT JOIN calificaciones c ON pe.id = c.plan_evaluacion_id 
-                WHERE pe.asignacion_id = ? AND pe.estado = 'activo'
-                GROUP BY pe.id, pe.nombre, pe.ponderacion, pe.tipo_evaluacion
-                ORDER BY pe.orden";
+                WHERE pe.asignacion_id = ? AND (pe.estado = 'activo' OR pe.estado = '1' OR pe.estado = 1)
+                GROUP BY pe.id, pe.nombre, pe.ponderacion, pe.tipo, pe.fecha_programada
+                ORDER BY pe.id ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$asignacion_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

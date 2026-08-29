@@ -11,6 +11,7 @@ use Src\Models\Services\InscripcionService;
 use Src\Models\Services\CalificacionService;
 use Src\Models\Services\AsistenciaService;
 use Src\Models\Services\ConstanciaService;
+use Src\Models\Services\RevisionService;
 use Src\Models\Services\AuditoriaService;
 use Src\Core\Security;
 
@@ -21,6 +22,7 @@ class EstudianteController extends Controller
     private CalificacionService $calificacionService;
     private AsistenciaService $asistenciaService;
     private ConstanciaService $constanciaService;
+    private RevisionService $revisionService;
     private AuditoriaService $auditoriaService;
 
     public function __construct()
@@ -30,7 +32,24 @@ class EstudianteController extends Controller
         $this->calificacionService = new CalificacionService();
         $this->asistenciaService = new AsistenciaService();
         $this->constanciaService = new ConstanciaService();
+        $this->revisionService = new RevisionService();
         $this->auditoriaService = new AuditoriaService();
+    }
+
+    private function obtenerEstudianteId(): int
+    {
+        if (isset($_SESSION['estudiante_id']) && (int)$_SESSION['estudiante_id'] > 0) {
+            return (int)$_SESSION['estudiante_id'];
+        }
+        if (isset($_SESSION['usuario_id'])) {
+            $estudianteRepo = new \Src\Models\Repositories\EstudianteRepository();
+            $estudiante = $estudianteRepo->obtenerPorUsuario((int)$_SESSION['usuario_id']);
+            if ($estudiante) {
+                $_SESSION['estudiante_id'] = (int)$estudiante['id'];
+                return (int)$estudiante['id'];
+            }
+        }
+        return 0;
     }
 
     /**
@@ -38,7 +57,7 @@ class EstudianteController extends Controller
      */
     public function index(): void
     {
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
         
         $estudiante = $this->estudianteService->obtenerPorId($idEstudiante);
         $inscripcionActual = $this->inscripcionService->obtenerActivaPorEstudiante($idEstudiante);
@@ -59,7 +78,7 @@ class EstudianteController extends Controller
      */
     public function boletin(): void
     {
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
         $periodo = $_GET['periodo'] ?? null;
         
         $estudiante = $this->estudianteService->obtenerPorId($idEstudiante);
@@ -71,13 +90,16 @@ class EstudianteController extends Controller
             return;
         }
 
-        $calificaciones = $this->calificacionService->obtenerBoletinPorEstudiante($idEstudiante, $periodo);
+        $datosBoletin = $this->calificacionService->obtenerBoletinConEstado($idEstudiante, $periodo);
         $periodosDisponibles = $this->calificacionService->obtenerPeriodosPorEstudiante($idEstudiante);
 
         $this->render('estudiante/boletin', [
             'estudiante' => $estudiante,
             'inscripcion' => $inscripcion,
-            'calificaciones' => $calificaciones,
+            'calificaciones' => $datosBoletin['materias'],
+            'boletinCompleto' => $datosBoletin['boletin_completo'],
+            'totalMaterias' => $datosBoletin['total_materias'],
+            'materiasCompletas' => $datosBoletin['materias_completas'],
             'periodo' => $periodo,
             'periodosDisponibles' => $periodosDisponibles
         ]);
@@ -88,7 +110,7 @@ class EstudianteController extends Controller
      */
     public function asistencia(): void
     {
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
         $mes = $_GET['mes'] ?? date('m');
         $ano = $_GET['ano'] ?? date('Y');
         
@@ -110,7 +132,7 @@ class EstudianteController extends Controller
      */
     public function solicitarConstancia(): void
     {
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
         $pendientes = $this->constanciaService->contarPendientesPorEstudiante($idEstudiante);
         
         $this->render('estudiante/constancias/solicitar', [
@@ -134,7 +156,7 @@ class EstudianteController extends Controller
             return;
         }
 
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
         $tipo = $_POST['tipo'] ?? '';
         $motivo = trim($_POST['motivo'] ?? '');
 
@@ -176,7 +198,7 @@ class EstudianteController extends Controller
      */
     public function historialConstancias(): void
     {
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
         $constancias = $this->constanciaService->obtenerPorEstudiante($idEstudiante);
 
         $this->render('estudiante/constancias/historial', compact('constancias'));
@@ -197,7 +219,7 @@ class EstudianteController extends Controller
 
         // Verificar que pertenece al estudiante
         $estudianteId = $solicitud['estudiante_id'] ?? $solicitud['id_estudiante'] ?? null;
-        if ((int)$estudianteId !== (int)($_SESSION['estudiante_id'] ?? 0)) {
+        if ((int)$estudianteId !== $this->obtenerEstudianteId()) {
             $_SESSION['flash_error'] = 'No tiene permiso para acceder a esta constancia';
             $this->redirigir('/estudiante/constancias/historial');
             return;
@@ -218,7 +240,7 @@ class EstudianteController extends Controller
      */
     public function perfil(): void
     {
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
         $estudiante = $this->estudianteService->obtenerPorId($idEstudiante);
         $usuario = $this->estudianteService->obtenerUsuarioPorEstudiante($idEstudiante);
         $inscripcion = $this->inscripcionService->obtenerActivaPorEstudiante($idEstudiante);
@@ -241,7 +263,7 @@ class EstudianteController extends Controller
             return;
         }
 
-        $idEstudiante = $_SESSION['estudiante_id'] ?? 0;
+        $idEstudiante = $this->obtenerEstudianteId();
 
         $datos = [
             'telefono' => trim($_POST['telefono'] ?? ''),
@@ -267,5 +289,83 @@ class EstudianteController extends Controller
         }
 
         $this->redirigir('/estudiante/perfil');
+    }
+
+    /**
+     * Listar solicitudes de revisión de notas del estudiante
+     */
+    public function revisiones(): void
+    {
+        $idEstudiante = $this->obtenerEstudianteId();
+        $solicitudes = $this->revisionService->obtenerPorEstudiante($idEstudiante);
+        $boletin = $this->calificacionService->obtenerBoletinPorEstudiante($idEstudiante);
+        $inscripcion = $this->inscripcionService->obtenerActivaPorEstudiante($idEstudiante);
+
+        // Obtenemos asignaciones para el selector de solicitudes
+        $asignaciones = [];
+        if ($inscripcion) {
+            $db = \Src\Core\Database::getInstance()->getConnection();
+            $sql = "SELECT a.id, m.nombre as materia_nombre 
+                    FROM asignaciones a 
+                    INNER JOIN materias m ON a.materia_id = m.id 
+                    WHERE a.seccion_id = ? AND a.ano_academico = ? AND a.estado = 1 
+                    ORDER BY m.nombre";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([(int)$inscripcion['seccion_id'], $inscripcion['ano_academico']]);
+            $asignaciones = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($asignaciones as &$asg) {
+                $activas = $this->revisionService->contarActivasPorEstudianteYAsignacion($idEstudiante, (int)$asg['id']);
+                $asg['tiene_revision_activa'] = ($activas > 0);
+            }
+            unset($asg);
+        }
+
+        $this->render('estudiante/revisiones/index', [
+            'solicitudes' => $solicitudes,
+            'asignaciones' => $asignaciones,
+            'boletin' => $boletin
+        ]);
+    }
+
+    /**
+     * Guardar nueva solicitud de revisión de notas
+     */
+    public function guardarRevision(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirigir('/estudiante/revisiones');
+            return;
+        }
+
+        if (!Security::validarTokenCSRF($_POST['csrf_token'] ?? '')) {
+            $_SESSION['flash_error'] = 'Token CSRF inválido';
+            $this->redirigir('/estudiante/revisiones');
+            return;
+        }
+
+        $idEstudiante = $this->obtenerEstudianteId();
+        $idAsignacion = (int)($_POST['id_asignacion'] ?? 0);
+        $motivo = trim($_POST['motivo'] ?? '');
+
+        if ($idAsignacion === 0 || empty($motivo)) {
+            $_SESSION['flash_error'] = 'Por favor complete la asignatura y el motivo de la solicitud.';
+            $this->redirigir('/estudiante/revisiones');
+            return;
+        }
+
+        try {
+            $this->revisionService->solicitar([
+                'estudiante_id' => $idEstudiante,
+                'asignacion_id' => $idAsignacion,
+                'motivo' => $motivo
+            ], $_SESSION['usuario_id'] ?? 0);
+
+            $_SESSION['flash_success'] = 'Solicitud de revisión enviada exitosamente al profesor.';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Error al enviar la solicitud: ' . $e->getMessage();
+        }
+
+        $this->redirigir('/estudiante/revisiones');
     }
 }

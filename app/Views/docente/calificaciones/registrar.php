@@ -3,8 +3,8 @@
  * Vista: Docente - Registrar Calificaciones (Tailwind CSS v3)
  */
 $titulo = 'Registrar Calificaciones';
-require_once __DIR__ . '/../../../layouts/header.php';
-require_once __DIR__ . '/../../../layouts/sidebar.php';
+require_once __DIR__ . '/../../layouts/header.php';
+require_once __DIR__ . '/../../layouts/sidebar.php';
 ?>
 
 <!-- Header -->
@@ -24,6 +24,21 @@ require_once __DIR__ . '/../../../layouts/sidebar.php';
     </div>
 </div>
 
+<?php if (empty($evaluaciones)): ?>
+    <div class="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300 text-sm mb-6">
+        <div class="flex items-start space-x-3">
+            <i class="bi bi-exclamation-triangle-fill text-amber-500 text-xl shrink-0"></i>
+            <div>
+                <h4 class="font-bold text-base">Plan de Evaluación Requerido</h4>
+                <p class="mt-1 text-xs opacity-90">No se han registrado actividades en el Plan de Evaluación para esta asignatura. Para poder cargar calificaciones, primero debe definir el plan de evaluación (exámenes, tareas, talleres, etc.).</p>
+                <a href="<?= url('/docente/plan-evaluacion/' . $asignacion['id']) ?>" class="inline-flex items-center space-x-2 mt-3 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs shadow-md transition-all">
+                    <i class="bi bi-journal-plus me-1"></i>
+                    <span>Configurar Plan de Evaluación</span>
+                </a>
+            </div>
+        </div>
+    </div>
+<?php else: ?>
 <form method="POST" action="<?= url('/docente/calificaciones/guardar') ?>" class="space-y-6">
     <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
     <input type="hidden" name="id_asignacion" value="<?= $asignacion['id'] ?>">
@@ -58,13 +73,13 @@ require_once __DIR__ . '/../../../layouts/sidebar.php';
                             $valor = $notaExist ? ($notaExist['nota'] ?? $notaExist['valor_obtenido'] ?? '') : '';
                         ?>
                         <td class="py-2 px-2 text-center">
-                            <input type="number" name="notas[<?= $estId ?>][<?= $evId ?>]" value="<?= htmlspecialchars($valor) ?>"
+                            <input type="number" name="notas[<?= $estId ?>][<?= $evId ?>]" value="<?= htmlspecialchars((string)$valor) ?>"
                                    min="0" max="20" step="0.01" placeholder="0 - 20"
                                    class="w-20 px-2 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-center font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </td>
                         <?php endforeach; ?>
                         <td class="py-3 px-4 text-center font-bold text-slate-900 dark:text-white font-mono">
-                            <?= number_format($est['promedio'] ?? 0, 2) ?>
+                            <?= number_format((float)($est['promedio'] ?? 0), 2) ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -81,5 +96,6 @@ require_once __DIR__ . '/../../../layouts/sidebar.php';
         </button>
     </div>
 </form>
+<?php endif; ?>
 
-<?php require_once __DIR__ . '/../../../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

@@ -188,4 +188,38 @@ class AsistenciaRepository
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public function obtenerPorcentajePorEstudiante(int $estudiante_id): float
+    {
+        $sql = "SELECT COUNT(*) as total, 
+                       SUM(CASE WHEN estado IN ('presente', 'justificado', 'tarde') THEN 1 ELSE 0 END) as asistidos 
+                FROM asistencias WHERE estudiante_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$estudiante_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row || (int)$row['total'] === 0) {
+            return 100.0;
+        }
+        return round(((float)$row['asistidos'] / (float)$row['total']) * 100, 1);
+    }
+
+    public function obtenerDetallePorEstudiante(int $estudiante_id, $mes = null, $ano = null): array
+    {
+        $sql = "SELECT a.*, m.nombre as materia_nombre
+                FROM asistencias a
+                LEFT JOIN asignaciones asg ON a.asignacion_id = asg.id
+                LEFT JOIN materias m ON asg.materia_id = m.id
+                WHERE a.estudiante_id = ?";
+        $params = [$estudiante_id];
+
+        if ($mes && $ano) {
+            $sql .= " AND MONTH(a.fecha) = ? AND YEAR(a.fecha) = ?";
+            $params[] = (int)$mes;
+            $params[] = (int)$ano;
+        }
+
+        $sql .= " ORDER BY a.fecha DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

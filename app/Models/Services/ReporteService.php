@@ -149,8 +149,10 @@ class ReporteService
     /**
      * Reporte de Alerta de Ausentismo Crítico (> 20% inasistencias)
      */
-    public function obtenerAlertaAusentismoCritico(float $porcentajeLimite = 20.0): array
+    public function obtenerAlertaAusentismoCritico(?int $seccionId = null, float $porcentajeLimite = 20.0): array
     {
+        $whereSeccion = $seccionId ? "AND s.id = :seccion_id" : "";
+
         $sql = "SELECT 
                     e.id AS estudiante_id,
                     u.cedula,
@@ -168,11 +170,15 @@ class ReporteService
                 INNER JOIN secciones s ON i.seccion_id = s.id
                 INNER JOIN grados g ON s.grado_id = g.id
                 INNER JOIN asistencias asi ON e.id = asi.estudiante_id
+                WHERE e.estado = 1 {$whereSeccion}
                 GROUP BY e.id, u.cedula, u.nombre, u.apellido, g.nombre, s.nombre
                 HAVING total_clases > 0 AND pct_ausencia >= :pct_limite
                 ORDER BY pct_ausencia DESC";
 
         $stmt = $this->db->prepare($sql);
+        if ($seccionId) {
+            $stmt->bindValue(':seccion_id', $seccionId, PDO::PARAM_INT);
+        }
         $stmt->bindValue(':pct_limite', $porcentajeLimite);
         $stmt->execute();
 
