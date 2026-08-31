@@ -5,7 +5,7 @@
 @media print {
     @page {
         size: landscape;
-        margin: 10mm 15mm;
+        margin: 8mm 12mm;
     }
     
     /* Ocultar elementos de UI, menús, barras de navegación y controles */
@@ -32,7 +32,7 @@
         display: none !important;
     }
 
-    /* Fondo limpio blanco sin marcos ni sombras */
+    /* Fondo limpio blanco en página */
     html, body {
         background-color: #ffffff !important;
         background: #ffffff !important;
@@ -45,23 +45,10 @@
         width: 100% !important;
     }
 
-    /* Eliminar recuadros, bordes de tarjetas, bordes redondeados y sombras en todos los contenedores de reportes */
+    /* Eliminar marcos de tarjeta, bordes y sombras del contenedor de reportes */
     #reporteContainer,
     .printable-report,
-    .print-card,
-    .bg-white,
-    .dark\:bg-slate-800,
-    .rounded-2xl,
-    .rounded-xl,
-    .border,
-    .border-slate-200\/80,
-    .dark\:border-slate-700\/80,
-    .shadow-sm,
-    .shadow-md,
-    .shadow-lg,
-    div[class*="rounded"],
-    div[class*="shadow"],
-    div[class*="border"] {
+    .print-card {
         background-color: transparent !important;
         background: transparent !important;
         border: none !important;
@@ -73,31 +60,50 @@
         max-width: 100% !important;
     }
 
-    /* Membrete Institucional Oficial (Encabezado Horizontal) */
+    /* Preservar estructura Flexbox original para evitar deformación de texto */
+    .flex { display: flex !important; }
+    .flex-row { flex-direction: row !important; }
+    .flex-col { flex-direction: column !important; }
+    .items-center { align-items: center !important; }
+    .items-start { align-items: flex-start !important; }
+    .justify-between { justify-content: space-between !important; }
+    .shrink-0 { flex-shrink: 0 !important; flex-grow: 0 !important; }
+    .space-x-4 > * + * { margin-left: 1rem !important; }
+    .gap-4 { gap: 1rem !important; }
+
+    /* Forzar tamaño del ícono del logo en impresión */
+    .w-14 { width: 3.5rem !important; max-width: 3.5rem !important; }
+    .h-14 { height: 3.5rem !important; max-height: 3.5rem !important; }
+
+    /* Membrete Institucional Oficial */
     .membrete-oficial {
         border-bottom: 2px solid #0f172a !important;
         padding-bottom: 0.75rem !important;
         margin-bottom: 1.25rem !important;
         display: flex !important;
+        flex-direction: row !important;
         justify-content: space-between !important;
-        align-items: flex-start !important;
+        align-items: center !important;
         width: 100% !important;
         background: transparent !important;
-    }
-
-    .membrete-oficial h1,
-    .membrete-oficial h2 {
-        font-size: 13pt !important;
-        font-weight: 900 !important;
-        color: #0f172a !important;
-        text-transform: uppercase !important;
-        margin: 2px 0 !important;
     }
 
     .membrete-oficial p {
         font-size: 8.5pt !important;
         color: #334155 !important;
         margin: 0 !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+    }
+
+    .membrete-oficial h2 {
+        font-size: 13pt !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        text-transform: uppercase !important;
+        margin: 2px 0 !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
     }
 
     /* Tablas de Reporte (Impresión Limpia sin Cajas) */
@@ -135,19 +141,10 @@
         display: none !important;
     }
 
-    /* Badges de estado en texto plano para impresión */
-    span[class*="rounded"] {
-        border-radius: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        font-weight: bold !important;
-        color: #0f172a !important;
-    }
-
     /* Sección de Firmas Institucionales */
     .firmas-impresion {
         display: flex !important;
+        flex-direction: row !important;
         justify-content: space-around !important;
         margin-top: 2.5rem !important;
         padding-top: 1rem !important;
@@ -169,4 +166,4 @@
         color: #0f172a !important;
     }
 }
-
+<?php // SGCEA v3.0 Release - Listo para Producción ?>

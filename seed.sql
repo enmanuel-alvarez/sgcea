@@ -7,6 +7,20 @@ SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 
+-- 0. Insertar Catálogo de Grados Educativos
+INSERT IGNORE INTO `grados` (`id`, `nombre`, `nivel`, `orden`, `estado`) VALUES
+(1, '1er Grado', 'Primaria', 1, 1),
+(2, '2do Grado', 'Primaria', 2, 1),
+(3, '3er Grado', 'Primaria', 3, 1),
+(4, '4to Grado', 'Primaria', 4, 1),
+(5, '5to Grado', 'Primaria', 5, 1),
+(6, '6to Grado', 'Primaria', 6, 1),
+(7, '1er Año', 'Secundaria', 7, 1),
+(8, '2do Año', 'Secundaria', 8, 1),
+(9, '3er Año', 'Secundaria', 9, 1),
+(10, '4to Año', 'Bachillerato', 10, 1),
+(11, '5to Año', 'Bachillerato', 11, 1);
+
 -- 1. Insertar Materias de Prueba
 INSERT IGNORE INTO `materias` (`id`, `nombre`, `codigo`, `descripcion`, `creditos`, `estado`) VALUES
 (1, 'Matemáticas', 'MAT-101', 'Matemáticas Básicas y Álgebra', 3, 1),

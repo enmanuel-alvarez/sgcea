@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `apellido` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL UNIQUE,
   `password` VARCHAR(255) NOT NULL,
-  `tipo` ENUM('admin', 'docente', 'estudiante') NOT NULL DEFAULT 'estudiante',
+  `tipo` ENUM('admin', 'docente', 'estudiante', 'custom') NOT NULL DEFAULT 'estudiante',
   `estado` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS `profesores` (
   `especialidad` VARCHAR(100) DEFAULT NULL,
   `titulo` VARCHAR(100) DEFAULT NULL,
   `fecha_ingreso` DATE DEFAULT NULL,
+  `foto` VARCHAR(255) DEFAULT NULL,
   `estado` TINYINT(1) DEFAULT 1,
   FOREIGN KEY (`usuario_id`) REFERENCES `usuarios`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -93,6 +94,7 @@ CREATE TABLE IF NOT EXISTS `estudiantes` (
   `telefono` VARCHAR(20) DEFAULT NULL,
   `nombre_representante` VARCHAR(100) DEFAULT NULL,
   `telefono_representante` VARCHAR(20) DEFAULT NULL,
+  `foto` VARCHAR(255) DEFAULT NULL,
   `estado` TINYINT(1) DEFAULT 1,
   FOREIGN KEY (`usuario_id`) REFERENCES `usuarios`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -402,23 +404,6 @@ INSERT IGNORE INTO `usuarios` (`id`, `cedula`, `nombre`, `apellido`, `email`, `p
 INSERT IGNORE INTO `usuario_permisos` (`usuario_id`, `permiso_id`)
 SELECT 1, id FROM `permisos`;
 
--- ============================================
--- DATOS INICIALES ESECIALES: Catálogo de Grados Educativos
--- ============================================
-INSERT IGNORE INTO `grados` (`id`, `nombre`, `nivel`, `orden`, `estado`) VALUES
-(1, '1er Grado', 'Primaria', 1, 1),
-(2, '2do Grado', 'Primaria', 2, 1),
-(3, '3er Grado', 'Primaria', 3, 1),
-(4, '4to Grado', 'Primaria', 4, 1),
-(5, '5to Grado', 'Primaria', 5, 1),
-(6, '6to Grado', 'Primaria', 6, 1),
-(7, '1er Año', 'Secundaria', 7, 1),
-(8, '2do Año', 'Secundaria', 8, 1),
-(9, '3er Año', 'Secundaria', 9, 1),
-(10, '4to Año', 'Bachillerato', 10, 1),
-(11, '5to Año', 'Bachillerato', 11, 1);
-
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
-
 
