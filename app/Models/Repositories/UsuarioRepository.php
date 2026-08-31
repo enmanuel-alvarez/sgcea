@@ -61,8 +61,12 @@ class UsuarioRepository
         $tipo = $datos['tipo'] ?? $datos['tipo_usuario'] ?? 'estudiante';
         $estado = $datos['estado'] ?? $datos['estado_cuenta'] ?? $datos['activo'] ?? 1;
         $password = $datos['password'] ?? $datos['contrasena_hash'] ?? '';
+        
+        $rolMap = ['admin' => 1, 'docente' => 2, 'estudiante' => 3];
+        $rolId = $datos['rol_id'] ?? $rolMap[$tipo] ?? 3;
 
         return $this->db->insert('usuarios', [
+            'rol_id' => $rolId,
             'cedula' => $datos['cedula'] ?? '',
             'nombre' => $datos['nombre'] ?? '',
             'apellido' => $datos['apellido'] ?? '',
@@ -85,8 +89,16 @@ class UsuarioRepository
         if (isset($datos['password'])) $data['password'] = $datos['password'];
         elseif (isset($datos['contrasena_hash'])) $data['password'] = $datos['contrasena_hash'];
 
-        if (isset($datos['tipo'])) $data['tipo'] = $datos['tipo'];
-        elseif (isset($datos['tipo_usuario'])) $data['tipo'] = $datos['tipo_usuario'];
+        $rolMap = ['admin' => 1, 'docente' => 2, 'estudiante' => 3];
+        if (isset($datos['tipo'])) {
+            $data['tipo'] = $datos['tipo'];
+            $data['rol_id'] = $datos['rol_id'] ?? $rolMap[$datos['tipo']] ?? 3;
+        } elseif (isset($datos['tipo_usuario'])) {
+            $data['tipo'] = $datos['tipo_usuario'];
+            $data['rol_id'] = $datos['rol_id'] ?? $rolMap[$datos['tipo_usuario']] ?? 3;
+        } elseif (isset($datos['rol_id'])) {
+            $data['rol_id'] = $datos['rol_id'];
+        }
 
         if (isset($datos['estado'])) $data['estado'] = $datos['estado'];
         elseif (isset($datos['activo'])) $data['estado'] = $datos['activo'];

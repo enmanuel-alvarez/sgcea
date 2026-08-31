@@ -69,10 +69,13 @@ Al ingresar, el administrador visualiza:
 - **Solicitudes de constancia pendientes**: Acceso rápido para aprobar o rechazar solicitudes de estudiantes.
 - **Acciones rápidas**: Accesos a la creación de usuarios, reportes y respaldo del sistema.
 
-### 3.2 Gestión de Usuarios y Permisos (ACL)
-- **Ver Usuarios**: Lista paginada con filtros por nombre, cédula, correo o tipo de usuario (`admin`, `docente`, `estudiante`).
-- **Crear Usuario**: Permite registrar un nuevo usuario especificando sus datos personales, credenciales iniciales y rol.
-- **Asignar Permisos (Matriz ACL)**: El administrador puede activar o desactivar dinámicamente cualquiera de los 48 permisos del catálogo del sistema a cualquier usuario individual.
+### 3.2 Gestión de Usuarios y Permisos (RBAC Híbrido)
+- **Ver Usuarios**: Lista paginada con filtros por nombre, cédula, correo o rol principal (`Administrador`, `Docente`, `Estudiante`).
+- **Crear Usuario**: Permite registrar un nuevo usuario especificando sus datos personales, credenciales e indicando su **Rol Principal**.
+- **Gestor de Permisos y Excepciones**: Al pulsar el botón de llave en la fila de un usuario, se despliega el modal interactivo organizado por Vistas y Desplegables de Acciones:
+  - Cada usuario hereda por defecto el catálogo completo de permisos asignados a su **Rol Principal**.
+  - **`+ Conceder` (Casilla Verde)**: Permite otorgar permisos adicionales fuera de su rol.
+  - **`- Revocar` (Casilla Roja)**: Permite retirar o bloquear permisos específicos que su rol incluiría por defecto.
 
 ### 3.3 Gestión de Estudiantes e Inscripciones
 - **Registro de Estudiantes**: Extiende la información personal con fecha de nacimiento, género, dirección, datos del representante y teléfono de contacto.

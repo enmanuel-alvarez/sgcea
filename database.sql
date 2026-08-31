@@ -26,6 +26,18 @@ CREATE TABLE IF NOT EXISTS `instituciones` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- TABLA: roles (Catálogo de roles del sistema)
+-- ============================================
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `nombre` VARCHAR(50) NOT NULL UNIQUE,
+  `slug` VARCHAR(50) NOT NULL UNIQUE,
+  `descripcion` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- TABLA: permisos (Catálogo de permisos ACL)
 -- ============================================
 CREATE TABLE IF NOT EXISTS `permisos` (
@@ -37,30 +49,44 @@ CREATE TABLE IF NOT EXISTS `permisos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- TABLA: rol_permiso (Permisos base heredados por cada Rol)
+-- ============================================
+CREATE TABLE IF NOT EXISTS `rol_permiso` (
+  `rol_id` INT NOT NULL,
+  `permiso_id` INT NOT NULL,
+  PRIMARY KEY (`rol_id`, `permiso_id`),
+  FOREIGN KEY (`rol_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`permiso_id`) REFERENCES `permisos`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- TABLA: usuarios
 -- ============================================
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `rol_id` INT NOT NULL DEFAULT 3,
   `cedula` VARCHAR(20) NOT NULL UNIQUE,
   `nombre` VARCHAR(100) NOT NULL,
   `apellido` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL UNIQUE,
   `password` VARCHAR(255) NOT NULL,
-  `tipo` ENUM('admin', 'docente', 'estudiante', 'custom') NOT NULL DEFAULT 'estudiante',
+  `tipo` ENUM('admin', 'docente', 'estudiante') NOT NULL DEFAULT 'estudiante',
   `estado` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_email (`email`),
-  INDEX idx_cedula (`cedula`)
+  INDEX idx_cedula (`cedula`),
+  FOREIGN KEY (`rol_id`) REFERENCES `roles`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- TABLA: usuario_permisos (ACL por usuario)
+-- TABLA: usuario_permisos (Excepciones ACL por usuario: CONCEDER / REVOCAR)
 -- ============================================
 CREATE TABLE IF NOT EXISTS `usuario_permisos` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `usuario_id` INT NOT NULL,
   `permiso_id` INT NOT NULL,
+  `tipo` ENUM('CONCEDER', 'REVOCAR') NOT NULL DEFAULT 'CONCEDER',
   `asignado_por` INT DEFAULT NULL,
   `fecha_asignacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY unique_usuario_permiso (`usuario_id`, `permiso_id`),
@@ -394,15 +420,38 @@ INSERT IGNORE INTO `instituciones` (`id`, `nombre`, `codigo_dependencia`, `direc
 (1, 'Unidad Educativa SGCEA', 'DEP-001', 'Av. Principal, Sector Centro', '0212-5550000', 'contacto@sgcea.edu', 'Prof. Director General', '12345678');
 
 -- ============================================
--- DATOS INICIALES ESECIALES: Usuario Administrador Inicial
+-- DATOS INICIALES ESPECIALES: Roles del Sistema
+-- ============================================
+INSERT IGNORE INTO `roles` (`id`, `nombre`, `slug`, `descripcion`) VALUES
+(1, 'Administrador', 'admin', 'Acceso completo de gestión administrativa'),
+(2, 'Docente', 'docente', 'Acceso a carga académica, asistencias y evaluaciones'),
+(3, 'Estudiante', 'estudiante', 'Acceso a consultas de boletines y trámites de constancias');
+
+-- ============================================
+-- DATOS INICIALES ESPECIALES: Permisos por defecto por Rol (rol_permiso)
+-- ============================================
+-- Rol 1 (Admin): Todos los permisos admin + reportes
+INSERT IGNORE INTO `rol_permiso` (`rol_id`, `permiso_id`)
+SELECT 1, id FROM `permisos` WHERE modulo IN ('admin', 'reportes');
+
+-- Rol 2 (Docente): Permisos del módulo docente
+INSERT IGNORE INTO `rol_permiso` (`rol_id`, `permiso_id`)
+SELECT 2, id FROM `permisos` WHERE modulo = 'docente';
+
+-- Rol 3 (Estudiante): Permisos del módulo estudiante
+INSERT IGNORE INTO `rol_permiso` (`rol_id`, `permiso_id`)
+SELECT 3, id FROM `permisos` WHERE modulo = 'estudiante';
+
+-- ============================================
+-- DATOS INICIALES ESPECIALES: Usuario Administrador Inicial
 -- Credenciales: admin@sgcea.com / admin123
 -- ============================================
-INSERT IGNORE INTO `usuarios` (`id`, `cedula`, `nombre`, `apellido`, `email`, `password`, `tipo`, `estado`) VALUES
-(1, '00000000', 'Administrador', 'Sistema', 'admin@sgcea.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1);
+INSERT IGNORE INTO `usuarios` (`id`, `rol_id`, `cedula`, `nombre`, `apellido`, `email`, `password`, `tipo`, `estado`) VALUES
+(1, 1, '00000000', 'Administrador', 'Sistema', 'admin@sgcea.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1);
 
--- Asignar todos los permisos al administrador por defecto
-INSERT IGNORE INTO `usuario_permisos` (`usuario_id`, `permiso_id`)
-SELECT 1, id FROM `permisos`;
+-- Excepción explícita de otorgamiento completo para usuario Administrador principal ID 1
+INSERT IGNORE INTO `usuario_permisos` (`usuario_id`, `permiso_id`, `tipo`)
+SELECT 1, id, 'CONCEDER' FROM `permisos`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;

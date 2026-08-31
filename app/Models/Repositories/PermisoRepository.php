@@ -93,14 +93,73 @@ class PermisoRepository
         }
     }
 
-    public function asignarPermiso(int $usuarioId, int $permisoId, ?int $asignadoPor = null): bool
+    public function obtenerPermisosCalculados(int $usuarioId, int $rolId): array
+    {
+        // 1. Permisos base del rol
+        $sqlRol = "SELECT p.nombre 
+                   FROM permisos p 
+                   INNER JOIN rol_permiso rp ON p.id = rp.permiso_id 
+                   WHERE rp.rol_id = ?";
+        $stmtRol = $this->db->prepare($sqlRol);
+        $stmtRol->execute([$rolId]);
+        $permisosRol = $stmtRol->fetchAll(PDO::FETCH_COLUMN);
+
+        // 2. Excepciones concedidas al usuario
+        $sqlConc = "SELECT p.nombre 
+                    FROM permisos p 
+                    INNER JOIN usuario_permisos up ON p.id = up.permiso_id 
+                    WHERE up.usuario_id = ? AND up.tipo = 'CONCEDER'";
+        $stmtConc = $this->db->prepare($sqlConc);
+        $stmtConc->execute([$usuarioId]);
+        $concedidos = $stmtConc->fetchAll(PDO::FETCH_COLUMN);
+
+        // 3. Excepciones revocadas al usuario
+        $sqlRev = "SELECT p.nombre 
+                   FROM permisos p 
+                   INNER JOIN usuario_permisos up ON p.id = up.permiso_id 
+                   WHERE up.usuario_id = ? AND up.tipo = 'REVOCAR'";
+        $stmtRev = $this->db->prepare($sqlRev);
+        $stmtRev->execute([$usuarioId]);
+        $revocados = $stmtRev->fetchAll(PDO::FETCH_COLUMN);
+
+        // 4. Fusión de conjuntos: (Rol + Concedidos) - Revocados
+        $combinados = array_unique(array_merge($permisosRol, $concedidos));
+        $finales = array_diff($combinados, $revocados);
+
+        return array_values($finales);
+    }
+
+    public function obtenerExcepcionesUsuario(int $usuarioId): array
+    {
+        $sql = "SELECT permiso_id, tipo FROM usuario_permisos WHERE usuario_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$usuarioId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function guardarExcepcionesUsuario(int $usuarioId, array $concederIds, array $revocarIds = [], ?int $asignadoPor = null): bool
     {
         try {
-            $sql = "INSERT IGNORE INTO usuario_permisos (usuario_id, permiso_id, asignado_por) VALUES (?, ?, ?)";
-            $stmt = $this->db->prepare($sql);
-            return $stmt->execute([$usuarioId, $permisoId, $asignadoPor]);
+            $this->db->beginTransaction();
+
+            $stmtDelete = $this->db->prepare("DELETE FROM usuario_permisos WHERE usuario_id = ?");
+            $stmtDelete->execute([$usuarioId]);
+
+            $stmtInsert = $this->db->prepare("INSERT INTO usuario_permisos (usuario_id, permiso_id, tipo, asignado_por) VALUES (?, ?, ?, ?)");
+
+            foreach ($concederIds as $pId) {
+                $stmtInsert->execute([$usuarioId, (int)$pId, 'CONCEDER', $asignadoPor]);
+            }
+
+            foreach ($revocarIds as $pId) {
+                $stmtInsert->execute([$usuarioId, (int)$pId, 'REVOCAR', $asignadoPor]);
+            }
+
+            $this->db->commit();
+            return true;
         } catch (\PDOException $e) {
-            error_log("Error al asignar permiso individual: " . $e->getMessage());
+            $this->db->rollBack();
+            error_log("Error al guardar excepciones de usuario: " . $e->getMessage());
             return false;
         }
     }

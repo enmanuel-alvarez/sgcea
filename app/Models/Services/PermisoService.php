@@ -43,6 +43,23 @@ class PermisoService
         return $this->permisoRepo->tienePermiso($usuario_id, $permiso_nombre);
     }
 
+    public function obtenerPermisosCalculados(int $usuario_id, int $rol_id): array
+    {
+        return $this->permisoRepo->obtenerPermisosCalculados($usuario_id, $rol_id);
+    }
+
+    public function guardarExcepcionesUsuario(int $usuario_id, array $conceder_ids, array $revocar_ids = []): bool
+    {
+        $resultado = $this->permisoRepo->guardarExcepcionesUsuario($usuario_id, $conceder_ids, $revocar_ids, $_SESSION['usuario_id'] ?? null);
+
+        if ($resultado && isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === $usuario_id) {
+            $rolId = (int)($_SESSION['usuario_rol_id'] ?? 1);
+            $_SESSION['usuario_permisos'] = $this->obtenerPermisosCalculados($usuario_id, $rolId);
+        }
+
+        return $resultado;
+    }
+
     public function asignarPermisos(int $usuario_id, array $permiso_ids): bool
     {
         $resultado = $this->permisoRepo->asignarPermisos($usuario_id, $permiso_ids);
@@ -50,8 +67,8 @@ class PermisoService
         if ($resultado) {
             // Sincronizar permisos en sesión activa si coincide el ID del usuario
             if (isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === $usuario_id) {
-                $permisos = $this->permisoRepo->obtenerPermisosPorUsuario($usuario_id);
-                $_SESSION['usuario_permisos'] = array_column($permisos, 'nombre');
+                $rolId = (int)($_SESSION['usuario_rol_id'] ?? 1);
+                $_SESSION['usuario_permisos'] = $this->obtenerPermisosCalculados($usuario_id, $rolId);
             }
 
             $this->auditoriaService->registrar(

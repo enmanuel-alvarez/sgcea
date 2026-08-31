@@ -29,6 +29,7 @@ class AdminController extends Controller
     private InscripcionService $inscripcionService;
     private PermisoService $permisoService;
     private AuditoriaService $auditoriaService;
+    private \Src\Models\Repositories\RolRepository $rolRepo;
 
     public function __construct()
     {
@@ -43,6 +44,7 @@ class AdminController extends Controller
         $this->inscripcionService = new InscripcionService();
         $this->permisoService = new PermisoService();
         $this->auditoriaService = new AuditoriaService();
+        $this->rolRepo = new \Src\Models\Repositories\RolRepository();
     }
 
     /**
@@ -79,19 +81,31 @@ class AdminController extends Controller
     {
         $usuarios = $this->usuarioService->obtenerTodosConDetalles();
         $todosPermisos = $this->permisoService->obtenerTodos();
+        $roles = $this->rolRepo->obtenerTodos();
         
         $usuarioPermisosMap = [];
+        $usuarioExcepcionesMap = [];
+        $permisoRepo = new \Src\Models\Repositories\PermisoRepository();
+
         foreach ($usuarios as $u) {
             $uId = (int)$u['id'];
-            $pAsignados = $this->permisoService->obtenerPermisosPorUsuario($uId);
-            $usuarioPermisosMap[$uId] = array_column($pAsignados, 'id');
+            $rId = (int)($u['rol_id'] ?? 3);
+            $pCalculados = $permisoRepo->obtenerPermisosCalculados($uId, $rId);
+            $pObj = $this->permisoService->obtenerTodos();
+            $pMap = array_column($pObj, 'id', 'nombre');
+            
+            $usuarioPermisosMap[$uId] = array_values(array_filter(array_map(fn($nom) => $pMap[$nom] ?? null, $pCalculados)));
+            $usuarioExcepcionesMap[$uId] = $permisoRepo->obtenerExcepcionesUsuario($uId);
         }
 
         $this->render('admin/usuarios/index', [
             'titulo' => 'Gestión de Usuarios',
             'usuarios' => $usuarios,
             'todosPermisos' => $todosPermisos,
-            'usuarioPermisosMap' => $usuarioPermisosMap
+            'roles' => $roles,
+            'permisoService' => $this->permisoService,
+            'usuarioPermisosMap' => $usuarioPermisosMap,
+            'usuarioExcepcionesMap' => $usuarioExcepcionesMap
         ]);
     }
 
@@ -998,25 +1012,27 @@ class AdminController extends Controller
     {
         $id_usuario = (int)$id;
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirigir("/admin/permisos/asignar/$id_usuario");
+            $this->redirigir("/admin/usuarios");
+            return;
         }
 
         Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
 
-        $permisos_ids = $_POST['permisos'] ?? [];
+        $conceder = $_POST['permisos'] ?? [];
+        $revocar = $_POST['permisos_revocar'] ?? [];
 
         try {
-            $this->permisoService->asignarPermisos($id_usuario, $permisos_ids);
+            $this->permisoService->guardarExcepcionesUsuario($id_usuario, $conceder, $revocar);
             
             $this->auditoriaService->registrar(
-                $_SESSION['usuario_id'],
+                $_SESSION['usuario_id'] ?? 0,
                 'UPDATE',
                 'usuario_permisos',
                 $id_usuario,
-                'Permisos actualizados'
+                'Excepciones de permisos actualizadas'
             );
 
-            $_SESSION['flash']['success'] = 'Permisos asignados exitosamente';
+            $_SESSION['flash']['success'] = 'Matriz de permisos y excepciones actualizada exitosamente';
         } catch (\Exception $e) {
             $_SESSION['flash']['error'] = 'Error al asignar permisos: ' . $e->getMessage();
         }

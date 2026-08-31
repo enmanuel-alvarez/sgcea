@@ -7,13 +7,13 @@
 
 **SGCEA** es una solución web integral diseñada para la automatización, administración y control de procesos escolares y académicos en instituciones educativas (Educación Primaria, Secundaria y Bachillerato).
 
-El sistema permite gestionar de forma eficiente usuarios, roles con matriz de permisos (**ACL**), docentes, estudiantes, materias, secciones, planes de evaluación, calificaciones, control diario de asistencias, emisión automatizada de constancias oficiales y registro de auditoría.
+El sistema permite gestionar de forma eficiente usuarios, roles con permisos heredados por defecto y excepciones directas (**Modelo RBAC Híbrido**), docentes, estudiantes, materias, secciones, planes de evaluación, calificaciones, control diario de asistencias, emisión automatizada de constancias oficiales y registro de auditoría.
 
 ---
 
 ## 🌟 Características Principales
 
-- 👑 **Módulo Administrador**: Dashboard con métricas globales, gestión de usuarios, asignación dinámica de permisos (ACL), materias, secciones, grados, solicitudes de constancia, respaldos (exportar/importar) y configuración del sistema.
+- 👑 **Módulo Administrador**: Dashboard con métricas globales, gestión de usuarios, asignación de roles y gestor visual de excepciones de permisos (RBAC Híbrido: `+ Conceder` / `- Revocar`), materias, secciones, grados, solicitudes de constancia, respaldos (exportar/importar) y configuración del sistema.
 - 👨‍🏫 **Módulo Docente**: Gestión de asignaciones de cátedra, creación y ponderación de planes de evaluación por lapso, carga de calificaciones cuantitativas y registro masivo de asistencias por fecha.
 - 🎓 **Módulo Estudiante**: Consulta de boletines de calificaciones, desglose por lapsos, historial de asistencias, actualización de perfil y autoservicio de solicitud y descarga de constancias (estudio, conducta, notas).
 - 🛡️ **Seguridad Avanzada**: Autenticación segura (hashes BCRYPT), protección contra ataques XSS y CSRF, *Rate Limiting* contra fuerza bruta en login, preparado de consultas SQL con PDO e inyección limpia de variables de entorno mediante `.env`.
