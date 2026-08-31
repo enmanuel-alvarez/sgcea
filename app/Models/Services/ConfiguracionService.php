@@ -24,6 +24,19 @@ class ConfiguracionService
     }
 
     /**
+     * Obtener todas las configuraciones organizadas como mapa asociativo (clave => valor)
+     */
+    public function obtenerMapa(): array
+    {
+        $rows = $this->configuracionRepository->obtenerTodos();
+        $mapa = [];
+        foreach ($rows as $r) {
+            $mapa[$r['clave']] = $r['valor'];
+        }
+        return $mapa;
+    }
+
+    /**
      * Obtener una configuración por clave
      */
     public function obtenerPorClave(string $clave): ?string

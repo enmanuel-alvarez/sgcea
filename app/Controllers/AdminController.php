@@ -58,12 +58,16 @@ class AdminController extends Controller
 
         $gradoRepo = new \Src\Models\Repositories\GradoRepository();
         $grados = $gradoRepo->obtenerTodos();
+
+        $configService = new \Src\Models\Services\ConfiguracionService();
+        $configMap = $configService->obtenerMapa();
         
         $this->render('admin/dashboard', [
             'titulo' => 'Dashboard Administrativo',
             'estadisticas' => $datos,
             'datos' => $datos,
             'grados' => $grados,
+            'config' => $configMap,
             'periodoFiltro' => $periodo,
             'gradoFiltro' => $gradoId
         ]);

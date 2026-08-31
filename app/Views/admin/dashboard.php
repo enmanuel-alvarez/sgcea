@@ -17,7 +17,7 @@ $nombreAdmin = $_SESSION['usuario_nombre'] ?? 'Administrador';
     <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
             <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-md mb-3">
-                <i class="bi bi-calendar-event me-1"></i> Año Lectivo: <?= config('app.ano_academico_actual', '2024-2025') ?>
+                <i class="bi bi-calendar-event me-1"></i> Año Lectivo: <?= htmlspecialchars($config['ano_academico_actual'] ?? '2026-2027') ?>
             </div>
             <h1 class="text-2xl sm:text-4xl font-black tracking-tight">¡Bienvenido de nuevo, <?= htmlspecialchars($nombreAdmin) ?>! 👋</h1>
             <p class="text-sm text-blue-100/90 mt-2 max-w-xl leading-relaxed">
@@ -55,10 +55,13 @@ $nombreAdmin = $_SESSION['usuario_nombre'] ?? 'Administrador';
                 <select name="periodo" onchange="this.form.submit()" class="px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500">
                     <option value="">Año Lectivo: Todos</option>
                     <?php 
-                    $anoc = (int)date('Y');
-                    for ($y = $anoc; $y >= $anoc - 4; $y--): 
+                    $anoConfig = $config['ano_academico_actual'] ?? '2026-2027';
+                    $anoBase = (int)substr($anoConfig, 0, 4);
+                    if ($anoBase < 2020) $anoBase = (int)date('Y');
+                    for ($y = $anoBase + 1; $y >= $anoBase - 4; $y--): 
+                        $labelOp = $y . '-' . ($y + 1);
                     ?>
-                        <option value="<?= $y ?>" <?= (isset($periodoFiltro) && $periodoFiltro == $y) ? 'selected' : '' ?>>Año <?= $y ?></option>
+                        <option value="<?= $y ?>" <?= (isset($periodoFiltro) && ($periodoFiltro == $y || $periodoFiltro == $labelOp)) ? 'selected' : '' ?>>Año Lectivo <?= $labelOp ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
