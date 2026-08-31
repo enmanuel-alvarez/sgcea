@@ -98,3 +98,4 @@ class SeccionRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
+

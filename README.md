@@ -122,3 +122,8 @@ Para más información y detalle sobre el funcionamiento del sistema, consulte l
 - 📘 [Manual de Usuario](file:///Applications/MAMP/htdocs/sgcea/documentacion/manual_usuario.md): Guía de uso para Administradores, Docentes y Estudiantes.
 - 📙 [Manual Técnico y de Desarrollador](file:///Applications/MAMP/htdocs/sgcea/documentacion/manual_tecnico.md): Guía de arquitectura MVC, explicación de clases core, servicios, repositorios, mapa de rutas y esquema de base de datos.
 
+---
+
+**SGCEA v1.0 Release** • *Sistema comprobado y 100% listo para despliegue en entornos de producción.*
+
+

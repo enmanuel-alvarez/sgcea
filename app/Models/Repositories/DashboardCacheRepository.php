@@ -92,3 +92,4 @@ class DashboardCacheRepository
         return $this->db->exec($sql) !== false;
     }
 }
+

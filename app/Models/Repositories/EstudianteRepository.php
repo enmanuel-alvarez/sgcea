@@ -191,3 +191,4 @@ class EstudianteRepository
         return (int) $this->db->query($sql)->fetchColumn();
     }
 }
+

@@ -145,3 +145,4 @@ class AsignacionService
         return (int) $stmt->fetchColumn();
     }
 }
+

@@ -342,4 +342,5 @@ function cerrarModalEliminarActividad() {
 </script>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
+<?php // SGCEA v3.0 Release - Listo para Producción ?>
 

@@ -421,3 +421,4 @@ INSERT IGNORE INTO `grados` (`id`, `nombre`, `nivel`, `orden`, `estado`) VALUES
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
+

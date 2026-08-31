@@ -139,3 +139,4 @@ $iniciales = strtoupper(substr($estudiante['nombres'] ?? $estudiante['nombre'] ?
 
 </body>
 </html>
+

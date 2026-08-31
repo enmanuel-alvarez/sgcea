@@ -195,3 +195,4 @@ class ConstanciaService
         return $resultado;
     }
 }
+

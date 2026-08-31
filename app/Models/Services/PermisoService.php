@@ -106,3 +106,4 @@ class PermisoService
         return $vistas;
     }
 }
+

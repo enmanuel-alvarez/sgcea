@@ -313,6 +313,6 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
             </form>
         </div>
     </div>
-
     <div class="flex-1 flex overflow-hidden">
+<?php // SGCEA v3.0 Release - Listo para Producción ?>
 

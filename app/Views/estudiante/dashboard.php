@@ -185,3 +185,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
 
+

@@ -240,3 +240,4 @@ class ReportesController extends Controller
         $this->json(['success' => true, 'data' => $estudiante]);
     }
 }
+

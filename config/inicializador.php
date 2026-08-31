@@ -71,3 +71,4 @@ Security::establecerHeadersSeguridad();
 // 8. Cargar funciones helper globales
 require_once __DIR__ . '/../core/helpers.php';
 
+

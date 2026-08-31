@@ -248,3 +248,4 @@ echo "  - Modifique la contraseña del usuario Administrador inmediatamente al i
 echo "  - Verifique que la carpeta public/ sea la única expuesta como DocumentRoot en producción."
 echo ""
 show_message "SGCEA está listo para ser utilizado."
+

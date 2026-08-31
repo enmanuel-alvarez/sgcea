@@ -70,3 +70,4 @@ class GradoRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
+

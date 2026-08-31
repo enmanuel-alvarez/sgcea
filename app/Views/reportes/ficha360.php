@@ -211,3 +211,4 @@ $gradoSeccion = htmlspecialchars(($est['grado_nombre'] ?? 'N/A') . ' - ' . ($est
 </body>
 </html>
 
+

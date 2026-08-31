@@ -23,3 +23,4 @@
 <FilesMatch "^\.env|database\.sql|seed\.sql|\.git">
     Require all denied
 </FilesMatch>
+

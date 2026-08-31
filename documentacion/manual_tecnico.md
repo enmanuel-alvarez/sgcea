@@ -293,3 +293,4 @@ El sistema **SGCEA** está diseñado bajo los principios de la **Arquitectura Li
 3. **Escapado XSS**: Utilizar siempre el helper `e($variable)` al imprimir contenido dinámico en vistas PHP.
 4. **Validación CSRF**: Incluir `<?= csrf_field() ?>` en todo formulario con método `POST`.
 5. **Permisos de Archivos**: Configurar permisos de lectura en `storage/` y restringir escritura en el directorio raíz.
+

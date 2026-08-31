@@ -194,3 +194,4 @@ $tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
 <!-- MAIN CONTENT CANVAS -->
 <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto animate-fade-in min-w-0">
 
+

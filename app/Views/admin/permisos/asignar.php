@@ -306,3 +306,4 @@ function setAllGlobal(state) {
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
 
+

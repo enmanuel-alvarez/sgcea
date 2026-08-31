@@ -146,3 +146,4 @@ class InscripcionRepository
         return $this->obtenerActivaPorEstudiante($estudiante_id);
     }
 }
+

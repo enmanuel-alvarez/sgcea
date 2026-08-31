@@ -16,3 +16,4 @@ Thumbs.db
 
 # Configuración local de base de datos legado
 config/database.php.bak
+
