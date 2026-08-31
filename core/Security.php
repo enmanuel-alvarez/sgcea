@@ -84,7 +84,7 @@ class Security
         header('Referrer-Policy: strict-origin-when-cross-origin');
         
         // Content Security Policy
-        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net cdnjs.cloudflare.com cdn.tailwindcss.com code.jquery.com cdn.datatables.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com cdn.datatables.net; font-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.gstatic.com data:; img-src 'self' data:;");
+        header("Content-Security-Policy: default-src 'self'; connect-src 'self' https://cdn.datatables.net https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net cdnjs.cloudflare.com cdn.tailwindcss.com code.jquery.com cdn.datatables.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com cdn.datatables.net; font-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.gstatic.com data:; img-src 'self' data:;");
         
         // Permissions Policy
         header('Permissions-Policy: geolocation=(), microphone=(), camera=()');

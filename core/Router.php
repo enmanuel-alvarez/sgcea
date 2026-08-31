@@ -180,9 +180,9 @@ class Router
             return false;
         }
 
-        $tipoUsuario = $_SESSION['usuario_tipo'] ?? '';
-        if ($tipoUsuario === 'admin') {
-            return true; // Superadmin acceso total
+        // Superadmin principal (ID 1) tiene acceso total
+        if (isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === 1) {
+            return true;
         }
 
         return in_array($permiso, $_SESSION['usuario_permisos']);

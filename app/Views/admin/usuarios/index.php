@@ -645,7 +645,7 @@ function validar2FA() {
 
 $(document).ready(function() {
     $('#tablaUsuarios').DataTable({
-        language: {
+        language: window.SGCEA_DATATABLES_SPANISH || {
             url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
         },
         responsive: true

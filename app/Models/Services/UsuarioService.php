@@ -49,24 +49,43 @@ class UsuarioService
     /**
      * Obtener usuario por email
      */
-    public function obtenerPorEmail(string $email): ?array
+    public function obtenerPorEmail(?string $email): ?array
     {
+        if (empty($email)) {
+            return null;
+        }
         return $this->usuarioRepo->obtenerPorEmail($email);
     }
 
     /**
      * Obtener usuario por cédula
      */
-    public function obtenerPorCedula(string $cedula): ?array
+    public function obtenerPorCedula(?string $cedula): ?array
     {
+        if (empty($cedula)) {
+            return null;
+        }
         return $this->usuarioRepo->obtenerPorCedula($cedula);
     }
 
     /**
      * Crear nuevo usuario con validaciones
      */
-    public function crear(array $datos): array
+    public function crear(array $datos, array $permisos = []): array
     {
+        // Normalizar alias de claves
+        $datos['email'] = $datos['email'] ?? $datos['correo'] ?? null;
+        $datos['tipo'] = $datos['tipo'] ?? $datos['tipo_usuario'] ?? 'estudiante';
+        $datos['estado'] = $datos['estado'] ?? $datos['activo'] ?? $datos['estado_cuenta'] ?? 1;
+
+        if (empty($datos['email'])) {
+            return ['success' => false, 'error' => 'El correo electrónico es requerido'];
+        }
+
+        if (empty($datos['cedula'])) {
+            return ['success' => false, 'error' => 'La cédula es requerida'];
+        }
+
         // Validar unicidad de email
         if ($this->usuarioRepo->obtenerPorEmail($datos['email'])) {
             return ['success' => false, 'error' => 'El correo electrónico ya está registrado'];
@@ -82,17 +101,21 @@ class UsuarioService
             return ['success' => false, 'error' => 'El correo electrónico no es válido'];
         }
 
-        // Hashear contraseña
-        $hashedPassword = password_hash($datos['password'], PASSWORD_DEFAULT);
+        // Hashear contraseña si no viene ya hasheada
+        if (!empty($datos['password'])) {
+            $datos['password'] = password_hash($datos['password'], PASSWORD_DEFAULT);
+        } elseif (!empty($datos['contrasena_hash'])) {
+            $datos['password'] = $datos['contrasena_hash'];
+        }
 
         // Crear usuario
-        $datos['password'] = $hashedPassword;
         $usuarioId = $this->usuarioRepo->crear($datos);
 
         if ($usuarioId) {
             // Asignar permisos si se proporcionan
-            if (isset($datos['permisos']) && is_array($datos['permisos']) && !empty($datos['permisos'])) {
-                foreach ($datos['permisos'] as $permisoId) {
+            $listaPermisos = !empty($permisos) ? $permisos : ($datos['permisos'] ?? []);
+            if (is_array($listaPermisos) && !empty($listaPermisos)) {
+                foreach ($listaPermisos as $permisoId) {
                     $this->permisoRepo->asignarPermiso($usuarioId, (int)$permisoId, $_SESSION['usuario_id'] ?? null);
                 }
             } else {
@@ -118,7 +141,7 @@ class UsuarioService
     /**
      * Actualizar usuario existente
      */
-    public function actualizar(int $id, array $datos): array
+    public function actualizar(int $id, array $datos, array $permisos = []): array
     {
         $usuario = $this->usuarioRepo->obtenerPorId($id);
         
@@ -126,8 +149,24 @@ class UsuarioService
             return ['success' => false, 'error' => 'Usuario no encontrado'];
         }
 
+        // Normalizar alias de claves
+        if (!isset($datos['email']) && isset($datos['correo'])) {
+            $datos['email'] = $datos['correo'];
+        }
+        if (!isset($datos['tipo']) && isset($datos['tipo_usuario'])) {
+            $datos['tipo'] = $datos['tipo_usuario'];
+        }
+        if (!isset($datos['estado']) && isset($datos['activo'])) {
+            $datos['estado'] = $datos['activo'];
+        } elseif (!isset($datos['estado']) && isset($datos['estado_cuenta'])) {
+            $datos['estado'] = $datos['estado_cuenta'];
+        }
+
         // Validar unicidad de email (si se cambió)
         if (isset($datos['email']) && $datos['email'] !== $usuario['email']) {
+            if (!filter_var($datos['email'], FILTER_VALIDATE_EMAIL)) {
+                return ['success' => false, 'error' => 'El correo electrónico no es válido'];
+            }
             if ($this->usuarioRepo->obtenerPorEmail($datos['email'])) {
                 return ['success' => false, 'error' => 'El correo electrónico ya está registrado'];
             }
@@ -152,9 +191,10 @@ class UsuarioService
 
         if ($actualizado) {
             // Actualizar permisos si se proporcionan
-            if (isset($datos['permisos'])) {
+            $listaPermisos = !empty($permisos) ? $permisos : (isset($datos['permisos']) ? $datos['permisos'] : null);
+            if ($listaPermisos !== null) {
                 $this->permisoRepo->quitarTodosLosPermisos($id);
-                foreach ($datos['permisos'] as $permisoId) {
+                foreach ($listaPermisos as $permisoId) {
                     $this->permisoRepo->asignarPermiso($id, (int)$permisoId, $_SESSION['usuario_id'] ?? null);
                 }
             }
@@ -165,7 +205,7 @@ class UsuarioService
                 'editar_usuario',
                 'usuarios',
                 $id,
-                ['email' => $usuario['email']]
+                ['email' => $datos['email'] ?? $usuario['email']]
             );
 
             return ['success' => true];

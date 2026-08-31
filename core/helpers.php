@@ -160,8 +160,8 @@ if (!function_exists('can')) {
             return false;
         }
         
-        // Admin tiene todos los permisos
-        if ($_SESSION['usuario_tipo'] === 'admin') {
+        // Superadmin principal (ID 1) tiene todos los permisos
+        if (isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === 1) {
             return true;
         }
         

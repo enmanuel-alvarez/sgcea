@@ -93,6 +93,18 @@ class PermisoRepository
         }
     }
 
+    public function asignarPermiso(int $usuarioId, int $permisoId, ?int $asignadoPor = null): bool
+    {
+        try {
+            $sql = "INSERT IGNORE INTO usuario_permisos (usuario_id, permiso_id, asignado_por) VALUES (?, ?, ?)";
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([$usuarioId, $permisoId, $asignadoPor]);
+        } catch (\PDOException $e) {
+            error_log("Error al asignar permiso individual: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public function obtenerPorModulo(string $modulo): array
     {
         $sql = "SELECT * FROM permisos WHERE modulo = ? ORDER BY nombre";

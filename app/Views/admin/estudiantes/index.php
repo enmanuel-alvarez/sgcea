@@ -370,10 +370,11 @@ function validar2FA() {
 
 $(document).ready(function() {
     $('#tablaEstudiantes').DataTable({
-        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+        language: window.SGCEA_DATATABLES_SPANISH || { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
         order: [[0, 'asc']]
     });
 });
+</script>
 <!-- ════════════════ MODAL FLOTANTE: VER / IMPRIMIR CARNET ════════════════ -->
 <div id="modalCarnet" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 space-y-4 max-h-[92vh] flex flex-col">

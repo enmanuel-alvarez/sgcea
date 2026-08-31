@@ -9,7 +9,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
 
 // Helper para verificar permiso individual
 $tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
-    if ($tipoUsuario === 'admin') return true; // Superadmin
+    if (isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === 1) return true; // Superadmin principal ID 1
     return in_array($permiso, $permisos_sesion);
 };
 ?>
@@ -21,8 +21,8 @@ $tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
 <aside id="sidebarMenu" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700/80 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out shrink-0 overflow-y-auto no-print">
     <div class="p-4 space-y-6 flex-1">
         
-        <?php if ($tipoUsuario === 'admin'): ?>
-        <!-- ═══ Menú Administrador ═══ -->
+        <?php if ($tipoUsuario === 'admin' || $tipoUsuario === 'custom' || (!in_array($tipoUsuario, ['docente', 'estudiante']))): ?>
+        <!-- ═══ Menú Administrador / Rol Personalizado ═══ -->
         <div>
             <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Principal</h3>
             <nav class="space-y-1">

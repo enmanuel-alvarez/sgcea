@@ -25,9 +25,11 @@ class Database
 
     private function connect(): void
     {
+        $port = !empty($this->config['port']) ? ";port=" . $this->config['port'] : "";
         $dsn = sprintf(
-            "mysql:host=%s;dbname=%s;charset=%s",
+            "mysql:host=%s%s;dbname=%s;charset=%s",
             $this->config['host'],
+            $port,
             $this->config['database'],
             $this->config['charset']
         );
@@ -51,7 +53,11 @@ class Database
                 throw $e;
             }
             error_log("Error de conexión a BD: " . $e->getMessage());
-            die("Error de conexión a la base de datos");
+            die("<div style='font-family:sans-serif;padding:2rem;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:1rem;margin:2rem;'>
+                    <h2 style='margin-top:0;'>⚠️ Error de Conexión a la Base de Datos MySQL</h2>
+                    <p>No se pudo establecer conexión con el servidor MySQL (Host: <strong>" . htmlspecialchars($this->config['host']) . "</strong>, BD: <strong>" . htmlspecialchars($this->config['database']) . "</strong>).</p>
+                    <p>Por favor verifique las credenciales registradas en el archivo <code>.env</code> en el servidor de hosting (DB_HOST, DB_NAME, DB_USER, DB_PASS).</p>
+                 </div>");
         }
     }
 

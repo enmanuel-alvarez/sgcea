@@ -27,18 +27,18 @@ class Controller
             require __DIR__ . '/../app/Views/layouts/print.php';
         } elseif ($layout) {
             // Layout completo con header, sidebar y footer
-            require __DIR__ . '/../app/Views/layouts/header.php';
-            require __DIR__ . '/../app/Views/layouts/sidebar.php';
+            require_once __DIR__ . '/../app/Views/layouts/header.php';
+            require_once __DIR__ . '/../app/Views/layouts/sidebar.php';
             
             // Cargar vista
             $vistaPath = __DIR__ . '/../app/Views/' . $vista . '.php';
             if (file_exists($vistaPath)) {
-                require $vistaPath;
+                require_once $vistaPath;
             } else {
                 throw new Exception("Vista no encontrada: {$vista}");
             }
             
-            require __DIR__ . '/../app/Views/layouts/footer.php';
+            require_once __DIR__ . '/../app/Views/layouts/footer.php';
         } else {
             // Solo vista sin layout
             $vistaPath = __DIR__ . '/../app/Views/' . $vista . '.php';
@@ -109,8 +109,8 @@ class Controller
             return false;
         }
 
-        // El administrador tiene todos los permisos
-        if ($_SESSION['usuario_tipo'] === 'admin') {
+        // El Superadministrador principal (ID 1) tiene todos los permisos por defecto
+        if (isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === 1) {
             return true;
         }
 

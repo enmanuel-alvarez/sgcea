@@ -251,7 +251,7 @@ class AuthController extends Controller
      */
     private function redirigirSegunTipo(string $tipo): void
     {
-        switch ($tipo) {
+        switch (strtolower($tipo)) {
             case 'admin':
                 $this->redirigir('/admin');
                 break;
@@ -261,8 +261,29 @@ class AuthController extends Controller
             case 'estudiante':
                 $this->redirigir('/estudiante');
                 break;
+            case 'custom':
             default:
-                $this->redirigir('/login');
+                // Evaluar la matriz de permisos para determinar el módulo de entrada
+                $permisos = $_SESSION['usuario_permisos'] ?? [];
+                
+                foreach ($permisos as $p) {
+                    if (str_starts_with($p, 'admin.') || str_starts_with($p, 'reportes.')) {
+                        $this->redirigir('/admin');
+                        return;
+                    }
+                    if (str_starts_with($p, 'docente.')) {
+                        $this->redirigir('/docente');
+                        return;
+                    }
+                    if (str_starts_with($p, 'estudiante.')) {
+                        $this->redirigir('/estudiante');
+                        return;
+                    }
+                }
+                
+                // Redirección segura por defecto a /admin (nunca a /login para evitar bucles de 100+ peticiones)
+                $this->redirigir('/admin');
+                break;
         }
     }
 }

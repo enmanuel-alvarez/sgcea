@@ -48,6 +48,12 @@ class PermisoService
         $resultado = $this->permisoRepo->asignarPermisos($usuario_id, $permiso_ids);
 
         if ($resultado) {
+            // Sincronizar permisos en sesión activa si coincide el ID del usuario
+            if (isset($_SESSION['usuario_id']) && (int)$_SESSION['usuario_id'] === $usuario_id) {
+                $permisos = $this->permisoRepo->obtenerPermisosPorUsuario($usuario_id);
+                $_SESSION['usuario_permisos'] = array_column($permisos, 'nombre');
+            }
+
             $this->auditoriaService->registrar(
                 $_SESSION['usuario_id'] ?? 0,
                 'UPDATE',

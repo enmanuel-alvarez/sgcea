@@ -37,28 +37,39 @@ class UsuarioRepository
         return $this->db->fetch($sql, ['id' => $id]);
     }
 
-    public function obtenerPorEmail(string $email): ?array
+    public function obtenerPorEmail(?string $email): ?array
     {
+        if (empty($email)) {
+            return null;
+        }
         $sql = "SELECT * FROM usuarios WHERE email = :email";
         return $this->db->fetch($sql, ['email' => $email]);
     }
 
-    public function obtenerPorCedula(string $cedula): ?array
+    public function obtenerPorCedula(?string $cedula): ?array
     {
+        if (empty($cedula)) {
+            return null;
+        }
         $sql = "SELECT * FROM usuarios WHERE cedula = :cedula";
         return $this->db->fetch($sql, ['cedula' => $cedula]);
     }
 
     public function crear(array $datos): int
     {
+        $email = $datos['email'] ?? $datos['correo'] ?? '';
+        $tipo = $datos['tipo'] ?? $datos['tipo_usuario'] ?? 'estudiante';
+        $estado = $datos['estado'] ?? $datos['estado_cuenta'] ?? $datos['activo'] ?? 1;
+        $password = $datos['password'] ?? $datos['contrasena_hash'] ?? '';
+
         return $this->db->insert('usuarios', [
-            'cedula' => $datos['cedula'],
-            'nombre' => $datos['nombre'],
-            'apellido' => $datos['apellido'],
-            'email' => $datos['email'],
-            'password' => $datos['password'],
-            'tipo' => $datos['tipo'],
-            'estado' => $datos['estado'] ?? 1
+            'cedula' => $datos['cedula'] ?? '',
+            'nombre' => $datos['nombre'] ?? '',
+            'apellido' => $datos['apellido'] ?? '',
+            'email' => $email,
+            'password' => $password,
+            'tipo' => $tipo,
+            'estado' => $estado
         ]);
     }
 
@@ -69,10 +80,22 @@ class UsuarioRepository
         if (isset($datos['nombre'])) $data['nombre'] = $datos['nombre'];
         if (isset($datos['apellido'])) $data['apellido'] = $datos['apellido'];
         if (isset($datos['email'])) $data['email'] = $datos['email'];
+        elseif (isset($datos['correo'])) $data['email'] = $datos['correo'];
+
         if (isset($datos['password'])) $data['password'] = $datos['password'];
+        elseif (isset($datos['contrasena_hash'])) $data['password'] = $datos['contrasena_hash'];
+
         if (isset($datos['tipo'])) $data['tipo'] = $datos['tipo'];
+        elseif (isset($datos['tipo_usuario'])) $data['tipo'] = $datos['tipo_usuario'];
+
         if (isset($datos['estado'])) $data['estado'] = $datos['estado'];
-        
+        elseif (isset($datos['activo'])) $data['estado'] = $datos['activo'];
+        elseif (isset($datos['estado_cuenta'])) $data['estado'] = $datos['estado_cuenta'];
+
+        if (empty($data)) {
+            return false;
+        }
+
         return $this->db->update('usuarios', $id, $data);
     }
 

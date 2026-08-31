@@ -44,6 +44,33 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
     <link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- jQuery 3.7.1 & DataTables JS (Global) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script>
+        window.SGCEA_DATATABLES_SPANISH = {
+            processing:     "Procesando...",
+            search:         "Buscar:",
+            lengthMenu:     "Mostrar _MENU_ registros",
+            info:           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            infoEmpty:      "Mostrando registros del 0 al 0 de un total de 0 registros",
+            infoFiltered:   "(filtrado de un total de _MAX_ registros)",
+            infoPostFix:    "",
+            loadingRecords: "Cargando...",
+            zeroRecords:    "No se encontraron resultados",
+            emptyTable:     "Ningún dato disponible en esta tabla",
+            paginate: {
+                first:      "Primero",
+                previous:   "Anterior",
+                next:       "Siguiente",
+                last:       "Último"
+            },
+            aria: {
+                sortAscending:  ": Activar para ordenar la columna de manera ascendente",
+                sortDescending: ": Activar para ordenar la columna de manera descendente"
+            }
+        };
+    </script>
     <!-- Custom CSS -->
     <link href="<?= asset('css/custom.css') ?>" rel="stylesheet">
     <!-- Print CSS -->

@@ -28,14 +28,9 @@
 <?php unset($_SESSION['flash']); ?>
 <?php endif; ?>
 
-<!-- SCRIPTS DE COMPATIBILIDAD -->
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<!-- DataTables -->
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.php" error-handler="fallback"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
+<!-- SCRIPTS DE COMPATIBILIDAD CON IIFE SCOPE -->
 <script>
+(function() {
     // 1. Dark Mode Toggle
     const themeBtn = document.getElementById('toggleTheme');
     function applyTheme(theme) {
@@ -88,6 +83,7 @@
         const toast = document.getElementById('toast-container');
         if (toast) toast.remove();
     }, 5000);
+})();
 </script>
 
 </body>

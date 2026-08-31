@@ -108,27 +108,39 @@ class AdminController extends Controller
 
         Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
 
+        $correo = Security::sanitizar($_POST['correo'] ?? $_POST['email'] ?? '');
         $datos = [
             'nombre' => Security::sanitizar($_POST['nombre'] ?? ''),
             'apellido' => Security::sanitizar($_POST['apellido'] ?? ''),
             'cedula' => Security::sanitizar($_POST['cedula'] ?? ''),
-            'correo' => Security::sanitizar($_POST['correo'] ?? ''),
+            'correo' => $correo,
+            'email' => $correo,
             'password' => $_POST['password'] ?? '',
-            'tipo_usuario' => Security::sanitizar($_POST['tipo_usuario'] ?? 'estudiante'),
+            'tipo' => Security::sanitizar($_POST['tipo_usuario'] ?? $_POST['tipo'] ?? 'estudiante'),
+            'tipo_usuario' => Security::sanitizar($_POST['tipo_usuario'] ?? $_POST['tipo'] ?? 'estudiante'),
             'activo' => isset($_POST['activo']) ? 1 : 0
         ];
 
         $permisos_ids = $_POST['permisos'] ?? [];
 
         try {
-            $id_usuario = $this->usuarioService->crear($datos, $permisos_ids);
-            
+            $resultado = $this->usuarioService->crear($datos, $permisos_ids);
+
+            if (is_array($resultado)) {
+                if (!($resultado['success'] ?? false)) {
+                    throw new \Exception($resultado['error'] ?? 'Error al crear usuario');
+                }
+                $id_usuario = $resultado['usuario_id'] ?? null;
+            } else {
+                $id_usuario = $resultado;
+            }
+
             $this->auditoriaService->registrar(
-                $_SESSION['usuario_id'],
+                $_SESSION['usuario_id'] ?? 0,
                 'CREATE',
                 'usuarios',
                 $id_usuario,
-                "Usuario creado: {$datos['correo']}"
+                "Usuario creado: {$correo}"
             );
 
             $_SESSION['flash']['success'] = 'Usuario creado exitosamente';
@@ -152,12 +164,15 @@ class AdminController extends Controller
 
         Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
 
+        $correo = Security::sanitizar($_POST['correo'] ?? $_POST['email'] ?? '');
         $datos = [
             'nombre' => Security::sanitizar($_POST['nombre'] ?? ''),
             'apellido' => Security::sanitizar($_POST['apellido'] ?? ''),
             'cedula' => Security::sanitizar($_POST['cedula'] ?? ''),
-            'correo' => Security::sanitizar($_POST['correo'] ?? ''),
-            'tipo_usuario' => Security::sanitizar($_POST['tipo_usuario'] ?? 'estudiante'),
+            'correo' => $correo,
+            'email' => $correo,
+            'tipo' => Security::sanitizar($_POST['tipo_usuario'] ?? $_POST['tipo'] ?? 'estudiante'),
+            'tipo_usuario' => Security::sanitizar($_POST['tipo_usuario'] ?? $_POST['tipo'] ?? 'estudiante'),
             'activo' => isset($_POST['activo']) ? 1 : 0
         ];
 
@@ -168,14 +183,18 @@ class AdminController extends Controller
         $permisos_ids = $_POST['permisos'] ?? [];
 
         try {
-            $this->usuarioService->actualizar($id, $datos, $permisos_ids);
-            
+            $resultado = $this->usuarioService->actualizar($id, $datos, $permisos_ids);
+
+            if (is_array($resultado) && !($resultado['success'] ?? false)) {
+                throw new \Exception($resultado['error'] ?? 'Error al actualizar usuario');
+            }
+
             $this->auditoriaService->registrar(
-                $_SESSION['usuario_id'],
+                $_SESSION['usuario_id'] ?? 0,
                 'UPDATE',
                 'usuarios',
                 $id,
-                "Usuario actualizado: {$datos['correo']}"
+                "Usuario actualizado: {$correo}"
             );
 
             $_SESSION['flash']['success'] = 'Usuario actualizado exitosamente';
@@ -195,10 +214,14 @@ class AdminController extends Controller
         Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
 
         try {
-            $this->usuarioService->eliminar($id);
-            
+            $resultado = $this->usuarioService->eliminar($id);
+
+            if (is_array($resultado) && !($resultado['success'] ?? false)) {
+                throw new \Exception($resultado['error'] ?? 'Error al eliminar usuario');
+            }
+
             $this->auditoriaService->registrar(
-                $_SESSION['usuario_id'],
+                $_SESSION['usuario_id'] ?? 0,
                 'DELETE',
                 'usuarios',
                 $id,
