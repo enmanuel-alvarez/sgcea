@@ -1,271 +1,171 @@
 /* ============================================
-   ESTILOS PARA IMPRESIÓN DE DOCUMENTOS
+   ESTILOS DE IMPRESIÓN OFICIAL SGCEA (Horizontal / Landscape & Sin Bordes ni Cuadros)
    ============================================ */
 
 @media print {
-    /* Ocultar elementos no necesarios en impresión */
+    @page {
+        size: landscape;
+        margin: 10mm 15mm;
+    }
+    
+    /* Ocultar elementos de UI, menús, barras de navegación y controles */
     .no-print,
     header,
+    aside,
+    #sidebarMenu,
+    #mobileSidebarBackdrop,
+    #toggleTheme,
+    #userMenuBtn,
+    .border-b.pb-5,
+    .category-cards-grid,
+    .filter-bar-container,
+    form,
+    button:not(.print-keep),
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate,
+    .dt-buttons,
     footer,
-    nav,
-    sidebar,
-    .sidebar,
-    .topbar,
-    .btn,
-    button,
-    .actions,
-    .pagination,
-    .dataTables_wrapper,
-    .toast-container,
-    #wrapper > *:not(.main-content) {
+    a.btn,
+    .no-print-area {
         display: none !important;
     }
-    
-    /* Asegurar que el body ocupe todo el ancho */
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        font-size: 12pt;
-        line-height: 1.5;
-        color: #000;
-        background: #fff;
+
+    /* Fondo limpio blanco sin marcos ni sombras */
+    html, body {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
     }
-    
-    /* Contenedor principal de impresión */
-    .print-container {
-        width: 100%;
-        max-width: 210mm; /* A4 width */
-        margin: 0 auto;
-        padding: 20mm;
+
+    /* Eliminar recuadros, bordes de tarjetas, bordes redondeados y sombras en todos los contenedores de reportes */
+    #reporteContainer,
+    .printable-report,
+    .print-card,
+    .bg-white,
+    .dark\:bg-slate-800,
+    .rounded-2xl,
+    .rounded-xl,
+    .border,
+    .border-slate-200\/80,
+    .dark\:border-slate-700\/80,
+    .shadow-sm,
+    .shadow-md,
+    .shadow-lg,
+    div[class*="rounded"],
+    div[class*="shadow"],
+    div[class*="border"] {
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
-    
-    /* Encabezado del documento */
-    .document-header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #000;
-        padding-bottom: 20px;
+
+    /* Membrete Institucional Oficial (Encabezado Horizontal) */
+    .membrete-oficial {
+        border-bottom: 2px solid #0f172a !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 1.25rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        background: transparent !important;
     }
-    
-    .document-header h1 {
-        font-size: 18pt;
-        margin: 10px 0;
-        text-transform: uppercase;
+
+    .membrete-oficial h1,
+    .membrete-oficial h2 {
+        font-size: 13pt !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        text-transform: uppercase !important;
+        margin: 2px 0 !important;
     }
-    
-    .document-header .institution-name {
-        font-size: 14pt;
-        font-weight: bold;
-        margin-bottom: 5px;
+
+    .membrete-oficial p {
+        font-size: 8.5pt !important;
+        color: #334155 !important;
+        margin: 0 !important;
     }
-    
-    .document-header .document-title {
-        font-size: 16pt;
-        font-weight: bold;
-        margin: 15px 0;
+
+    /* Tablas de Reporte (Impresión Limpia sin Cajas) */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+        background: transparent !important;
     }
-    
-    /* Cuerpo del documento */
-    .document-body {
-        margin: 20px 0;
-        text-align: justify;
+
+    th {
+        background-color: transparent !important;
+        color: #0f172a !important;
+        font-size: 9pt !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        border-top: 1.5px solid #0f172a !important;
+        border-bottom: 2px solid #0f172a !important;
+        padding: 6px 8px !important;
+        text-align: left !important;
     }
-    
-    .document-body p {
-        margin: 10px 0;
+
+    td {
+        font-size: 8.5pt !important;
+        color: #1e293b !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 6px 8px !important;
+        background: transparent !important;
     }
-    
-    /* Tablas en documentos */
-    .document-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
+
+    /* Quitar columna de acciones en impresión */
+    th.col-acciones,
+    td.col-acciones {
+        display: none !important;
     }
-    
-    .document-table th,
-    .document-table td {
-        border: 1px solid #000;
-        padding: 8px 12px;
-        text-align: left;
+
+    /* Badges de estado en texto plano para impresión */
+    span[class*="rounded"] {
+        border-radius: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        font-weight: bold !important;
+        color: #0f172a !important;
     }
-    
-    .document-table th {
-        background-color: #f0f0f0;
-        font-weight: bold;
+
+    /* Sección de Firmas Institucionales */
+    .firmas-impresion {
+        display: flex !important;
+        justify-content: space-around !important;
+        margin-top: 2.5rem !important;
+        padding-top: 1rem !important;
+        page-break-inside: avoid !important;
+        width: 100% !important;
     }
-    
-    /* Pie del documento */
-    .document-footer {
-        margin-top: 50px;
-        page-break-inside: avoid;
+
+    .firma-box {
+        text-align: center !important;
+        width: 35% !important;
     }
-    
-    .firmas {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 60px;
-    }
-    
-    .firma {
-        text-align: center;
-        width: 40%;
-    }
-    
-    .firma-line {
-        border-top: 1px solid #000;
-        margin-top: 50px;
-        padding-top: 10px;
-    }
-    
-    /* Información del estudiante */
-    .student-info {
-        margin: 20px 0;
-    }
-    
-    .student-info table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .student-info td {
-        padding: 5px 0;
-    }
-    
-    .student-info strong {
-        min-width: 150px;
-        display: inline-block;
-    }
-    
-    /* Calificaciones */
-    .grades-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-    }
-    
-    .grades-table th,
-    .grades-table td {
-        border: 1px solid #000;
-        padding: 8px;
-        text-align: center;
-    }
-    
-    .grades-table th {
-        background-color: #f0f0f0;
-    }
-    
-    /* Sello oficial */
-    .official-seal {
-        text-align: center;
-        margin: 30px 0;
-    }
-    
-    .official-seal img {
-        max-width: 150px;
-        height: auto;
-    }
-    
-    /* Código QR o código de verificación */
-    .verification-code {
-        text-align: center;
-        font-size: 10pt;
-        margin-top: 20px;
-        color: #666;
-    }
-    
-    /* Número de folio */
-    .folio-number {
-        text-align: right;
-        font-size: 10pt;
-        margin-top: 10px;
-    }
-    
-    /* Fecha de emisión */
-    .issue-date {
-        text-align: right;
-        margin-top: 20px;
-    }
-    
-    /* Saltos de página */
-    .page-break {
-        page-break-before: always;
-    }
-    
-    /* Evitar saltos dentro de elementos importantes */
-    .no-break {
-        page-break-inside: avoid;
-    }
-    
-    /* Marca de agua (opcional) */
-    .watermark {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-45deg);
-        font-size: 100pt;
-        color: rgba(0, 0, 0, 0.05);
-        z-index: -1;
-        pointer-events: none;
+
+    .firma-linea {
+        border-top: 1px solid #0f172a !important;
+        margin-top: 2rem !important;
+        padding-top: 0.4rem !important;
+        font-size: 8.5pt !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
     }
 }
-
-/* Estilos específicos para tipos de constancias */
-
-/* Constancia de estudio */
-.constancia-estudio .contenido {
-    min-height: 400px;
-}
-
-/* Boletín de calificaciones */
-.boletin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.boletin-logo {
-    max-width: 100px;
-}
-
-/* Carnet estudiantil */
-.carnet-container {
-    width: 85.6mm;
-    height: 53.98mm;
-    border: 1px solid #000;
-    padding: 10px;
-    margin: 10px;
-    page-break-inside: avoid;
-}
-
-.carnet-header {
-    text-align: center;
-    font-size: 10pt;
-    font-weight: bold;
-    border-bottom: 1px solid #000;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-}
-
-.carnet-body {
-    display: flex;
-    gap: 10px;
-}
-
-.carnet-photo {
-    width: 30mm;
-    height: 35mm;
-    border: 1px solid #000;
-    background: #f0f0f0;
-}
-
-.carnet-info {
-    flex: 1;
-    font-size: 9pt;
-}
-
-.carnet-info p {
-    margin: 3px 0;
-}
-

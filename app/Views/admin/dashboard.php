@@ -37,6 +37,55 @@ $nombreAdmin = $_SESSION['usuario_nombre'] ?? 'Administrador';
     </div>
 </div>
 
+<!-- FILTER BAR FOR DASHBOARD DATA -->
+<div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-sm mb-8 no-print">
+    <form method="GET" action="<?= url('/admin') ?>" class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-3 text-slate-800 dark:text-slate-100 font-extrabold text-sm">
+            <div class="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <i class="bi bi-funnel-fill text-lg"></i>
+            </div>
+            <div>
+                <h3>Filtros de Métricas del Dashboard</h3>
+                <p class="text-[11px] font-normal text-slate-500 dark:text-slate-400">Filtre las estadísticas e indicadores en tiempo real por período y nivel académico</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <div>
+                <select name="periodo" onchange="this.form.submit()" class="px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500">
+                    <option value="">Año Lectivo: Todos</option>
+                    <?php 
+                    $anoc = (int)date('Y');
+                    for ($y = $anoc; $y >= $anoc - 4; $y--): 
+                    ?>
+                        <option value="<?= $y ?>" <?= (isset($periodoFiltro) && $periodoFiltro == $y) ? 'selected' : '' ?>>Año <?= $y ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+
+            <div>
+                <select name="grado_id" onchange="this.form.submit()" class="px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-blue-500">
+                    <option value="">Grado / Nivel: Todos</option>
+                    <?php if (!empty($grados)): ?>
+                        <?php foreach ($grados as $g): ?>
+                            <option value="<?= $g['id'] ?>" <?= (isset($gradoFiltro) && $gradoFiltro == $g['id']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($g['nombre']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <?php if (!empty($periodoFiltro) || !empty($gradoFiltro)): ?>
+                <a href="<?= url('/admin') ?>" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-semibold rounded-xl text-xs transition-all flex items-center space-x-1.5" title="Limpiar Filtros">
+                    <i class="bi bi-x-circle-fill text-rose-500"></i>
+                    <span>Limpiar</span>
+                </a>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
 <!-- VIBRANT STAT CARDS GRID -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     
@@ -241,29 +290,27 @@ $nombreAdmin = $_SESSION['usuario_nombre'] ?? 'Administrador';
 <!-- CHART INITIALIZERS -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Chart 1: Asistencia Mensual
+    // Chart 1: Asistencia Balance
     const ctx1 = document.getElementById('chartAsistenciaAdmin');
     if (ctx1) {
         new Chart(ctx1, {
-            type: 'line',
+            type: 'doughnut',
             data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago'],
+                labels: ['Presentes', 'Inasistencias'],
                 datasets: [
                     {
-                        label: 'Asistencia (%)',
-                        data: [94, 96, 92, 95, 97, 93, 96, 98],
-                        borderColor: '#0284c7',
-                        backgroundColor: 'rgba(2, 132, 199, 0.1)',
-                        fill: true,
-                        tension: 0.4
+                        data: [
+                            <?= (int)($estadisticas['asistencias_presentes'] ?? 0) ?>,
+                            <?= (int)($estadisticas['asistencias_ausentes'] ?? 0) ?>
+                        ],
+                        backgroundColor: ['#0284c7', '#f43f5e']
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { min: 80, max: 100 } }
+                plugins: { legend: { position: 'bottom' } }
             }
         });
     }
@@ -274,14 +321,14 @@ document.addEventListener("DOMContentLoaded", function() {
         new Chart(ctx2, {
             type: 'doughnut',
             data: {
-                labels: ['Pendientes', 'Aprobadas', 'Rechazadas'],
+                labels: ['Pendientes', 'Aprobadas / Emitidas', 'Rechazadas'],
                 datasets: [{
                     data: [
-                        <?= $estadisticas['constancias_pendientes'] ?? 3 ?>,
-                        <?= $estadisticas['constancias_aprobadas'] ?? 12 ?>,
-                        <?= $estadisticas['constancias_rechazadas'] ?? 1 ?>
+                        <?= (int)($estadisticas['constancias_distribucion']['pendiente'] ?? 0) ?>,
+                        <?= (int)($estadisticas['constancias_distribucion']['aprobada'] ?? 0) ?>,
+                        <?= (int)($estadisticas['constancias_distribucion']['rechazada'] ?? 0) ?>
                     ],
-                    backgroundColor: ['#f59e0b', '#10b981', '#f43f5e']
+                    backgroundColor: ['#f59e0b', '#10b981', '#ef4444']
                 }]
             },
             options: {

@@ -69,6 +69,9 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
                     </td>
                     <td class="text-right">
                         <div class="flex items-center justify-end space-x-2">
+                            <button type="button" onclick="abrirModalCarnet(<?= $est['id'] ?>, 'estudiante')" class="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50 transition-colors" title="Ver / Imprimir Carnet">
+                                <i class="bi bi-person-badge"></i>
+                            </button>
                             <button type="button" onclick='abrirModalEditarEstudiante(<?= json_encode($est) ?>)' class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors" title="Editar Estudiante">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
@@ -98,8 +101,13 @@ require_once __DIR__ . '/../../layouts/sidebar.php';
             </button>
         </div>
 
-        <form id="formEstudiante" method="POST" action="" onsubmit="validarEnvioEstudiante(event)" class="flex-1 overflow-y-auto pr-1 space-y-5 custom-scrollbar">
+        <form id="formEstudiante" method="POST" action="" enctype="multipart/form-data" onsubmit="validarEnvioEstudiante(event)" class="flex-1 overflow-y-auto pr-1 space-y-5 custom-scrollbar">
             <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
+
+            <div>
+                <label for="est_foto" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Foto de Perfil / Carnet (Opcional)</label>
+                <input type="file" id="est_foto" name="foto" accept="image/png, image/jpeg, image/webp" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -366,6 +374,54 @@ $(document).ready(function() {
         order: [[0, 'asc']]
     });
 });
+<!-- ════════════════ MODAL FLOTANTE: VER / IMPRIMIR CARNET ════════════════ -->
+<div id="modalCarnet" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 space-y-4 max-h-[92vh] flex flex-col">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-3 shrink-0">
+            <div class="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400">
+                <i class="bi bi-person-badge text-2xl"></i>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">Carnet Institucional Oficial</h3>
+            </div>
+            <button type="button" onclick="cerrarModalCarnet()" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 w-full bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden min-h-[420px]">
+            <iframe id="iframeCarnet" src="" class="w-full h-full border-0 min-h-[420px]"></iframe>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end space-x-3 border-t border-slate-100 dark:border-slate-700/50 shrink-0">
+            <button type="button" onclick="cerrarModalCarnet()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs hover:bg-slate-200">
+                Cerrar
+            </button>
+            <button type="button" onclick="imprimirIframeCarnet()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-500/20 flex items-center space-x-2">
+                <i class="bi bi-printer-fill text-sm"></i>
+                <span>Imprimir / Exportar PDF</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalCarnet(id, tipo) {
+    const iframe = document.getElementById('iframeCarnet');
+    iframe.src = '<?= url('/carnet/') ?>' + tipo + '/' + id;
+    document.getElementById('modalCarnet').classList.remove('hidden');
+}
+
+function cerrarModalCarnet() {
+    document.getElementById('modalCarnet').classList.add('hidden');
+    document.getElementById('iframeCarnet').src = '';
+}
+
+function imprimirIframeCarnet() {
+    const iframe = document.getElementById('iframeCarnet');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }
+}
 </script>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

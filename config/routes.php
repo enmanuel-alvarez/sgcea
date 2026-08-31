@@ -47,6 +47,7 @@ return [
 
         '/docente' => ['DocenteController@index', 'docente.dashboard'],
         '/docente/dashboard' => ['DocenteController@index', 'docente.dashboard'],
+        '/docente/perfil' => ['DocenteController@perfil', null],
         '/docente/calificaciones' => ['DocenteController@calificaciones', 'docente.calificaciones.ver'],
         '/docente/calificaciones/registrar/{id_asignacion}' => ['DocenteController@registrarCalificaciones', 'docente.calificaciones.registrar'],
         '/docente/asistencia' => ['DocenteController@asistencia', 'docente.asistencia.ver'],
@@ -67,6 +68,11 @@ return [
         '/estudiante/constancias/descargar/{id}' => ['EstudianteController@descargarConstancia', 'estudiante.constancias.ver'],
         '/estudiante/perfil' => ['EstudianteController@perfil', 'estudiante.perfil.ver'],
         '/constancias/imprimir/{id}' => ['ConstanciaController@imprimir', 'estudiante.constancias.ver'],
+
+        '/carnet/estudiante' => ['CarnetController@estudiante', null],
+        '/carnet/estudiante/{id}' => ['CarnetController@estudiante', null],
+        '/carnet/docente' => ['CarnetController@docente', null],
+        '/carnet/docente/{id}' => ['CarnetController@docente', null],
 
         '/reportes' => ['ReportesController@index', 'reportes.ver'],
         '/reportes/ficha360/{id}' => ['ReportesController@ficha360', 'reportes.ver'],
@@ -112,6 +118,7 @@ return [
         '/docente/planevaluacion/guardar' => ['DocenteController@crearActividad', 'docente.planevaluacion.gestionar'],
         '/docente/planevaluacion/guardar-lote' => ['DocenteController@crearActividadesLote', 'docente.planevaluacion.gestionar'],
         '/docente/revisiones/responder' => ['DocenteController@responderRevision', 'docente.calificaciones.registrar'],
+        '/docente/perfil/actualizar' => ['DocenteController@actualizarPerfil', null],
         '/estudiante/revisiones/guardar' => ['EstudianteController@guardarRevision', 'estudiante.boletin.ver'],
         '/estudiante/constancias/guardar' => ['EstudianteController@guardarSolicitud', 'estudiante.constancias.solicitar'],
         '/estudiante/perfil/actualizar' => ['EstudianteController@actualizarPerfil', 'estudiante.perfil.editar'],

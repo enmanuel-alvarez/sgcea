@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full scroll-smooth bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGCEA - Sistema de Gestión y Control Escolar-Académico</title>
+    <meta name="description" content="Plataforma web integral para la automatización, administración y control de procesos escolares y académicos en instituciones educativas.">
+
+    <!-- Tailwind CSS v3 CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(2, 132, 199, 0.8);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="h-full antialiased font-sans flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-200">
+
+    <!-- NAVBAR SUPERIOR -->
+    <header class="sticky top-0 z-50 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur border-b border-slate-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            
+            <!-- Logo SGCEA -->
+            <a href="#" class="flex items-center space-x-3 group">
+                <span class="p-2 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/30 text-white flex items-center justify-center w-10 h-10 transform group-hover:scale-105 transition-transform">
+                    <i class="bi bi-mortarboard-fill text-xl"></i>
+                </span>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-blue-400 transition-colors">SGCEA</span>
+                    <span class="block text-[10px] text-blue-300 font-semibold tracking-wider uppercase leading-none">Control Escolar</span>
+                </div>
+            </a>
+
+            <!-- Navegación Desktop -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+                <a href="#inicio" class="hover:text-white transition-colors">Inicio</a>
+                <a href="#modulos" class="hover:text-white transition-colors">Módulos</a>
+                <a href="#demo-credenciales" class="hover:text-white transition-colors">Accesos Demo</a>
+                <a href="#caracteristicas" class="hover:text-white transition-colors">Características</a>
+                <a href="#documentacion" class="hover:text-white transition-colors">Documentación</a>
+            </nav>
+
+            <!-- Acciones Header (Tema + Botón Ver Demo) -->
+            <div class="flex items-center space-x-4">
+                <!-- Theme Toggle Button -->
+                <button id="toggleTheme" type="button" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none transition-colors" title="Cambiar Tema (Oscuro/Claro)">
+                    <i class="bi bi-moon-stars text-lg dark:hidden"></i>
+                    <i class="bi bi-sun text-lg hidden dark:block text-amber-400"></i>
+                </button>
+
+                <!-- Botón Ver Demo -->
+                <a href="public/login" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm shadow-md shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:-translate-y-0.5 transition-all flex items-center space-x-2">
+                    <i class="bi bi-rocket-takeoff-fill"></i>
+                    <span>Ver demo</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1">
+
+        <!-- HERO SECTION -->
+        <section id="inicio" class="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-32 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent pointer-events-none"></div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <!-- Badges de tecnologías -->
+                <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-semibold mb-8 animate-pulse">
+                    <span class="flex h-2 w-2 rounded-full bg-blue-400"></span>
+                    <span>SGCEA v2.0 • PHP 8.3 & Tailwind CSS v3 Ready</span>
+                </div>
+
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-4xl mx-auto leading-tight">
+                    Gestión y Control Escolar <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-400">Inteligente y Seguro</span>
+                </h1>
+                
+                <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+                    Plataforma web integral diseñada para la automatización, administración y control de procesos educativos en Educación Primaria, Secundaria y Bachillerato. Centralice calificaciones, asistencias, expedientes y constancias oficiales.
+                </p>
+
+                <!-- CTA Buttons -->
+                <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="public/login" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl text-base shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3">
+                        <i class="bi bi-play-circle-fill text-xl"></i>
+                        <span>Ver demo en vivo</span>
+                    </a>
+                    <a href="#documentacion" class="w-full sm:w-auto px-8 py-4 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 hover:text-white font-bold rounded-2xl text-base backdrop-blur transition-all flex items-center justify-center space-x-2">
+                        <i class="bi bi-journal-text text-blue-400"></i>
+                        <span>Ver Documentación</span>
+                    </a>
+                </div>
+
+                <!-- Tarjeta Preview Interactiva / Highlights -->
+                <div class="mt-16 max-w-5xl mx-auto bg-slate-950/60 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
+                        <div class="p-2">
+                            <p class="text-3xl sm:text-4xl font-extrabold text-blue-400">99.5%</p>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mt-1">Uptime Garantizado</p>
+                        </div>
+                        <div class="p-2 pt-6 md:pt-2">
+                            <p class="text-3xl sm:text-4xl font-extrabold text-emerald-400">&lt; 0.8s</p>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mt-1">Tiempo Respuesta</p>
+                        </div>
+                        <div class="p-2 pt-6 md:pt-2">
+                            <p class="text-3xl sm:text-4xl font-extrabold text-amber-400">100%</p>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mt-1">Matriz Permisos ACL</p>
+                        </div>
+                        <div class="p-2 pt-6 md:pt-2">
+                            <p class="text-3xl sm:text-4xl font-extrabold text-indigo-400">$0</p>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mt-1">Licencias de Software</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN MÓDULOS DE ROL (ACL) -->
+        <section id="modulos" class="py-20 bg-slate-50 dark:bg-slate-900 transition-colors">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-extrabold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">Arquitectura Multiusuario</h2>
+                    <p class="text-3xl sm:text-4xl font-extrabold tracking-tight">Módulos Especializados por Rol</p>
+                    <p class="mt-4 text-slate-600 dark:text-slate-400">Cada usuario dispone de una interfaz adaptada a sus responsabilidades con seguridad basada en permisos ACL granulares.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- Tarjeta Administrador -->
+                    <div class="glass-card rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 flex items-center space-x-2">
+                            <span>Módulo Administrador</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">Control Total</span>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                            Supervisión global de la institución. Gestión de usuarios, matriz de permisos ACL, materias, secciones, auditoría de cambios y respaldos de base de datos.
+                        </p>
+                        <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium border-t border-slate-100 dark:border-slate-800/80 pt-4">
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Dashboard con métricas en tiempo real</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Asignación de permisos individuales (ACL)</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Aprobación y emisión de constancias</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Exportación / Importación de respaldos SQL</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Tarjeta Docente -->
+                    <div class="glass-card rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 flex items-center space-x-2">
+                            <span>Módulo Docente</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">Cátedra</span>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                            Herramientas optimizadas para la gestión pedagógica. Carga de planes de evaluación ponderados por lapso, registro masivo de calificaciones y control de asistencias.
+                        </p>
+                        <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium border-t border-slate-100 dark:border-slate-800/80 pt-4">
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Planes de evaluación flexibles (0-100%)</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Carga cuantitativa de calificaciones</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Registro diario de asistencias por fecha</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Atención a reclamos y revisiones de nota</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Tarjeta Estudiante -->
+                    <div class="glass-card rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 flex items-center space-x-2">
+                            <span>Módulo Estudiante</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">Autoservicio</span>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                            Portal estudiante para la consulta de desempeño. Acceso a boletines informativos, desglose por lapso, historial de asistencias y trámite de constancias.
+                        </p>
+                        <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium border-t border-slate-100 dark:border-slate-800/80 pt-4">
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Visualización digital de boletines</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Solicitud de constancias (Estudio/Conducta)</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Descarga e impresión de documentos</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Consulta de resumen de asistencias</span></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE CREDENCIALES DE DEMO -->
+        <section id="demo-credenciales" class="py-20 bg-slate-900 text-white relative overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-400 text-xs font-bold uppercase tracking-wider">Prueba Rápida</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3">Credenciales de Acceso a la Demo</h2>
+                    <p class="mt-4 text-slate-400 text-sm">Utilice cualquiera de las siguientes cuentas para explorar las funciones del sistema según el rol deseado.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Admin Credentials -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl text-blue-400">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <span class="p-2 bg-blue-500/20 text-blue-400 rounded-xl"><i class="bi bi-person-fill-gear text-xl"></i></span>
+                            <div>
+                                <h4 class="font-bold text-base">Rol Administrador</h4>
+                                <p class="text-xs text-slate-400">Acceso a todas las funciones y ACL</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 bg-slate-950/80 p-4 rounded-2xl font-mono text-xs border border-slate-800">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Email:</span>
+                                <span class="text-blue-300 font-bold select-all">admin@sgcea.com</span>
+                            </div>
+                            <div class="flex justify-between items-center border-t border-slate-800/80 pt-2">
+                                <span class="text-slate-400">Clave:</span>
+                                <span class="text-emerald-400 font-bold select-all">admin123</span>
+                            </div>
+                        </div>
+                        <a href="public/login" class="mt-5 w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-colors">
+                            <span>Ingresar como Admin</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <!-- Docente Credentials -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl text-indigo-400">
+                            <i class="bi bi-person-workspace"></i>
+                        </div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <span class="p-2 bg-indigo-500/20 text-indigo-400 rounded-xl"><i class="bi bi-easel-fill text-xl"></i></span>
+                            <div>
+                                <h4 class="font-bold text-base">Rol Docente</h4>
+                                <p class="text-xs text-slate-400">Gestión de calificaciones y asistencias</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 bg-slate-950/80 p-4 rounded-2xl font-mono text-xs border border-slate-800">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Email:</span>
+                                <span class="text-indigo-300 font-bold select-all">carlos@docente.com</span>
+                            </div>
+                            <div class="flex justify-between items-center border-t border-slate-800/80 pt-2">
+                                <span class="text-slate-400">Clave:</span>
+                                <span class="text-emerald-400 font-bold select-all">password123</span>
+                            </div>
+                        </div>
+                        <a href="public/login" class="mt-5 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-colors">
+                            <span>Ingresar como Docente</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <!-- Estudiante Credentials -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl text-emerald-400">
+                            <i class="bi bi-mortarboard"></i>
+                        </div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <span class="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl"><i class="bi bi-book-fill text-xl"></i></span>
+                            <div>
+                                <h4 class="font-bold text-base">Rol Estudiante</h4>
+                                <p class="text-xs text-slate-400">Boletines y constancias académicas</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 bg-slate-950/80 p-4 rounded-2xl font-mono text-xs border border-slate-800">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Email:</span>
+                                <span class="text-emerald-300 font-bold select-all">juan@estudiante.com</span>
+                            </div>
+                            <div class="flex justify-between items-center border-t border-slate-800/80 pt-2">
+                                <span class="text-slate-400">Clave:</span>
+                                <span class="text-emerald-400 font-bold select-all">password123</span>
+                            </div>
+                        </div>
+                        <a href="public/login" class="mt-5 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-colors">
+                            <span>Ingresar como Estudiante</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DOCUMENTACIÓN EN MÚLTIPLES PESTAÑAS -->
+        <section id="documentacion" class="py-20 bg-slate-900 text-white border-t border-slate-800 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-12">
+                    <span class="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-400 text-xs font-bold uppercase tracking-wider">Centro de Conocimiento</span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight mt-3">Documentación Oficial del Sistema</h2>
+                    <p class="mt-4 text-slate-400 text-sm">Explore la documentación integral del sistema directamente en esta interfaz interactiva por pestañas.</p>
+                </div>
+
+                <!-- NAVEGACIÓN POR PESTAÑAS (TABS) -->
+                <div class="flex items-center justify-start sm:justify-center overflow-x-auto space-x-2 pb-4 mb-8 no-scrollbar border-b border-slate-800">
+                    <button type="button" onclick="openDocTab('tab-tecnico', this)" class="doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-blue-600 text-white shadow-lg shadow-blue-500/30">
+                        <i class="bi bi-journal-code text-lg"></i>
+                        <span>Manual Técnico</span>
+                    </button>
+                    <button type="button" onclick="openDocTab('tab-usuario', this)" class="doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+                        <i class="bi bi-people-fill text-lg"></i>
+                        <span>Manual de Usuario</span>
+                    </button>
+                    <button type="button" onclick="openDocTab('tab-requisitos', this)" class="doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+                        <i class="bi bi-file-earmark-text-fill text-lg"></i>
+                        <span>Análisis de Requisitos</span>
+                    </button>
+                    <button type="button" onclick="openDocTab('tab-factibilidad', this)" class="doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+                        <i class="bi bi-bar-chart-line-fill text-lg"></i>
+                        <span>Estudio de Factibilidad</span>
+                    </button>
+                    <button type="button" onclick="openDocTab('tab-construccion', this)" class="doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+                        <i class="bi bi-tools text-lg"></i>
+                        <span>Manual de Construcción</span>
+                    </button>
+                </div>
+
+                <!-- CONTENEDOR DE CONTENIDOS (PANES) CON SCROLL CORTÉS -->
+                <div class="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur max-h-[750px] overflow-y-auto custom-scrollbar">
+                    
+                    <!-- PESTAÑA 1: MANUAL TÉCNICO -->
+                    <div id="tab-tecnico" class="doc-tab-content space-y-8">
+                        <div class="border-b border-slate-800 pb-4">
+                            <h3 class="text-2xl font-extrabold text-blue-400">Manual Técnico y de Desarrollador - SGCEA</h3>
+                            <p class="text-xs text-slate-400 mt-1">Arquitectura MVC Nativo en PHP 8.3 • Base de Datos MySQL (InnoDB, UTF8MB4) • Tailwind CSS v3</p>
+                        </div>
+
+                        <!-- 1. Arquitectura General -->
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-bold text-white flex items-center space-x-2">
+                                <i class="bi bi-diagram-3-fill text-blue-500"></i>
+                                <span>1. Arquitectura General y Patrón de Diseño</span>
+                            </h4>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                El sistema SGCEA está construido siguiendo el patrón de diseño Modelo-Vista-Controlador (MVC) desacoplado en PHP Orientado a Objetos (POO):
+                            </p>
+                            <ul class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-300 font-medium">
+                                <li class="bg-slate-900 p-3 rounded-xl border border-slate-800"><strong class="text-blue-400">Clean Architecture:</strong> Lógica de negocio en servicios (`app/Models/Services/`), datos en repositorios (`app/Models/Repositories/`).</li>
+                                <li class="bg-slate-900 p-3 rounded-xl border border-slate-800"><strong class="text-blue-400">Singleton Pattern:</strong> Conexión centralizada PDO vía `Src\Core\Database`.</li>
+                                <li class="bg-slate-900 p-3 rounded-xl border border-slate-800"><strong class="text-blue-400">Front Controller Pattern:</strong> Punto de entrada único `public/index.php` gestionado por `Src\Core\Router`.</li>
+                                <li class="bg-slate-900 p-3 rounded-xl border border-slate-800"><strong class="text-blue-400">Variables de Entorno:</strong> Carga dinámica mediante `Src\Core\Env` e integración con helper `env()`.</li>
+                            </ul>
+                        </div>
+
+                        <!-- 2. Componentes del Núcleo -->
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-bold text-white flex items-center space-x-2">
+                                <i class="bi bi-cpu-fill text-indigo-400"></i>
+                                <span>2. Componentes del Núcleo (`core/`)</span>
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                                    <span class="font-mono text-blue-400 font-bold block mb-1">Autoloader.php</span>
+                                    <p class="text-slate-400">Registra autoloader PSR-4 para el namespace raíz `Src\`, enrutando controladores, servicios y modelos.</p>
+                                </div>
+                                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                                    <span class="font-mono text-blue-400 font-bold block mb-1">Database.php</span>
+                                    <p class="text-slate-400">Patrón Singleton con PDO nativo, desactivación de emulación de prepared statements y manejo estricto de excepciones.</p>
+                                </div>
+                                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                                    <span class="font-mono text-blue-400 font-bold block mb-1">Router.php</span>
+                                    <p class="text-slate-400">Enrutador de URLs limpias con parámetros dinámicos `{id}`, verificación de sesión y permisos ACL pre-ejecución.</p>
+                                </div>
+                                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                                    <span class="font-mono text-blue-400 font-bold block mb-1">Security.php</span>
+                                    <p class="text-slate-400">Sanitización XSS con `e()`, generación/validación de tokens anti-CSRF y cifrado BCRYPT con costo 10.</p>
+                                </div>
+                                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                                    <span class="font-mono text-blue-400 font-bold block mb-1">RateLimiter.php</span>
+                                    <p class="text-slate-400">Control de intentos fallidos de inicio de sesión por dirección IP en tabla `intentos_login` contra fuerza bruta.</p>
+                                </div>
+                                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                                    <span class="font-mono text-blue-400 font-bold block mb-1">Controller.php</span>
+                                    <p class="text-slate-400">Clase base abstracta con helpers de renderizado de vistas en layouts, respuestas JSON y redirecciones HTTP.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Base de Datos y ACL -->
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-bold text-white flex items-center space-x-2">
+                                <i class="bi bi-database-fill-check text-emerald-400"></i>
+                                <span>3. Esquema de Base de Datos (21 Tablas) y Permisos ACL</span>
+                            </h4>
+                            <p class="text-sm text-slate-300">Catálogo general de tablas principales de la base de datos relacional:</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-900 text-blue-400 border-b border-slate-800">
+                                            <th class="p-2.5 font-bold">Tabla</th>
+                                            <th class="p-2.5 font-bold">Descripción</th>
+                                            <th class="p-2.5 font-bold">Relaciones / Ámbito</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800 text-slate-300 font-mono">
+                                        <tr><td class="p-2 text-emerald-400 font-bold">usuarios</td><td class="p-2">Usuarios principales del sistema</td><td class="p-2">cedula, email, password BCRYPT, tipo</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">permisos</td><td class="p-2">Catálogo de 48 permisos ACL granulares</td><td class="p-2">admin, docente, estudiante, reportes</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">usuario_permisos</td><td class="p-2">Matriz intermedia de permisos asignados</td><td class="p-2">usuario_id + permiso_id</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">estudiantes / profesores</td><td class="p-2">Expedientes extendidos de perfil</td><td class="p-2">Llave foránea hacia tabla usuarios</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">asignaciones</td><td class="p-2">Cátedra académica de docentes</td><td class="p-2">Profesor + Materia + Sección + Año Escolar</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">calificaciones</td><td class="p-2">Notas cuantitativas (0-20 pts)</td><td class="p-2">Estudiante + Plan de Evaluación</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">auditoria</td><td class="p-2">Logs de auditoría de cambios con JSON</td><td class="p-2">Usuario, Acción, Tabla, Snapshot JSON</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PESTAÑA 2: MANUAL DE USUARIO -->
+                    <div id="tab-usuario" class="doc-tab-content hidden space-y-8">
+                        <div class="border-b border-slate-800 pb-4">
+                            <h3 class="text-2xl font-extrabold text-indigo-400">Manual de Usuario - SGCEA</h3>
+                            <p class="text-xs text-slate-400 mt-1">Guía Operativa de Uso para Administradores, Docentes y Estudiantes</p>
+                        </div>
+
+                        <!-- 1. Acceso al Sistema -->
+                        <div class="space-y-3">
+                            <h4 class="text-lg font-bold text-white flex items-center space-x-2">
+                                <i class="bi bi-box-arrow-in-right text-indigo-400"></i>
+                                <span>1. Inicio de Sesión y Autenticación</span>
+                            </h4>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Ingrese a la plataforma mediante su **Cédula de Identidad** o **Correo Electrónico** y contraseña asignada. El sistema cuenta con protección automática de *Rate Limiting* que suspende temporalmente el acceso tras 5 intentos fallidos.
+                            </p>
+                        </div>
+
+                        <!-- 2. Guía por Roles -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/20">👑 Administrador</span>
+                                <ul class="space-y-2 text-xs text-slate-300 font-medium pt-2">
+                                    <li>• <strong>Métricas Globales:</strong> Panel de control con resúmenes agregados en tiempo real.</li>
+                                    <li>• <strong>Gestión ACL:</strong> Asignación individual de permisos de la matriz de 48 opciones.</li>
+                                    <li>• <strong>Gestión Académica:</strong> Creación de materias, secciones, docentes y alumnos.</li>
+                                    <li>• <strong>Respaldos:</strong> Generación e importación de volcados de base de datos SQL/JSON.</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/20">👨‍🏫 Docente</span>
+                                <ul class="space-y-2 text-xs text-slate-300 font-medium pt-2">
+                                    <li>• <strong>Asignaciones:</strong> Visualización exclusiva de sus materias y secciones encomendadas.</li>
+                                    <li>• <strong>Planes de Evaluación:</strong> Creación de evaluaciones con porcentaje acumulativo 100%.</li>
+                                    <li>• <strong>Calificaciones:</strong> Carga de notas cuantitativas de 0.00 a 20.00 puntos.</li>
+                                    <li>• <strong>Asistencia:</strong> Toma diaria por fecha (Presente, Ausente, Tarde, Justificado).</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/20">🎓 Estudiante</span>
+                                <ul class="space-y-2 text-xs text-slate-300 font-medium pt-2">
+                                    <li>• <strong>Boletines Digitales:</strong> Consulta de calificaciones acumuladas por lapso.</li>
+                                    <li>• <strong>Historial Asistencias:</strong> Desglose de inasistencias por fecha y materia.</li>
+                                    <li>• <strong>Constancias Oficiales:</strong> Solicitud y descarga directa de documentos académicos.</li>
+                                    <li>• <strong>Perfil:</strong> Actualización de datos personales de contacto.</li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- PESTAÑA 3: ANÁLISIS DE REQUISITOS -->
+                    <div id="tab-requisitos" class="doc-tab-content hidden space-y-8">
+                        <div class="border-b border-slate-800 pb-4">
+                            <h3 class="text-2xl font-extrabold text-amber-400">Análisis de Requisitos del Sistema (SRS)</h3>
+                            <p class="text-xs text-slate-400 mt-1">Especificación de Origen, Destino, Método, SLA y Cronograma de Ejecución</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+                                <h4 class="font-bold text-amber-400 text-sm">Origen de la Información</h4>
+                                <p class="text-slate-300 leading-relaxed">
+                                    Captura primaria directa desde los procesos académicos: inscripción de estudiantes, carga de notas por docentes y registro diario de asistencias, eliminando cuadernos físicos o archivos aislados.
+                                </p>
+                            </div>
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+                                <h4 class="font-bold text-amber-400 text-sm">Destino e Impacto</h4>
+                                <p class="text-slate-300 leading-relaxed">
+                                    Disponibilidad inmediata en dashboards administrativos, emisión de boletines, reportes para el Ministerio de Educación y vistas de impresión optimizadas con Tailwind CSS.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="text-lg font-bold text-white">Acuerdos de Nivel de Servicio (SLA & KPIs)</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
+                                <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl text-center">
+                                    <span class="block text-2xl font-extrabold text-blue-400 mb-1">99.5%</span>
+                                    <span class="text-slate-400">Disponibilidad en Ventana Horaria (7 AM - 10 PM)</span>
+                                </div>
+                                <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl text-center">
+                                    <span class="block text-2xl font-extrabold text-emerald-400 mb-1">&lt; 0.8s</span>
+                                    <span class="text-slate-400">Tiempo Carga Consultas Simples (Login/Perfil)</span>
+                                </div>
+                                <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl text-center">
+                                    <span class="block text-2xl font-extrabold text-amber-400 mb-1">&lt; 3.0s</span>
+                                    <span class="text-slate-400">Procesamiento Reportes & Boletines Complejos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PESTAÑA 4: ESTUDIO DE FACTIBILIDAD -->
+                    <div id="tab-factibilidad" class="doc-tab-content hidden space-y-8">
+                        <div class="border-b border-slate-800 pb-4">
+                            <h3 class="text-2xl font-extrabold text-emerald-400">Estudio de Factibilidad Téchnica y Económica</h3>
+                            <p class="text-xs text-slate-400 mt-1">Evaluación de Plataforma Instalada, Prospectiva e Inversión Institucional</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                            
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+                                <h4 class="font-bold text-emerald-400 text-sm">Plataforma Instalada</h4>
+                                <p class="text-slate-300 leading-relaxed">
+                                    100% compatible con las computadoras administrativas existentes (Intel i3/i5, 4GB RAM) y navegadores web modernos sin requerir renovación de equipos.
+                                </p>
+                            </div>
+
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+                                <h4 class="font-bold text-emerald-400 text-sm">Plataforma Prospectiva</h4>
+                                <p class="text-slate-300 leading-relaxed">
+                                    Stack Open Source sobre servidor Apache, PHP 8.3, MySQL (InnoDB UTF8MB4), Tailwind CSS v3 y generación nativa de documentos sin librerías pesadas.
+                                </p>
+                            </div>
+
+                            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
+                                <h4 class="font-bold text-emerald-400 text-sm">Costo de Inversión</h4>
+                                <p class="text-slate-300 leading-relaxed">
+                                    <strong class="text-emerald-400">$0 costo inicial de licencias de software</strong>. Inversión estimada a mediano plazo en hosting/dominio: $50 - $95 anuales.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- PESTAÑA 5: MANUAL DE CONSTRUCCIÓN -->
+                    <div id="tab-construccion" class="doc-tab-content hidden space-y-8">
+                        <div class="border-b border-slate-800 pb-4">
+                            <h3 class="text-2xl font-extrabold text-sky-400">Manual de Construcción y Desarrollo de Software</h3>
+                            <p class="text-xs text-slate-400 mt-1">Estructura de Directorios, Integraciones, Seguridad y Criterios de Aceptación</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="text-lg font-bold text-white">Estructura de Directorios del Sistema</h4>
+                            <pre class="bg-slate-900 p-4 rounded-2xl border border-slate-800 font-mono text-xs text-blue-300 overflow-x-auto">
+sgcea/
+├── app/                        # Aplicación principal (MVC)
+│   ├── Controllers/            # Controladores del sistema
+│   ├── Models/                 # Services y Repositories (POO)
+│   └── Views/                  # Vistas con Tailwind CSS v3
+│       └── layouts/            # header.php, sidebar.php, footer.php
+├── config/                     # Configuración de base de datos y rutas
+├── core/                       # Core (Autoloader, Router, Database, Security)
+├── documentacion/              # Documentos de arquitectura y manuales
+├── public/                     # Front Controller (index.php) y Assets
+│   └── assets/ (css, js)       # Hojas de estilo y scripts
+├── .env                        # Variables de entorno seguras
+├── .htaccess                   # Reglas de enrutamiento Apache en producción
+└── index.html                  # Landing Page Principal del Sistema
+                            </pre>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="text-lg font-bold text-white">Tabla de Dependencias Integradas</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-900 text-sky-400 border-b border-slate-800">
+                                            <th class="p-2.5 font-bold">Dependencia</th>
+                                            <th class="p-2.5 font-bold">Tipo</th>
+                                            <th class="p-2.5 font-bold">Versión</th>
+                                            <th class="p-2.5 font-bold">Propósito</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800 text-slate-300 font-mono">
+                                        <tr><td class="p-2 text-sky-300 font-bold">Tailwind CSS</td><td class="p-2">CDN</td><td class="p-2">3.4.x</td><td class="p-2">Framework CSS utilitario, componentes UI responsive</td></tr>
+                                        <tr><td class="p-2 text-sky-300 font-bold">Bootstrap Icons</td><td class="p-2">CDN</td><td class="p-2">1.11.x</td><td class="p-2">Iconografía vectorizada del sistema</td></tr>
+                                        <tr><td class="p-2 text-sky-300 font-bold">DataTables (Tailwind)</td><td class="p-2">CDN</td><td class="p-2">1.13.x</td><td class="p-2">Tablas dinámicas con orden y búsqueda instantánea</td></tr>
+                                        <tr><td class="p-2 text-sky-300 font-bold">PHP Engine</td><td class="p-2">Backend</td><td class="p-2">8.0+</td><td class="p-2">Lenguaje de programación interpretado en servidor</td></tr>
+                                        <tr><td class="p-2 text-sky-300 font-bold">MySQL Engine</td><td class="p-2">BD</td><td class="p-2">5.7+ / 8.0+</td><td class="p-2">Base de datos relacional InnoDB UTF8MB4</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CARACTERÍSTICAS TÉCNICAS -->
+        <section id="caracteristicas" class="py-20 bg-slate-100 dark:bg-slate-950 transition-colors">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-extrabold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">Ingeniería de Software</h2>
+                    <p class="text-3xl sm:text-4xl font-extrabold tracking-tight">Seguridad y Rendimiento de Grado Empresarial</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md">
+                        <i class="bi bi-lock-fill text-3xl text-blue-500 mb-4 block"></i>
+                        <h4 class="font-bold text-base mb-2">Seguridad Avanzada</h4>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Hashes BCRYPT, prevención XSS/CSRF, Rate Limiting contra fuerza bruta en login e inyección limpia mediante `.env`.</p>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md">
+                        <i class="bi bi-lightning-charge-fill text-3xl text-amber-500 mb-4 block"></i>
+                        <h4 class="font-bold text-base mb-2">Alto Rendimiento</h4>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Consultas optimizadas con JOIN para eliminar el problema N+1 y caché de agregación para dashboards inmediatos.</p>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md">
+                        <i class="bi bi-printer-fill text-3xl text-emerald-500 mb-4 block"></i>
+                        <h4 class="font-bold text-base mb-2">Impresión CSS Nativa</h4>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Emisión de boletines y constancias vía `@media print` directo desde el navegador sin librerías de terceros.</p>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md">
+                        <i class="bi bi-journal-code text-3xl text-indigo-500 mb-4 block"></i>
+                        <h4 class="font-bold text-base mb-2">Documentación Completa</h4>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Manuales técnicos, estudio de factibilidad y arquitectura de requisitos detallados bajo Tailwind CSS v3.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 border-t border-slate-800 py-12 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            <div class="flex items-center space-x-3">
+                <span class="p-1.5 bg-blue-600 rounded-lg text-white flex items-center justify-center w-7 h-7">
+                    <i class="bi bi-mortarboard-fill text-sm"></i>
+                </span>
+                <span class="font-bold text-white text-sm">SGCEA</span>
+                <span class="text-slate-500">•</span>
+                <span>Sistema de Gestión y Control Escolar-Académico</span>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-6 text-slate-400 font-medium">
+                <a href="#documentacion" onclick="openDocTab('tab-requisitos')" class="hover:text-white transition-colors">Análisis Requisitos</a>
+                <a href="#documentacion" onclick="openDocTab('tab-factibilidad')" class="hover:text-white transition-colors">Estudio Factibilidad</a>
+                <a href="#documentacion" onclick="openDocTab('tab-construccion')" class="hover:text-white transition-colors">Manual Construcción</a>
+                <a href="public/login" class="text-blue-400 hover:text-blue-300 font-bold">Ver Demo</a>
+            </div>
+
+            <p class="text-slate-500 text-center md:text-right">
+                &copy; SGCEA. Todos los derechos reservados.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Lógica de Pestañas (Tabs) para la Documentación
+        function openDocTab(tabId, targetBtn) {
+            // Ocultar todos los paneles
+            document.querySelectorAll('.doc-tab-content').forEach(pane => {
+                pane.classList.add('hidden');
+            });
+            
+            // Mostrar el panel seleccionado
+            const selectedPane = document.getElementById(tabId);
+            if (selectedPane) {
+                selectedPane.classList.remove('hidden');
+            }
+
+            // Desactivar estilo en todos los botones
+            document.querySelectorAll('.doc-tab-btn').forEach(btn => {
+                btn.className = "doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700";
+            });
+
+            // Activar estilo en el botón pulsado
+            if (targetBtn) {
+                targetBtn.className = "doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-blue-600 text-white shadow-lg shadow-blue-500/30";
+            } else {
+                // Buscar el botón correspondiente por tabId
+                const defaultBtn = document.querySelector(`[onclick*="${tabId}"]`);
+                if (defaultBtn) {
+                    defaultBtn.className = "doc-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all whitespace-nowrap bg-blue-600 text-white shadow-lg shadow-blue-500/30";
+                }
+            }
+        }
+
+        // Script de Toggle de Modo Oscuro/Claro
+        const toggleBtn = document.getElementById('toggleTheme');
+        toggleBtn.addEventListener('click', function() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // Aplicar preferencia previa al cargar
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</body>
+</html>

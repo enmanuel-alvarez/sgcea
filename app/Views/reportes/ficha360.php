@@ -70,7 +70,31 @@ $gradoSeccion = htmlspecialchars(($est['grado_nombre'] ?? 'N/A') . ' - ' . ($est
     <!-- MAIN FICHA CARD -->
     <div class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl p-8 space-y-8 print-card">
         
-        <!-- Header Banner -->
+        <!-- ENCABEZADO / MEMBRETE OFICIAL DE LA INSTITUCIÓN -->
+        <div class="membrete-oficial border-b-2 border-slate-900 dark:border-slate-100 pb-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-14 h-14 rounded-2xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center text-3xl font-extrabold shadow-md shrink-0">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</p>
+                    <h2 class="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5">
+                        <?= htmlspecialchars($config['nombre_institucion'] ?? 'UNIDAD EDUCATIVA SGCEA') ?>
+                    </h2>
+                    <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        Expediente Estudiantil Ficha 360° • Año Lectivo <?= htmlspecialchars($config['ano_academico_actual'] ?? date('Y')) ?>
+                    </p>
+                </div>
+            </div>
+            <div class="text-left sm:text-right text-[11px] font-mono text-slate-600 dark:text-slate-300 shrink-0">
+                <p class="font-bold text-slate-900 dark:text-white uppercase">Ficha 360° Integral</p>
+                <p><i class="bi bi-clock me-1"></i>Emisión: <?= date('d/m/Y h:i A') ?></p>
+                <p class="text-blue-600 dark:text-blue-400 font-bold">EXPEDIENTE N° #<?= $est['id'] ?></p>
+            </div>
+        </div>
+
+        <!-- Header Banner Student -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-6 gap-4">
             <div class="flex items-center space-x-4">
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-lg">
@@ -82,8 +106,9 @@ $gradoSeccion = htmlspecialchars(($est['grado_nombre'] ?? 'N/A') . ' - ' . ($est
                 </div>
             </div>
             <div class="text-left sm:text-right text-xs">
-                <p class="font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-tight"><?= htmlspecialchars($config['nombre_institucion'] ?? 'INSTITUCIÓN EDUCATIVA') ?></p>
-                <p class="text-slate-400 font-mono text-[11px]">Expediente N° #<?= $est['id'] ?> | Año: <?= htmlspecialchars($config['ano_academico_actual'] ?? date('Y')) ?></p>
+                <span class="inline-block px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-bold">
+                    Estudiante Activo
+                </span>
             </div>
         </div>
 

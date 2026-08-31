@@ -128,15 +128,20 @@ class EstudianteController extends Controller
     }
 
     /**
-     * Formulario para solicitar constancia
+     * Vista unificada de constancias (Historial + Modal de solicitud)
      */
     public function solicitarConstancia(): void
     {
         $idEstudiante = $this->obtenerEstudianteId();
+        $constancias = $this->constanciaService->obtenerPorEstudiante($idEstudiante);
         $pendientes = $this->constanciaService->contarPendientesPorEstudiante($idEstudiante);
+        $tiposPendientes = $this->constanciaService->obtenerTiposPendientesPorEstudiante($idEstudiante);
         
         $this->render('estudiante/constancias/solicitar', [
-            'pendientes' => $pendientes
+            'solicitudes' => $constancias,
+            'constancias' => $constancias,
+            'pendientes' => $pendientes,
+            'tiposPendientes' => $tiposPendientes
         ]);
     }
 
@@ -166,7 +171,14 @@ class EstudianteController extends Controller
             return;
         }
 
-        // Validar límite de solicitudes pendientes
+        // Validar si ya posee una solicitud pendiente activa para este mismo tipo
+        if ($this->constanciaService->tieneSolicitudActivaPorTipo($idEstudiante, $tipo)) {
+            $_SESSION['flash_error'] = "Ya posee una solicitud pendiente activa para la constancia de tipo '" . ucfirst($tipo) . "'. Debe esperar su resolución antes de solicitar otra del mismo tipo.";
+            $this->redirigir('/estudiante/constancias/solicitar');
+            return;
+        }
+
+        // Validar límite global de solicitudes pendientes
         $pendientes = $this->constanciaService->contarPendientesPorEstudiante($idEstudiante);
         if ($pendientes >= 3) {
             $_SESSION['flash_error'] = 'Ha alcanzado el límite de 3 solicitudes pendientes. Espere a que sean procesadas.';
@@ -186,7 +198,7 @@ class EstudianteController extends Controller
             );
 
             $_SESSION['flash_success'] = 'Solicitud creada exitosamente. Espere la aprobación del administrador.';
-            $this->redirigir('/estudiante/constancias/historial');
+            $this->redirigir('/estudiante/constancias/solicitar');
         } catch (\Exception $e) {
             $_SESSION['flash_error'] = 'Error al crear la solicitud: ' . $e->getMessage();
             $this->redirigir('/estudiante/constancias/solicitar');
@@ -198,10 +210,7 @@ class EstudianteController extends Controller
      */
     public function historialConstancias(): void
     {
-        $idEstudiante = $this->obtenerEstudianteId();
-        $constancias = $this->constanciaService->obtenerPorEstudiante($idEstudiante);
-
-        $this->render('estudiante/constancias/historial', compact('constancias'));
+        $this->solicitarConstancia();
     }
 
     /**

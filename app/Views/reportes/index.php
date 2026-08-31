@@ -13,7 +13,7 @@ $tipoReporte = $tipoReporte ?? 'general';
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- Header -->
-<div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+<div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5 no-print">
     <div>
         <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Centro de Reportes y Análisis Académico</h1>
         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Generación de informes de rendimiento, alertas tempranas, asistencia e historial 360°.</p>
@@ -33,7 +33,7 @@ $tipoReporte = $tipoReporte ?? 'general';
 </div>
 
 <!-- CATEGORY CARDS SELECTOR -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 category-cards-grid no-print">
     
     <!-- CARD 1: ACADÉMICOS -->
     <a href="<?= url('/reportes?tipo=cuadro_honor') ?>" 
@@ -97,7 +97,7 @@ $tipoReporte = $tipoReporte ?? 'general';
 </div>
 
 <!-- DYNAMIC FILTER BAR -->
-<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-4 mb-8">
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-4 mb-8 no-print">
     <form action="<?= url('/reportes') ?>" method="GET" class="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-4">
         <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipoReporte) ?>">
 
@@ -143,77 +143,31 @@ $tipoReporte = $tipoReporte ?? 'general';
     </form>
 </div>
 
-<style>
-    @media print {
-        @page {
-            size: A4 landscape;
-            margin: 1cm;
-        }
-        header, aside, .no-print, nav, form, #btnFilterHeader, .border-b.pb-5 {
-            display: none !important;
-        }
-        body {
-            background-color: #f1f5f9 !important;
-            color: #0f172a !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            padding: 0 !important;
-        }
-        #reporteContainer {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            border: 2px solid #cbd5e1 !important;
-            border-radius: 1.5rem !important;
-            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.08) !important;
-            padding: 2rem !important;
-            margin: 0.5cm auto !important;
-            display: block !important;
-            width: 100% !important;
-        }
-        #reporteContainer table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-        }
-        #reporteContainer th {
-            background-color: #f8fafc !important;
-            color: #334155 !important;
-            border-bottom: 2px solid #cbd5e1 !important;
-            padding: 10px 14px !important;
-            font-weight: 700 !important;
-        }
-        #reporteContainer td {
-            color: #1e293b !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-            padding: 10px 14px !important;
-        }
-        #reporteContainer th:last-child, 
-        #reporteContainer td:last-child {
-            display: none !important;
-        }
-    }
-</style>
-
 <!-- REPORT DISPLAY SECTION -->
-<div id="reporteContainer" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 space-y-6">
+<div id="reporteContainer" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 space-y-6 printable-report">
 
-    <!-- ENCABEZADO OFICIAL DE LA INSTITUCIÓN / PLANTEL -->
-    <div class="border-b border-slate-200 dark:border-slate-700/80 pb-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl font-bold border border-blue-500/20 shrink-0">
-                <i class="bi bi-building-fill"></i>
+    <!-- ENCABEZADO / MEMBRETE OFICIAL DE LA INSTITUCIÓN -->
+    <div class="membrete-oficial border-b-2 border-slate-900 dark:border-slate-100 pb-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center space-x-4">
+            <div class="w-14 h-14 rounded-2xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center text-3xl font-extrabold shadow-md shrink-0">
+                <i class="bi bi-mortarboard-fill"></i>
             </div>
             <div>
-                <h2 class="text-base font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
-                    <?= htmlspecialchars($config['nombre_institucion'] ?? 'INSTITUCIÓN EDUCATIVA') ?>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN</p>
+                <h2 class="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5">
+                    <?= htmlspecialchars($config['nombre_institucion'] ?? 'UNIDAD EDUCATIVA SGCEA') ?>
                 </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Reporte Académico Oficial | Año Lectivo: <span class="font-semibold text-slate-700 dark:text-slate-300"><?= htmlspecialchars($config['ano_academico_actual'] ?? date('Y')) ?></span>
+                <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    Control Escolar-Académico • Año Lectivo <?= htmlspecialchars($config['ano_academico_actual'] ?? date('Y')) ?>
                 </p>
             </div>
         </div>
-        <div class="text-left sm:text-right text-[11px] font-mono text-slate-400 shrink-0">
+        <div class="text-left sm:text-right text-[11px] font-mono text-slate-600 dark:text-slate-300 shrink-0 border-l sm:border-l-0 sm:border-r border-slate-200 dark:border-slate-700 pl-3 sm:pl-0 sm:pr-3">
+            <p class="font-bold text-slate-900 dark:text-white uppercase">Reporte Institucional</p>
             <p><i class="bi bi-clock me-1"></i>Emisión: <?= date('d/m/Y h:i A') ?></p>
-            <p><i class="bi bi-shield-check me-1"></i><?= htmlspecialchars($config['nombre_sistema'] ?? 'SGCEA') ?></p>
+            <p><i class="bi bi-person me-1"></i>Emisor: <?= htmlspecialchars($_SESSION['usuario_nombre'] ?? 'Administrador') ?></p>
+            <p class="text-blue-600 dark:text-blue-400 font-bold mt-0.5">CÓDIGO: SGCEA-REP-<?= date('Ymd') ?></p>
         </div>
     </div>
 
@@ -410,6 +364,24 @@ $tipoReporte = $tipoReporte ?? 'general';
             </p>
         </div>
     <?php endif; ?>
+
+    <!-- SECCIÓN DE FIRMAS Y SELLOS INSTITUCIONALES PARA IMPRESIÓN -->
+    <div class="firmas-impresion pt-8 border-t border-slate-200 dark:border-slate-700 hidden print:flex justify-between items-center text-center text-xs">
+        <div class="firma-box w-2/5">
+            <div class="h-12"></div>
+            <div class="firma-linea border-t border-slate-900 dark:border-slate-100 pt-1">
+                <p class="font-bold text-slate-900 dark:text-white uppercase">Director / Subdirector Académico</p>
+                <p class="text-[10px] text-slate-500">Firma y Sello Oficial del Plantel</p>
+            </div>
+        </div>
+        <div class="firma-box w-2/5">
+            <div class="h-12"></div>
+            <div class="firma-linea border-t border-slate-900 dark:border-slate-100 pt-1">
+                <p class="font-bold text-slate-900 dark:text-white uppercase">Coordinación de Control de Estudios</p>
+                <p class="text-[10px] text-slate-500">Verificación y Validación Institucional</p>
+            </div>
+        </div>
+    </div>
 
 </div>
 

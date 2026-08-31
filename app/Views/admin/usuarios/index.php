@@ -141,18 +141,25 @@ if (!empty($todosPermisos)) {
                     <td class="py-3.5 text-slate-600 dark:text-slate-300 font-mono text-xs"><?= htmlspecialchars($u['email'] ?? $u['correo'] ?? '') ?></td>
                     <td class="py-3.5">
                         <?php 
-                        $tipo = strtolower($u['tipo_usuario'] ?? $u['rol'] ?? 'estudiante');
-                        if ($tipo === 'admin'): ?>
-                            <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-                                <i class="bi bi-shield-lock me-1"></i> Admin
+                        $tipoReal = strtolower($u['tipo'] ?? $u['tipo_usuario'] ?? $u['rol'] ?? 'estudiante');
+                        $tienePermisosCustom = !empty($userPerms) || ((int)($u['total_permisos'] ?? 0) > 0);
+
+                        if ($tipoReal === 'custom' || ($tienePermisosCustom && $tipoReal !== 'admin')): 
+                        ?>
+                            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60" title="Usuario con permisos o accesos personalizados">
+                                <i class="bi bi-sliders me-1"></i> Custom
                             </span>
-                        <?php elseif ($tipo === 'docente'): ?>
-                            <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                <i class="bi bi-person-badge me-1"></i> Docente
+                        <?php elseif ($tipoReal === 'admin' || $tipoReal === 'administrador'): ?>
+                            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
+                                <i class="bi bi-shield-lock-fill me-1"></i> Admin
+                            </span>
+                        <?php elseif ($tipoReal === 'docente' || $tipoReal === 'profesor'): ?>
+                            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                                <i class="bi bi-person-workspace me-1"></i> Docente
                             </span>
                         <?php else: ?>
-                            <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
-                                <i class="bi bi-mortarboard me-1"></i> Estudiante
+                            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                                <i class="bi bi-mortarboard-fill me-1"></i> Estudiante
                             </span>
                         <?php endif; ?>
                     </td>
@@ -236,7 +243,8 @@ if (!empty($todosPermisos)) {
                     <select id="usr_tipo_usuario" name="tipo_usuario" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm">
                         <option value="estudiante">Estudiante</option>
                         <option value="docente">Docente</option>
-                        <option value="admin">Administrador</option>
+                        <option value="admin">Administrador (Admin)</option>
+                        <option value="custom">Personalizado (Custom)</option>
                     </select>
                 </div>
                 <div>
@@ -513,7 +521,7 @@ function abrirModalEditarUsuario(u) {
     document.getElementById('usr_correo').value = u.correo || u.email || '';
     document.getElementById('usr_nombre').value = u.nombre || '';
     document.getElementById('usr_apellido').value = u.apellido || '';
-    document.getElementById('usr_tipo_usuario').value = (u.tipo_usuario || u.rol || 'estudiante').toLowerCase();
+    document.getElementById('usr_tipo_usuario').value = (u.tipo || u.tipo_usuario || u.rol || 'estudiante').toLowerCase();
     document.getElementById('usr_activo').checked = (u.activo ?? u.estado ?? 1) == 1;
 
     document.getElementById('modalFormUsuario').classList.remove('hidden');

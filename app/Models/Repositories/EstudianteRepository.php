@@ -47,6 +47,7 @@ class EstudianteRepository
                     u.apellido AS apellidos,
                     e.fecha_nacimiento,
                     e.genero,
+                    e.foto,
                     g.nombre AS grado_nombre,
                     s.nombre AS seccion_nombre,
                     e.estado AS activo
@@ -87,8 +88,8 @@ class EstudianteRepository
 
     public function crear(array $datos): int
     {
-        $sql = "INSERT INTO estudiantes (usuario_id, fecha_nacimiento, genero, direccion, telefono, nombre_representante, telefono_representante, estado) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO estudiantes (usuario_id, fecha_nacimiento, genero, direccion, telefono, nombre_representante, telefono_representante, foto, estado) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $datos['usuario_id'],
@@ -98,6 +99,7 @@ class EstudianteRepository
             $datos['telefono'] ?? null,
             $datos['nombre_representante'] ?? null,
             $datos['telefono_representante'] ?? null,
+            $datos['foto'] ?? null,
             $datos['estado'] ?? 1
         ]);
         return (int) $this->db->lastInsertId();
@@ -105,6 +107,25 @@ class EstudianteRepository
 
     public function actualizar(int $id, array $datos): bool
     {
+        if (array_key_exists('foto', $datos) && $datos['foto'] !== null) {
+            $sql = "UPDATE estudiantes SET 
+                    fecha_nacimiento = ?, genero = ?, direccion = ?, telefono = ?, 
+                    nombre_representante = ?, telefono_representante = ?, foto = ?, estado = ? 
+                    WHERE id = ?";
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                $datos['fecha_nacimiento'] ?? null,
+                $datos['genero'] ?? null,
+                $datos['direccion'] ?? null,
+                $datos['telefono'] ?? null,
+                $datos['nombre_representante'] ?? null,
+                $datos['telefono_representante'] ?? null,
+                $datos['foto'],
+                $datos['estado'] ?? 1,
+                $id
+            ]);
+        }
+
         $sql = "UPDATE estudiantes SET 
                 fecha_nacimiento = ?, genero = ?, direccion = ?, telefono = ?, 
                 nombre_representante = ?, telefono_representante = ?, estado = ? 

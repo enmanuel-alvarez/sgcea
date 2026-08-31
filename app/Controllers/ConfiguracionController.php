@@ -126,18 +126,20 @@ class ConfiguracionController extends Controller
     }
 
     /**
-     * Danger Zone: Reiniciar data del sistema
+     * Reiniciar todo el sistema a estado inicial (DANGER ZONE)
+     * Elimina estudiantes, profesores, usuarios no-admin, materias, asignaciones, secciones, notas, etc.
+     * Preserva los datos de usuarios administradores y todas las tablas de permisos.
      */
     public function reiniciarSistema(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirigir('/admin/configuracion');
+            $this->redirigir('/admin/backup');
             return;
         }
 
         if (!Security::validarTokenCSRF($_POST['csrf_token'] ?? '')) {
             $_SESSION['flash_error'] = 'Token CSRF inválido';
-            $this->redirigir('/admin/configuracion');
+            $this->redirigir('/admin/backup');
             return;
         }
 
@@ -147,7 +149,7 @@ class ConfiguracionController extends Controller
         // Validación estricta
         if ($confirmarCheckbox !== '1' || strtoupper($fraseConfirmacion) !== 'REINICIAR SISTEMA SGCEA') {
             $_SESSION['flash_error'] = 'Verificación fallida: Debe activar el checkbox y escribir exactamente la frase "REINICIAR SISTEMA SGCEA".';
-            $this->redirigir('/admin/configuracion');
+            $this->redirigir('/admin/backup');
             return;
         }
 
@@ -158,33 +160,37 @@ class ConfiguracionController extends Controller
             $db->beginTransaction();
             $db->exec("SET FOREIGN_KEY_CHECKS = 0;");
 
-            // Limpieza de tablas operacionales
+            // Tablas operacionales a vaciar
             $tablasACrearVacías = [
                 'calificaciones',
                 'planes_evaluacion',
                 'asistencias',
                 'solicitudes_constancia',
                 'asignaciones',
+                'inscripciones',
+                'materias',
+                'secciones',
+                'grados',
                 'estudiantes',
                 'profesores',
                 'auditoria',
+                'notificaciones',
+                'intentos_login',
                 'cache_dashboard_admin',
-                'cache_dashboard_docente',
-                'intentos_login'
+                'cache_dashboard_docente'
             ];
 
             foreach ($tablasACrearVacías as $tabla) {
-                $db->exec("TRUNCATE TABLE `{$tabla}`");
+                $stmt = $db->query("SHOW TABLES LIKE '{$tabla}'");
+                if ($stmt && $stmt->rowCount() > 0) {
+                    $db->exec("TRUNCATE TABLE `{$tabla}`");
+                }
             }
 
-            // Preservar al usuario administrador actual para evitar bloqueos
-            if ($usuarioActualId > 0) {
-                $stmt = $db->prepare("DELETE FROM `usuario_permisos` WHERE usuario_id != ?");
-                $stmt->execute([$usuarioActualId]);
-
-                $stmt2 = $db->prepare("DELETE FROM `usuarios` WHERE id != ?");
-                $stmt2->execute([$usuarioActualId]);
-            }
+            // Preservar a TODOS los usuarios administradores y sus permisos
+            // Eliminar únicamente usuarios que NO sean admin (ej: docentes, estudiantes)
+            $db->exec("DELETE FROM `usuario_permisos` WHERE `usuario_id` IN (SELECT id FROM `usuarios` WHERE `tipo_usuario` != 'admin')");
+            $db->exec("DELETE FROM `usuarios` WHERE `tipo_usuario` != 'admin'");
 
             $db->exec("SET FOREIGN_KEY_CHECKS = 1;");
             $db->commit();
@@ -195,11 +201,11 @@ class ConfiguracionController extends Controller
                 'REINICIAR_SISTEMA',
                 'sistema',
                 null,
-                'DANGER ZONE: Sistema reiniciado a estado inicial por el administrador'
+                'DANGER ZONE: Sistema reiniciado a estado inicial (Usuarios admin y permisos preservados)'
             );
 
-            $_SESSION['flash_success'] = '¡El sistema ha sido reiniciado con éxito! Todos los datos operativos han sido eliminados de forma segura preservando la cuenta activa.';
-            $this->redirigir('/admin/configuracion');
+            $_SESSION['flash_success'] = '¡El sistema ha sido reiniciado con éxito! Toda la data operativa (estudiantes, profesores, materias, secciones, asignaciones, calificaciones, asistencias) ha quedado en blanco. La cuenta de administrador y la matriz de permisos permanecen intactas.';
+            $this->redirigir('/admin/backup');
 
         } catch (Exception $e) {
             if (isset($db) && $db->inTransaction()) {
@@ -207,8 +213,7 @@ class ConfiguracionController extends Controller
                 $db->rollBack();
             }
             $_SESSION['flash_error'] = 'Error crítico al reiniciar el sistema: ' . $e->getMessage();
-            $this->redirigir('/admin/configuracion');
+            $this->redirigir('/admin/backup');
         }
     }
 }
-

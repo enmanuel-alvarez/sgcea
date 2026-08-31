@@ -46,11 +46,13 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="<?= asset('css/custom.css') ?>" rel="stylesheet">
+    <!-- Print CSS -->
+    <link href="<?= asset('css/print.css') ?>" rel="stylesheet" media="all">
 </head>
 <body class="h-full antialiased font-sans flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-200">
 
     <!-- NAVBAR SUPERIOR -->
-    <header class="sticky top-0 z-40 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur border-b border-slate-800 text-white shadow-md">
+    <header class="sticky top-0 z-40 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur border-b border-slate-800 text-white shadow-md no-print">
         <div class="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             
             <!-- Logo & Title -->
@@ -167,8 +169,13 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
                                 </a>
                             <?php elseif ($tipoUsuario === 'estudiante'): ?>
                                 <a href="<?= url('/estudiante/perfil') ?>" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/50 hover:text-blue-600 transition-colors">
-                                    <i class="bi bi-person-circle text-base text-blue-500"></i>
-                                    <span>Mi Perfil</span>
+                                    <i class="bi bi-person-badge text-base text-blue-500"></i>
+                                    <span>Perfil</span>
+                                </a>
+                            <?php elseif ($tipoUsuario === 'docente'): ?>
+                                <a href="<?= url('/docente/perfil') ?>" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-slate-700/50 hover:text-purple-600 transition-colors">
+                                    <i class="bi bi-person-badge text-base text-purple-500"></i>
+                                    <span>Perfil</span>
                                 </a>
                             <?php endif; ?>
 

@@ -98,6 +98,16 @@ class ConstanciaService
         return $this->constanciaRepo->contarPendientesPorEstudiante($estudiante_id);
     }
 
+    public function tieneSolicitudActivaPorTipo(int $estudiante_id, string $tipo): bool
+    {
+        return $this->constanciaRepo->tieneSolicitudActivaPorTipo($estudiante_id, $tipo);
+    }
+
+    public function obtenerTiposPendientesPorEstudiante(int $estudiante_id): array
+    {
+        return $this->constanciaRepo->obtenerTiposPendientesPorEstudiante($estudiante_id);
+    }
+
     public function solicitar($datos, $tipoOrSesion = 0, ?string $motivo = null): int
     {
         if (is_array($datos)) {
@@ -115,6 +125,10 @@ class ConstanciaService
         $pendientes = $this->constanciaRepo->contarPendientesPorEstudiante($estudiante_id);
         if ($pendientes >= 3) {
             throw new \Exception('El estudiante ya tiene 3 solicitudes pendientes. Máximo permitido alcanzado.');
+        }
+
+        if ($this->constanciaRepo->tieneSolicitudActivaPorTipo($estudiante_id, $tipo)) {
+            throw new \Exception('Ya existe una solicitud activa (pendiente) para este tipo de constancia. Espere su aprobación o rechazo.');
         }
 
         $id = $this->constanciaRepo->crear([

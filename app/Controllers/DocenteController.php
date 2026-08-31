@@ -169,10 +169,19 @@ class DocenteController extends Controller
             return;
         }
 
+        $idProfesor = $this->obtenerProfesorId();
         $asignacion = $this->asignacionService->obtenerPorId($idAsignacion);
-        if (!$asignacion || $asignacion['profesor_id'] !== $_SESSION['profesor_id']) {
+        if (!$asignacion || ($idProfesor > 0 && (int)($asignacion['profesor_id'] ?? 0) !== $idProfesor)) {
             $_SESSION['flash_error'] = 'No tiene permiso para realizar esta acción';
             $this->redirigir('/docente/calificaciones');
+            return;
+        }
+
+        $planEvaluacion = $this->planEvaluacionService->obtenerPorAsignacion($idAsignacion);
+        $totalPonderacion = array_sum(array_column($planEvaluacion, 'ponderacion'));
+        if (abs($totalPonderacion - 100) > 0.01) {
+            $_SESSION['flash_error'] = "No se pueden registrar calificaciones. El plan de evaluación de esta asignatura debe estar completado al 100% (Suma actual: {$totalPonderacion}%).";
+            $this->redirigir('/docente/plan-evaluacion/' . $idAsignacion);
             return;
         }
 
@@ -434,8 +443,9 @@ class DocenteController extends Controller
         }
 
         $idAsignacion = (int)($plan['asignacion_id'] ?? $plan['id_asignacion'] ?? 0);
+        $idProfesor = $this->obtenerProfesorId();
         $asignacion = $this->asignacionService->obtenerPorId($idAsignacion);
-        if (!$asignacion || (int)($asignacion['profesor_id'] ?? 0) !== (int)($_SESSION['profesor_id'] ?? 0)) {
+        if (!$asignacion || ($idProfesor > 0 && (int)($asignacion['profesor_id'] ?? 0) !== $idProfesor)) {
             $_SESSION['flash_error'] = 'No tiene permiso para realizar esta acción';
             $this->redirigir('/docente/calificaciones');
             return;
@@ -457,7 +467,7 @@ class DocenteController extends Controller
             $_SESSION['flash_error'] = 'Error al eliminar la actividad: ' . $e->getMessage();
         }
 
-        $this->redirigir('/docente/calificaciones');
+        $this->redirigir('/docente/plan-evaluacion/' . $idAsignacion);
     }
 
     /**
@@ -487,14 +497,25 @@ class DocenteController extends Controller
             return;
         }
 
-        try {
-            $creados = $this->planEvaluacionService->crearLote($idAsignacion, $actividades, $_SESSION['usuario_id'] ?? 0);
-            $_SESSION['flash_success'] = 'Se registraron ' . count($creados) . ' actividades evaluativas exitosamente.';
-        } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Error al registrar plan de evaluación: ' . $e->getMessage();
+        $sumaLote = 0;
+        foreach ($actividades as $act) {
+            $sumaLote += (float)($act['ponderacion'] ?? 0);
         }
 
-        $this->redirigir('/docente/calificaciones');
+        if (abs($sumaLote - 100) > 0.01) {
+            $_SESSION['flash_error'] = "El plan de evaluación debe sumar exactamente el 100% para poder crearse. La suma ingresada es de {$sumaLote}%. Por favor ajuste las ponderaciones.";
+            $this->redirigir('/docente/plan-evaluacion/' . $idAsignacion);
+            return;
+        }
+
+        try {
+            $creados = $this->planEvaluacionService->crearLote($idAsignacion, $actividades, $_SESSION['usuario_id'] ?? 0);
+            $_SESSION['flash_success'] = '¡Plan de Evaluación completo del 100% registrado exitosamente con ' . count($creados) . ' actividades!';
+            $this->redirigir('/docente/plan-evaluacion/' . $idAsignacion);
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Error al registrar plan de evaluación: ' . $e->getMessage();
+            $this->redirigir('/docente/plan-evaluacion/' . $idAsignacion);
+        }
     }
 
     /**
@@ -538,6 +559,56 @@ class DocenteController extends Controller
         }
 
         $this->redirigir('/docente/revisiones');
+    }
+
+    /**
+     * Mostrar perfil del docente
+     */
+    public function perfil(): void
+    {
+        $idProfesor = $this->obtenerProfesorId();
+        $docenteService = new \Src\Models\Services\DocenteService();
+        $docente = $docenteService->obtenerPorId($idProfesor);
+        
+        $usuario = null;
+        if (!empty($docente['usuario_id'])) {
+            $userRepo = new \Src\Models\Repositories\UsuarioRepository();
+            $usuario = $userRepo->obtenerPorId((int)$docente['usuario_id']);
+        }
+
+        $this->render('docente/perfil', [
+            'docente' => $docente,
+            'usuario' => $usuario
+        ]);
+    }
+
+    /**
+     * Actualizar perfil del docente
+     */
+    public function actualizarPerfil(): void
+    {
+        if (!Security::validarTokenCSRF($_POST['csrf_token'] ?? null)) {
+            $this->setFlash('error', 'Token de seguridad inválido');
+            $this->redirigir('/docente/perfil');
+            return;
+        }
+
+        $idProfesor = $this->obtenerProfesorId();
+        $docenteService = new \Src\Models\Services\DocenteService();
+
+        $datos = [
+            'telefono' => trim($_POST['telefono'] ?? ''),
+            'especialidad' => trim($_POST['especialidad'] ?? '')
+        ];
+
+        try {
+            $docenteService->actualizar($idProfesor, $datos);
+            $this->setFlash('success', 'Perfil actualizado exitosamente');
+        } catch (\Exception $e) {
+            $this->setFlash('error', 'Error al actualizar el perfil: ' . $e->getMessage());
+        }
+
+        $this->redirigir('/docente/perfil');
     }
 }
 

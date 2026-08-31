@@ -89,6 +89,24 @@ class ConstanciaRepository
         return (int) $stmt->fetchColumn();
     }
 
+    public function tieneSolicitudActivaPorTipo(int $estudiante_id, string $tipo): bool
+    {
+        $sql = "SELECT COUNT(*) FROM solicitudes_constancia 
+                WHERE estudiante_id = ? AND tipo = ? AND estado = 'pendiente'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$estudiante_id, $tipo]);
+        return ((int) $stmt->fetchColumn()) > 0;
+    }
+
+    public function obtenerTiposPendientesPorEstudiante(int $estudiante_id): array
+    {
+        $sql = "SELECT DISTINCT tipo FROM solicitudes_constancia 
+                WHERE estudiante_id = ? AND estado = 'pendiente'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$estudiante_id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     public function contarPorEstado(string $estado): int
     {
         $sql = "SELECT COUNT(*) FROM solicitudes_constancia WHERE estado = ?";

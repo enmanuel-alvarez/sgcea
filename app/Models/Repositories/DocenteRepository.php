@@ -30,6 +30,7 @@ class DocenteRepository
                     p.especialidad,
                     p.titulo,
                     p.fecha_ingreso,
+                    p.foto,
                     u.email AS correo,
                     p.estado AS activo
                 FROM profesores p 
@@ -66,14 +67,15 @@ class DocenteRepository
 
     public function crear(array $datos): int
     {
-        $sql = "INSERT INTO profesores (usuario_id, especialidad, titulo, fecha_ingreso, estado) 
-                VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO profesores (usuario_id, especialidad, titulo, fecha_ingreso, foto, estado) 
+                VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $datos['usuario_id'],
             $datos['especialidad'] ?? null,
             $datos['titulo'] ?? null,
             $datos['fecha_ingreso'] ?? date('Y-m-d'),
+            $datos['foto'] ?? null,
             $datos['estado'] ?? 1
         ]);
         return (int) $this->db->lastInsertId();
@@ -81,6 +83,21 @@ class DocenteRepository
 
     public function actualizar(int $id, array $datos): bool
     {
+        if (array_key_exists('foto', $datos) && $datos['foto'] !== null) {
+            $sql = "UPDATE profesores SET 
+                    especialidad = ?, titulo = ?, fecha_ingreso = ?, foto = ?, estado = ? 
+                    WHERE id = ?";
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                $datos['especialidad'] ?? null,
+                $datos['titulo'] ?? null,
+                $datos['fecha_ingreso'] ?? date('Y-m-d'),
+                $datos['foto'],
+                $datos['estado'] ?? 1,
+                $id
+            ]);
+        }
+
         $sql = "UPDATE profesores SET 
                 especialidad = ?, titulo = ?, fecha_ingreso = ?, estado = ? 
                 WHERE id = ?";

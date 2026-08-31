@@ -50,12 +50,22 @@ class AdminController extends Controller
      */
     public function index(): void
     {
+        $periodo = $_GET['periodo'] ?? null;
+        $gradoId = isset($_GET['grado_id']) && $_GET['grado_id'] !== '' ? (int)$_GET['grado_id'] : null;
+
         $dashboardService = new \Src\Models\Services\DashboardService();
-        $datos = $dashboardService->obtenerDatosAdmin();
+        $datos = $dashboardService->obtenerDatosAdmin($periodo, $gradoId);
+
+        $gradoRepo = new \Src\Models\Repositories\GradoRepository();
+        $grados = $gradoRepo->obtenerTodos();
         
         $this->render('admin/dashboard', [
             'titulo' => 'Dashboard Administrativo',
-            'datos' => $datos
+            'estadisticas' => $datos,
+            'datos' => $datos,
+            'grados' => $grados,
+            'periodoFiltro' => $periodo,
+            'gradoFiltro' => $gradoId
         ]);
     }
 
@@ -220,6 +230,35 @@ class AdminController extends Controller
         $this->redirigir('/admin/estudiantes');
     }
 
+    private function procesarSubidaFoto(string $campo = 'foto'): ?string
+    {
+        if (!isset($_FILES[$campo]) || $_FILES[$campo]['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+
+        $file = $_FILES[$campo];
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
+
+        if (!in_array($extension, $extensionesPermitidas)) {
+            return null;
+        }
+
+        $dirDestino = __DIR__ . '/../../public/uploads/fotos';
+        if (!is_dir($dirDestino)) {
+            mkdir($dirDestino, 0755, true);
+        }
+
+        $nombreArchivo = 'foto_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+        $rutaAbsoluta = $dirDestino . '/' . $nombreArchivo;
+
+        if (move_uploaded_file($file['tmp_name'], $rutaAbsoluta)) {
+            return 'uploads/fotos/' . $nombreArchivo;
+        }
+
+        return null;
+    }
+
     public function guardarEstudiante(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -227,6 +266,8 @@ class AdminController extends Controller
         }
 
         Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
+
+        $foto = $this->procesarSubidaFoto('foto');
 
         $datos_usuario = [
             'nombre' => Security::sanitizar($_POST['nombre'] ?? ''),
@@ -244,7 +285,8 @@ class AdminController extends Controller
             'direccion' => Security::sanitizar($_POST['direccion'] ?? ''),
             'telefono' => Security::sanitizar($_POST['telefono'] ?? ''),
             'representante' => Security::sanitizar($_POST['representante'] ?? ''),
-            'telefono_representante' => Security::sanitizar($_POST['telefono_representante'] ?? '')
+            'telefono_representante' => Security::sanitizar($_POST['telefono_representante'] ?? ''),
+            'foto' => $foto
         ];
 
         $datos_inscripcion = [
@@ -283,7 +325,7 @@ class AdminController extends Controller
             $this->redirigir("/admin/estudiantes/editar/$id");
         }
 
-        Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
+        $foto = $this->procesarSubidaFoto('foto');
 
         $datos_usuario = [
             'nombre' => Security::sanitizar($_POST['nombre'] ?? ''),
@@ -301,6 +343,9 @@ class AdminController extends Controller
             'representante' => Security::sanitizar($_POST['representante'] ?? ''),
             'telefono_representante' => Security::sanitizar($_POST['telefono_representante'] ?? '')
         ];
+        if ($foto !== null) {
+            $datos_estudiante['foto'] = $foto;
+        }
 
         $datos_inscripcion = [
             'id_grado' => (int)($_POST['id_grado'] ?? 0),
@@ -379,6 +424,8 @@ class AdminController extends Controller
 
         Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
 
+        $foto = $this->procesarSubidaFoto('foto');
+
         $datos_usuario = [
             'nombre' => Security::sanitizar($_POST['nombre'] ?? ''),
             'apellido' => Security::sanitizar($_POST['apellido'] ?? ''),
@@ -394,7 +441,8 @@ class AdminController extends Controller
             'telefono' => Security::sanitizar($_POST['telefono'] ?? ''),
             'direccion' => Security::sanitizar($_POST['direccion'] ?? ''),
             'titulo' => Security::sanitizar($_POST['titulo'] ?? ''),
-            'fecha_ingreso' => Security::sanitizar($_POST['fecha_ingreso'] ?? date('Y-m-d'))
+            'fecha_ingreso' => Security::sanitizar($_POST['fecha_ingreso'] ?? date('Y-m-d')),
+            'foto' => $foto
         ];
 
         try {
@@ -429,6 +477,8 @@ class AdminController extends Controller
 
         Security::validarTokenCSRF($_POST['csrf_token'] ?? '');
 
+        $foto = $this->procesarSubidaFoto('foto');
+
         $datos_usuario = [
             'nombre' => Security::sanitizar($_POST['nombre'] ?? ''),
             'apellido' => Security::sanitizar($_POST['apellido'] ?? ''),
@@ -444,6 +494,9 @@ class AdminController extends Controller
             'titulo' => Security::sanitizar($_POST['titulo'] ?? ''),
             'fecha_ingreso' => Security::sanitizar($_POST['fecha_ingreso'] ?? date('Y-m-d'))
         ];
+        if ($foto !== null) {
+            $datos_docente['foto'] = $foto;
+        }
 
         if (!empty($_POST['password'])) {
             $datos_usuario['password'] = $_POST['password'];

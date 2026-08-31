@@ -86,13 +86,13 @@ require_once __DIR__ . '/../layouts/sidebar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td class="py-3 px-3 text-right">
-                                    <a href="<?= url('/docente/planevaluacion/eliminar/' . $p['id']) ?>" 
-                                       onclick="return confirm('¿Está seguro de eliminar esta actividad evaluativa?')"
-                                       class="inline-flex items-center space-x-1 px-2 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-semibold transition-colors"
-                                       title="Eliminar actividad">
+                                    <button type="button" 
+                                            onclick="confirmarEliminarActividad('<?= url('/docente/planevaluacion/eliminar/' . $p['id']) ?>', '<?= htmlspecialchars(e($p['nombre'])) ?>')"
+                                            class="inline-flex items-center space-x-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-semibold transition-colors"
+                                            title="Eliminar actividad">
                                         <i class="bi bi-trash"></i>
                                         <span>Eliminar</span>
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -150,6 +150,41 @@ require_once __DIR__ . '/../layouts/sidebar.php';
         </form>
     </div>
 </div>
+
+<!-- ════════════════ MODAL FLOTANTE: CONFIRMAR ELIMINAR ACTIVIDAD ════════════════ -->
+<div id="modalEliminarActividad" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 space-y-4 text-center">
+        <div class="w-14 h-14 mx-auto rounded-full bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl font-bold border border-rose-200/50">
+            <i class="bi bi-trash3-fill"></i>
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">¿Eliminar Actividad Evaluativa?</h3>
+            <p id="txtNombreActividadEliminar" class="text-xs text-slate-500 dark:text-slate-400 mt-1">¿Está seguro de eliminar esta actividad del plan de evaluación?</p>
+        </div>
+        <div class="flex items-center justify-center space-x-3 pt-2">
+            <button type="button" onclick="cerrarModalEliminarActividad()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                Cancelar
+            </button>
+            <a id="btnConfirmarEliminarActividad" href="#" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-500/20 transition-all flex items-center space-x-2">
+                <i class="bi bi-trash-fill"></i>
+                <span>Sí, Eliminar</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarEliminarActividad(urlEliminar, nombreActividad) {
+    document.getElementById('btnConfirmarEliminarActividad').href = urlEliminar;
+    document.getElementById('txtNombreActividadEliminar').innerText = '¿Está seguro de eliminar la actividad "' + nombreActividad + '"? Las calificaciones asociadas podrían verse afectadas.';
+    document.getElementById('modalEliminarActividad').classList.remove('hidden');
+}
+
+function cerrarModalEliminarActividad() {
+    document.getElementById('modalEliminarActividad').classList.add('hidden');
+    document.getElementById('btnConfirmarEliminarActividad').href = '#';
+}
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
 

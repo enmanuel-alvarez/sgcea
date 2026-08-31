@@ -15,10 +15,10 @@ $tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
 ?>
 
 <!-- SIDEBAR BACKDROP FOR MOBILE -->
-<div id="mobileSidebarBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+<div id="mobileSidebarBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity no-print"></div>
 
 <!-- SIDEBAR NAVIGATION -->
-<aside id="sidebarMenu" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700/80 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out shrink-0 overflow-y-auto">
+<aside id="sidebarMenu" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700/80 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out shrink-0 overflow-y-auto no-print">
     <div class="p-4 space-y-6 flex-1">
         
         <?php if ($tipoUsuario === 'admin'): ?>

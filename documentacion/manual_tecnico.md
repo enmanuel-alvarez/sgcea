@@ -1,199 +1,295 @@
-# Manual Técnico y de Desarrollador - SGCEA
-### Sistema de Gestión y Control Escolar-Académico
-**Arquitectura:** MVC Nativo en Vanilla PHP 8.x  
-**Base de Datos:** MySQL / MariaDB (Engine InnoDB, Charset UTF8MB4)  
-**Fecha de Documentación:** Agosto 2026  
+# Manual Técnico, Arquitectura e Guía del Desarrollador - SGCEA
+### Sistema de Gestión y Control Escolar-Académico (SGCEA)
+**Versión:** 3.0.0 (Tailwind CSS v3 + PHP 8.x Clean Architecture)  
+**Motor de Base de Datos:** MySQL / MariaDB (Engine InnoDB, UTF8MB4)  
+**Última Actualización:** Agosto 2026  
 
 ---
 
-## 🛠️ 1. Arquitectura General y Patrón de Diseño
+## 📌 Índice de Contenidos
 
-El sistema **SGCEA** está construido siguiendo el patrón de diseño **Modelo-Vista-Controlador (MVC)** desacoplado en PHP orientada a objetos (POO), implementando los siguientes principios de ingeniería de software:
-- **Clean Architecture & Separation of Concerns**: La lógica de negocio está aislada en servicios (`app/Models/Services/`), el acceso a datos en repositorios (`app/Models/Repositories/`), la orquestación HTTP en controladores (`app/Controllers/`) y la presentación en vistas PHP nativas (`app/Views/`).
-- **Singleton Pattern**: Conexión centralizada a base de datos mediante `Src\Core\Database`.
-- **Front Controller Pattern**: Punto de entrada único a través de `public/index.php` gestionado por `Src\Core\Router`.
-- **Inyección de Variables de Entorno**: Carga dinámica mediante `Src\Core\Env` e integración con helper `env()`.
-
-```
-                  ┌─────────────────────────────────────────┐
-                  │          Punto de Entrada               │
-                  │          public/index.php               │
-                  └────────────────────┬────────────────────┘
-                                       │
-                                       ▼
-                  ┌─────────────────────────────────────────┐
-                  │    Inicializador (config/inicializador) │
-                  │  Carga .env, Autoloader, Sesiones, Core  │
-                  └────────────────────┬────────────────────┘
-                                       │
-                                       ▼
-                  ┌─────────────────────────────────────────┐
-                  │          Router (core/Router.php)       │
-                  │   Mapea URI + Método HTTP a Controller  │
-                  └────────────────────┬────────────────────┘
-                                       │
-                                       ▼
-                  ┌─────────────────────────────────────────┐
-                  │      Controladores (app/Controllers/)   │
-                  │ Valida permisos ACL, sanitiza entrada   │
-                  └──────────┬───────────────────┬──────────┘
-                             │                   │
-                             ▼                   ▼
-           ┌──────────────────────────┐  ┌──────────────────────────┐
-           │ Servicios / Repositorios │  │  Vistas (app/Views/)     │
-           │    (app/Models/)         │  │   Renderizado HTML       │
-           └─────────────┬────────────┘  └──────────────────────────┘
-                         │
-                         ▼
-           ┌──────────────────────────┐
-           │ Base de Datos PDO        │
-           │ (core/Database.php)      │
-           └──────────────────────────┘
-```
+1. [📐 Arquitectura General del Sistema (MVC + POO)](#1-arquitectura-general-del-sistema-mvc--poo)
+   - [1.1 Flujo de Ejecución e Hilo de Solicitud HTTP](#11-flujo-de-ejecución-e-hilo-de-solicitud-http)
+   - [1.2 Desacoplamiento en Capas (Clean Architecture)](#12-desacoplamiento-en-capas-clean-architecture)
+2. [⚙️ Componentes del Núcleo (`core/`)](#2-componentes-del-núcleo-core)
+   - [2.1 Autoloader (`core/Autoloader.php`)](#21-autoloader-coreautoloaderphp)
+   - [2.2 Gestor de Entorno (`core/Env.php`)](#22-gestor-de-entorno-coreenvphp)
+   - [2.3 Conexión Singleton PDO (`core/Database.php`)](#23-conexión-singleton-pdo-coredatabasephp)
+   - [2.4 Enrutador Dinámico (`core/Router.php`)](#24-enrutador-dinámico-corerouterphp)
+   - [2.5 Controlador Base Abstracto (`core/Controller.php`)](#25-controlador-base-abstracto-corecontrollerphp)
+   - [2.6 Escudo de Seguridad (`core/Security.php`)](#26-escudo-de-seguridad-coresecurityphp)
+   - [2.7 Control de Fuerza Bruta (`core/RateLimiter.php`)](#27-control-de-fuerza-bruta-coreratelimiterphp)
+   - [2.8 Funciones Globales de Conveniencia (`core/helpers.php`)](#28-funciones-globales-de-conveniencia-corehelpersphp)
+3. [🎮 Capa de Controladores (`app/Controllers/`)](#3-capa-de-controladores-appcontrollers)
+   - [3.1 AuthController](#31-authcontroller)
+   - [3.2 AdminController](#32-admincontroller)
+   - [3.3 DocenteController](#33-docentecontroller)
+   - [3.4 EstudianteController](#34-estudiantecontroller)
+   - [3.5 ReportesController](#35-reportescontroller)
+   - [3.6 ConstanciaController](#36-constanciacontroller)
+   - [3.7 CarnetController](#37-carnetcontroller)
+   - [3.8 BackupController](#38-backupcontroller)
+   - [3.9 ConfiguracionController](#39-configuracioncontroller)
+4. [🏛️ Capa de Modelos: Servicios y Repositorios (`app/Models/`)](#4-capa-de-modelos-servicios-y-repositorios-appmodels)
+   - [4.1 Servicios de Lógica de Negocio (`app/Models/Services/`)](#41-servicios-de-lógica-de-negocio-appmodelsservices)
+   - [4.2 Repositorios de Persistencia (`app/Models/Repositories/`)](#42-repositorios-de-persistencia-appmodelsrepositories)
+5. [📋 Cumplimiento de Reglas de Negocio del Sistema](#5-cumplimiento-de-reglas-de-negocio-del-sistema)
+   - [RN-01: Plan de Evaluación Obligatorio del 100%](#rn-01-plan-de-evaluación-obligatorio-del-100)
+   - [RN-02: Límite de Solicitudes Activas de Constancias](#rn-02-límite-de-solicitudes-activas-de-constancias)
+   - [RN-03: Impresión Oficial Landscape sin Bordes ni Cuadros](#rn-03-impresión-oficial-landscape-sin-bordes-ni-cuadros)
+   - [RN-04: Modales Unificados de Confirmación de Acción](#rn-04-modales-unificados-de-confirmación-de-acción)
+   - [RN-05: Zona de Peligro (Danger Zone Reset) Preservando Admin y Permisos](#rn-05-zona-de-peligro-danger-zone-reset-preservando-admin-y-permisos)
+   - [RN-06: Matriz de Roles y Permisos Granulares ACL (Admin, Docente, Estudiante, Custom)](#rn-06-matriz-de-roles-y-permisos-granulares-acl-admin-docente-estudiante-custom)
+   - [RN-07: Métricas en Tiempo Real y Filtro del Dashboard](#rn-07-métricas-en-tiempo-real-y-filtro-del-dashboard)
+   - [RN-08: Carnets Imprimibles para Docentes y Estudiantes](#rn-08-carnets-imprimibles-para-docentes-y-estudiantes)
+6. [🗄️ Esquema Completo de la Base de Datos (21 Tablas)](#6-esquema-completo-de-la-base-de-datos-21-tablas)
+7. [🛡️ Protocolos de Seguridad y Despliegue en Producción](#7-protocolos-de-seguridad-y-despliegue-en-producción)
 
 ---
 
-## 💻 2. Componentes del Núcleo (`core/`)
+## 📐 1. Arquitectura General del Sistema (MVC + POO)
 
-Los componentes del directorio `core/` proveen la infraestructura básica sobre la cual opera la aplicación:
+El sistema **SGCEA** está diseñado bajo los principios de la **Arquitectura Limpia (Clean Architecture)** y el patrón **MVC (Modelo-Vista-Controlador)** desacoplado en **PHP 8.x Orientado a Objetos (POO)** puro, sin frameworks pesados, garantizando un rendimiento óptimo de respuesta (menos de 50ms por petición).
 
-### 2.1 `Autoloader.php`
+### 1.1 Flujo de Ejecución e Hilo de Solicitud HTTP
+
+```
+                    ┌─────────────────────────────────────────┐
+                    │          Punto de Entrada               │
+                    │          public/index.php               │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │    Inicializador (config/inicializador) │
+                    │  Carga .env, Autoloader, Sesiones, Core  │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │          Router (core/Router.php)       │
+                    │   Mapea URI + Método HTTP a Controller  │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │      Controladores (app/Controllers/)   │
+                    │ Valida permisos ACL, sanitiza entrada   │
+                    └──────────┬───────────────────┬──────────┘
+                               │                   │
+                               ▼                   ▼
+             ┌──────────────────────────┐  ┌──────────────────────────┐
+             │ Servicios / Repositorios │  │  Vistas (app/Views/)     │
+             │    (app/Models/)         │  │   Renderizado HTML       │
+             └─────────────┬────────────┘  └──────────────────────────┘
+                           │
+                           ▼
+             ┌──────────────────────────┐
+             │ Base de Datos PDO        │
+             │ (core/Database.php)      │
+             └──────────────────────────┘
+```
+
+### 1.2 Desacoplamiento en Capas (Clean Architecture)
+
+1. **Capa Core (`core/`)**: Infraestructura del framework interno (Autoloader, Router, PDO Singleton, Security, RateLimiter).
+2. **Capa Controller (`app/Controllers/`)**: Orquestación de peticiones HTTP, validación de Tokens CSRF, verificación de permisos ACL y preparación del contexto para las Vistas.
+3. **Capa Service (`app/Models/Services/`)**: Lógica de negocio pura, cálculo de promedios, validaciones de ponderación, reglas de negocio e invocación a auditoría.
+4. **Capa Repository (`app/Models/Repositories/`)**: Capa de persistencia. Contiene consultas SQL preparadas (`PDO`) desacopladas de la lógica de negocio.
+5. **Capa View (`app/Views/`)**: Interfaz de usuario estilizada con **Tailwind CSS v3**, layouts unificados (`header.php`, `sidebar.php`, `footer.php`) y modales reactivos.
+
+---
+
+## ⚙️ 2. Componentes del Núcleo (`core/`)
+
+### 2.1 Autoloader (`core/Autoloader.php`)
 - **Namespace**: `Src\Core\Autoloader`
-- **Función**: Registra una función con `spl_autoload_register` para cargar automáticamente clases bajo el namespace de raíz `Src\`.
-- **Mapeo**:
+- **Propósito**: Implementa carga automática de clases en cumplimiento de la norma PSR-4.
+- **Funcionamiento**: Registra mediante `spl_autoload_register` la conversión de namespaces a rutas del sistema de archivos:
   - `Src\Core\*` $\rightarrow$ `core/*`
   - `Src\Controllers\*` $\rightarrow$ `app/Controllers/*`
   - `Src\Models\*` $\rightarrow$ `app/Models/*`
 
-### 2.2 `Env.php`
+### 2.2 Gestor de Entorno (`core/Env.php`)
 - **Namespace**: `Src\Core\Env`
-- **Función**: Parsea el archivo `.env` en la raíz del proyecto.
-- **Detalles**:
-  - Lee variables key=value.
-  - Registra las claves en `$_ENV`, `$_SERVER` y mediante `putenv()`.
-  - Soporta valores booleanos (`true`/`false`), `null` y comillas.
+- **Propósito**: Parsea y carga las variables del archivo `.env` en la raíz del servidor MAMP/producción.
+- **Funcionamiento**: Lee parejas `CLAVE=VALOR`, omite comentarios `#`, convierte tipos primitivos (`true`, `false`, `null`) y las inyecta en `$_ENV`, `$_SERVER` y mediante `putenv()`.
 
-### 2.3 `Database.php`
+### 2.3 Conexión Singleton PDO (`core/Database.php`)
 - **Namespace**: `Src\Core\Database`
-- **Patrón**: Singleton.
-- **Función**: Administra la conexión nativa a la base de datos a través de `PDO`.
-- **Configuración**: Lee de `config/database.php` (el cual consume `env()`).
-- **Seguridad**: Desactiva emulación de prepared statements (`PDO::ATTR_EMULATE_PREPARES => false`) e impone `PDO::ERRMODE_EXCEPTION`.
+- **Patrón**: Singleton (Instancia única de conexión).
+- **Propósito**: Provee acceso centralizado y seguro a MySQL/MariaDB a través de `PDO`.
+- **Configuración de Seguridad**:
+  - `PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION`: Dispara excepciones en errores SQL.
+  - `PDO::ATTR_EMULATE_PREPARES => false`: Forzar consultas preparadas reales en el motor de la base de datos para prevenir inyecciones SQL.
+  - `PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC`: Retorna arrays asociativos por defecto.
 
-### 2.4 `Router.php`
+### 2.4 Enrutador Dinámico (`core/Router.php`)
 - **Namespace**: `Src\Core\Router`
-- **Función**: Enrutador adaptativo con soporte para comodines como `{id}`.
-- **Detalles**:
-  - Registra rutas para los métodos HTTP `GET` y `POST`.
-  - Normaliza la URI eliminando prefijos de instalación local como `/sgcea` o `/sgcea/public`.
-  - Invoca dinámicamente métodos de controladores mediante `ReflectionMethod`.
+- **Propósito**: Enrutamiento dinámico de URLs con soporte de parámetros dinámicos (`{id}`).
+- **Funcionamiento**:
+  - Registra rutas mapeando método HTTP (`GET`, `POST`) y expresión URI hacia una acción `Controlador@metodo`.
+  - Normaliza la URI eliminando prefijos de instalación en subdirectorios (ej. `/sgcea/public`).
+  - Utiliza `ReflectionMethod` para instanciar el controlador e inyectar los argumentos extraídos de la URL.
 
-### 2.5 `Controller.php`
+### 2.5 Controlador Base Abstracto (`core/Controller.php`)
 - **Namespace**: `Src\Core\Controller`
-- **Función**: Clase base abstracta que heredan todos los controladores.
+- **Propósito**: Proveer helpers de renderizado y flujo a todos los controladores.
 - **Métodos Clave**:
-  - `render($view, $data, $raw)`: Procesa y compila vistas PHP envolviéndolas en el layout correspondiente (`header.php`, `footer.php`).
-  - `redirigir($path)`: Ejecuta redirección HTTP enviando encabezado `Location`.
-  - `json($data, $code)`: Retorna respuestas serializadas en JSON para llamadas AJAX.
-  - `verificarPermiso($permiso)`: Valida la matriz ACL del usuario autenticado en sesión.
+  - `render(string $view, array $data, bool $raw)`: Compila la vista solicitada inyectando variables en el buffer de salida (`ob_start()`) e integrando el diseño global (`header.php`, `sidebar.php`, `footer.php`).
+  - `redirigir(string $url)`: Ejecuta una redirección `Header("Location: ...")` finalizando la ejecución.
+  - `json(mixed $data, int $statusCode)`: Emite respuestas JSON con el encabezado `Content-Type: application/json`.
+  - `verificarPermiso(string $permiso)`: Valida la sesión activa y comprueba si el usuario posee el permiso en `$_SESSION['usuario_permisos']`.
 
-### 2.6 `Security.php`
+### 2.6 Escudo de Seguridad (`core/Security.php`)
 - **Namespace**: `Src\Core\Security`
-- **Función**: Proveedor de capas defensivas contra vulnerabilidades web.
+- **Propósito**: Prevención de vulnerabilidades web (XSS, CSRF, Password Hashing).
 - **Métodos Clave**:
-  - `e(?string)`: Sanitización contra Cross-Site Scripting (XSS) usando `htmlspecialchars`.
-  - `generarTokenCSRF()` / `validarTokenCSRF()`: Protección contra Cross-Site Request Forgery (CSRF).
-  - `hashPassword()` / `verificarPassword()`: Cifrado seguro de contraseñas mediante `password_hash` (`PASSWORD_BCRYPT`).
+  - `e(?string $val)`: Sanitización XSS mediante `htmlspecialchars($val, ENT_QUOTES, 'UTF-8')`.
+  - `generarTokenCSRF()`: Crea un token binario aleatorio (`random_bytes(32)`) almacenado en sesión.
+  - `validarTokenCSRF(?string $token)`: Compara el token enviado en formularios mediante `hash_equals()` resistente a ataques de tiempo.
+  - `hashPassword(string $password)`: Genera hashes de clave con `PASSWORD_BCRYPT` y costo 10.
+  - `verificarPassword(string $pass, string $hash)`: Valida la contraseña enviada contra el hash persistido en la BD.
 
-### 2.7 `RateLimiter.php`
+### 2.7 Control de Fuerza Bruta (`core/RateLimiter.php`)
 - **Namespace**: `Src\Core\RateLimiter`
-- **Función**: Limita los intentos fallidos de inicio de sesión por IP en la tabla `intentos_login` para mitigar ataques de fuerza bruta.
+- **Propósito**: Bloqueo temporal de inicios de sesión tras múltiples intentos fallidos.
+- **Funcionamiento**: Registra la dirección IP y la marca de tiempo en `intentos_login`. Si supera los 5 intentos fallidos en menos de 15 minutos, bloquea el acceso enviando un mensaje de advertencia.
 
-### 2.8 `helpers.php`
-- **Función**: Funciones globales de conveniencia disponibles en todo el proyecto:
-  - `env($key, $default)`: Wrapper para `Env::get()`.
-  - `e($str)`: Alias corto para sanitización HTML.
-  - `url($path)` / `asset($path)`: Generación de rutas absolutas dinámicas.
-  - `set_flash($type, $msg)` / `get_flash($type)`: Manejo de mensajes flash de sesión.
-
----
-
-## 🎮 3. Controladores (`app/Controllers/`)
-
-Los controladores coordinan la entrada del usuario, ejecutan la validación y comunican el resultado a las vistas.
-
-| Controlador | Descripción y Funciones Principales |
-| :--- | :--- |
-| `AdminController.php` | Administra la vista global del dashboard, gestión de usuarios, roles, catálogo de materias, secciones, asignaciones de profesores y revisión de solicitudes de constancias. |
-| `DocenteController.php` | Controla la experiencia pedagógica del profesor: dashboard docente, lista de asignaciones, registro masivo de asistencias, gestión del plan de evaluación y carga de calificaciones. |
-| `EstudianteController.php` | Administra el área del alumno: consulta de boletín de notas, reporte de inasistencias, solicitudes de constancias y edición del perfil personal. |
-| `ConstanciaController.php` | Gestiona el ciclo de vida y la generación del contenido HTML/PDF imprimible de constancias de estudio, conducta y notas. |
-| `AuthController.php` | Maneja el ciclo de autenticación: login con control de intentos, logout y registro de auditoría de acceso. |
-| `ConfiguracionController.php` | Gestiona los parámetros institucionales del sistema y permite reiniciar los datos (Zona de Peligro). |
-| `BackupController.php` | Permite realizar volcados completos del sistema en formato JSON/SQL e importar respaldos. |
+### 2.8 Funciones Globales de Conveniencia (`core/helpers.php`)
+- `env($key, $default)`: Wrapper global para obtener variables de entorno.
+- `e($str)`: Alias rápido de sanitización contra ataques XSS.
+- `url($path)`: Genera URLs absolutas respetando el dominio y subdirectorio base de la instalación.
+- `asset($path)`: Construye la ruta hacia recursos estáticos (`/public/assets/...`).
+- `csrf_field()`: Renderiza el campo oculto `<input type="hidden" name="csrf_token" value="...">`.
 
 ---
 
-## 🏛️ 4. Modelos: Servicios y Repositorios (`app/Models/`)
+## 🎮 3. Capa de Controladores (`app/Controllers/`)
 
-La capa de datos está dividida en dos subcapas:
+### 3.1 `AuthController.php`
+- **Rutas**: `/login` (GET/POST), `/logout` (GET).
+- **Funcionalidad**: Gestiona el inicio y cierre de sesión de usuarios. Invoca `RateLimiter` para verificar la IP, valida las credenciales a través de `UsuarioService`, carga los permisos del usuario en `$_SESSION['usuario_permisos']` y registra el acceso en `AuditoriaService`.
 
-### 4.1 Repositorios (`app/Models/Repositories/`)
-Interactúan directamente con la base de datos mediante sentencias SQL preparadas con PDO:
-- `UsuarioRepository.php`: CRUD de usuarios y consultas por email/cédula.
-- `EstudianteRepository.php`: Consultas avanzadas de estudiantes con sus relaciones.
-- `DocenteRepository.php`: Gestión de profesores y especialidades.
-- `ConstanciaRepository.php`: Persistencia de solicitudes de constancias.
-- `InscripcionRepository.php`: Control de estudiantes inscritos por sección.
-- `AsignacionRepository.php`: Relación entre profesor, materia y sección.
-- `AsistenciaRepository.php`: Registro e historial de asistencia.
-- `CalificacionRepository.php`: Almacenamiento de notas por plan de evaluación.
-- `MateriaRepository.php`, `GradoRepository.php`, `SeccionRepository.php`, `PermisoRepository.php`, `InstitucionRepository.php`.
+### 3.2 `AdminController.php`
+- **Rutas**: `/admin` (GET), `/admin/usuarios` (GET/POST), `/admin/estudiantes` (GET/POST), `/admin/docentes` (GET/POST), `/admin/materias`, `/admin/secciones`, `/admin/asignaciones`, `/admin/constancias`.
+- **Funcionalidad**: Controlador maestro de administración escolar:
+  - `index()`: Procesa métricas reales y filtros del Dashboard en vivo (Año Lectivo y Grado).
+  - `listarUsuarios()`, `guardarUsuario()`, `eliminarUsuario()`: Administración de la matriz de usuarios y asignación de permisos individuales.
+  - `estudiantes()`, `docentes()`, `materias()`, `secciones()`, `asignaciones()`: Módulos CRUD con carga de fotos de perfil e integración de modales.
 
-### 4.2 Servicios (`app/Models/Services/`)
-Contienen la lógica de negocio pura, validaciones de reglas y registro de auditoría:
-- `AuditoriaService.php`: Método `registrar($usuarioId, $accion, $tabla, $registroId, $detalles)` con soporte flexible para arreglos, cadenas o valores nulos.
-- `UsuarioService.php`: Reglas de negocio para creación/edición de usuarios y gestión de claves.
-- `EstudianteService.php`: Lógica de estudiantes e inscripciones.
-- `DocenteService.php`: Validaciones y asignación pedagógica.
-- `ConstanciaService.php`: Control del límite de solicitudes (máx. 5 pendientes por estudiante) y aprobaciones.
-- `AsistenciaService.php`, `CalificacionService.php`, `PlanEvaluacionService.php`, `MateriaService.php`, `GradoService.php`, `SeccionService.php`, `PermisoService.php`, `InstitucionService.php`.
+### 3.3 `DocenteController.php`
+- **Rutas**: `/docente/dashboard`, `/docente/calificaciones`, `/docente/plan-evaluacion/{id}`, `/docente/asistencias`.
+- **Funcionalidad**:
+  - `planEvaluacion(int $idAsignacion)`: Visualiza las actividades del plan de evaluación, estado del porcentaje acumulado y valida que sume exactamente el 100%.
+  - `crearActividad()`, `crearActividadesLote()`: Registra evaluaciones individuales o masivas validando estrictamente que el acumulado no supere el 100%.
+  - `eliminarActividad(int $idPlan)`: Elimina actividades evaluativas mediante verificación de pertenencia por `obtenerProfesorId()` y modal de confirmación, redirigiendo de vuelta a `/docente/plan-evaluacion/{id}`.
+  - `guardarCalificaciones()`: Guarda notas masivas únicamente si el plan suma el 100% obligatorio.
+
+### 3.4 `EstudianteController.php`
+- **Rutas**: `/estudiante/dashboard`, `/estudiante/notas`, `/estudiante/asistencias`, `/estudiante/constancias`, `/estudiante/perfil`.
+- **Funcionalidad**:
+  - `boletin()`: Renderiza el historial de calificaciones por período.
+  - `constancias()`: Muestra la tabla de constancias solicitadas y despliega el modal para nuevas solicitudes (validando la regla de 1 solicitud activa por tipo).
+  - `perfil()`: Visualiza y actualiza la información personal, foto de perfil y carnet digital.
+
+### 3.5 `ReportesController.php`
+- **Rutas**: `/reportes`, `/reportes/exportar/{tipo}`.
+- **Funcionalidad**: Centro de análisis académico con visualización e impresión optimizada:
+  - Genera informes de Cuadro de Honor, Riesgo Académico, Sabana por Sección, Ausentismo Crítico y Carga Horaria Docente.
+  - Exportación a CSV/Excel y maquetación para impresión oficial física/PDF en orientación horizontal (Landscape) sin bordes de tarjetas.
+
+### 3.6 `ConstanciaController.php`
+- **Rutas**: `/estudiante/constancias/solicitar`, `/admin/constancias/procesar`.
+- **Funcionalidad**:
+  - Validar el límite de solicitudes activas antes de crear la petición.
+  - Cambiar estado a `'aprobada'` o `'rechazada'` con observaciones.
+  - Generar el documento oficial imprimible con membrete y código de validación.
+
+### 3.7 `CarnetController.php`
+- **Rutas**: `/carnet/estudiante/{id}`, `/carnet/docente/{id}`.
+- **Funcionalidad**: Genera la vista e imprime el Carnet Institucional Inteligente en formato de credencial estándar (frente y reverso) con foto de perfil, código QR de verificación y datos del plantel.
+
+### 3.8 `BackupController.php`
+- **Rutas**: `/admin/backup`, `/admin/backup/exportar`, `/admin/backup/importar`.
+- **Funcionalidad**: Exportación e importación de la base de datos en formato JSON formateado.
+
+### 3.9 `ConfiguracionController.php`
+- **Rutas**: `/admin/configuracion`, `/admin/configuracion/reiniciar`.
+- **Funcionalidad**:
+  - `reiniciarSistema()`: Ejecuta la Zona de Peligro (Danger Zone Reset). Trunca las 16 tablas de datos operativos, elimina cuentas de estudiantes/docentes, pero **preserva intactos a todos los usuarios administradores y la matriz de tablas de permisos de la base de datos**.
 
 ---
 
-## 🗄️ 5. Esquema de Base de Datos y Sistema de Permisos ACL
+## 🏛️ 4. Capa de Modelos: Servicios y Repositorios (`app/Models/`)
 
-### 5.1 Lista de Tablas del Sistema (21 Tablas)
+### 4.1 Servicios de Lógica de Negocio (`app/Models/Services/`)
 
-1. `instituciones`: Datos institucionales del plantel educativo.
-2. `permisos`: Catálogo de 48 permisos ACL organizados por módulos (`admin`, `docente`, `estudiante`, `reportes`).
-3. `usuarios`: Tabla principal de autenticación (`cedula`, `email`, `password`, `tipo`).
-4. `usuario_permisos`: Tabla intermedia para la matriz de permisos de cada usuario.
-5. `profesores`: Datos extendidos del perfil docente.
-6. `estudiantes`: Datos extendidos del perfil estudiante y representante.
-7. `grados`: Niveles académicos (1er Grado a 6to Grado, 1er Año a 5to Año).
-8. `secciones`: Secciones por grado y año escolar (ej: A, B, C).
-9. `materias`: Catálogo de asignaturas con código y créditos.
-10. `inscripciones`: Asignación del estudiante a una sección para un año académico.
-11. `asignaciones`: Cátedra asignada a un docente (Profesor + Materia + Sección + Año).
-12. `planes_evaluacion`: Actividades de evaluación programadas por el docente por lapso.
-13. `calificaciones`: Notas individuales obtenidas por estudiante en cada plan.
-14. `asistencias`: Control diario de asistencia (`presente`, `ausente`, `tarde`, `justificado`).
-15. `solicitudes_constancia`: Solicitudes tramitadas por estudiantes y resueltas por admins.
-16. `configuraciones`: Clave-valor para la configuración global.
-17. `auditoria`: Registro detallado de acciones del sistema con detalles en JSON.
-18. `notificaciones`: Mensajería interna para usuarios.
-19. `intentos_login`: Registro de IPs y fechas para control de Rate Limiting.
-20. `cache_dashboard_admin`: Almacenamiento en caché de métricas administrativas.
-21. `cache_dashboard_docente`: Caché de estadísticas para docentes.
+- **`PlanEvaluacionService.php`**: Controla el ciclo de vida del plan de evaluación. Valida que la suma de ponderaciones no exceda el 100% e impide el guardado si está incompleto.
+- **`CalificacionService.php`**: Calcula los promedios ponderados por materia y lapso, valida notas en escala 1-20 y bloquea la edición si la asignación está cerrada.
+- **`ConstanciaService.php`**: Valida que un estudiante solo pueda mantener 1 solicitud activa (`'pendiente'`) por cada tipo de constancia.
+- **`DashboardService.php`**: Ejecuta las consultas en vivo contra la base de datos para obtener métricas reales de matrícula, personal, materias, asistencias y constancias, soportando filtrado por Año Lectivo y Grado.
+- **`AuditoriaService.php`**: Escribe en la tabla `auditoria` la trazabilidad de eventos críticos (`CREATE`, `UPDATE`, `DELETE`, `LOGIN`, `REINICIAR_SISTEMA`) almacenando detalles contextuales.
+- **`UsuarioService.php`**, **`EstudianteService.php`**, **`DocenteService.php`**, **`AsistenciaService.php`**, **`MateriaService.php`**, **`SeccionService.php`**, **`GradoService.php`**, **`PermisoService.php`**.
+
+### 4.2 Repositorios de Persistencia (`app/Models/Repositories/`)
+
+- **`UsuarioRepository.php`**: Consultas SQL de usuarios y unión con la cuenta de permisos individuales (`COUNT(up.permiso_id)`).
+- **`EstudianteRepository.php`**: Consultas SQL con `INNER JOIN` hacia `usuarios`, `inscripciones`, `secciones` y `grados`.
+- **`DocenteRepository.php`**: Gestión de profesores y relación con asignaciones.
+- **`PlanEvaluacionRepository.php`**: Operaciones CRUD sobre la tabla `planes_evaluacion`.
+- **`CalificacionRepository.php`**: Consultas de notas agrupadas por estudiante y asignación.
+- **`AsistenciaRepository.php`**: Registro de inasistencias y balances estadísticos.
+- **`ConstanciaRepository.php`**: Persistencia y conteo por estado de solicitudes.
+- **`AsignacionRepository.php`**, **`InscripcionRepository.php`**, **`MateriaRepository.php`**, **`SeccionRepository.php`**, **`GradoRepository.php`**, **`PermisoRepository.php`**, **`DashboardCacheRepository.php`**.
 
 ---
 
-## 🛡️ 6. Seguridad y Buenas Prácticas
+## 📋 5. Cumplimiento de Reglas de Negocio del Sistema
 
-1. **Variables de Entorno**: Ninguna credencial sensible debe alojarse en código fuente. Todo lee desde `.env`.
-2. **Prepared Statements**: Todas las consultas SQL utilizan marcadores de parámetros (`?` o `:nombre`) previniendo Inyección SQL.
-3. **Escapado XSS**: Todos los datos renderizados en vistas pasan por `e()` / `htmlspecialchars()`.
-4. **Protección CSRF**: Formularios mutation (POST) incluyen token anti-CSRF validado por `Security::validarTokenCSRF()`.
-5. **Cifrado de Claves**: BCRYPT con costo 10 nativo mediante `password_hash()`.
+| Regla de Negocio | Implementación en Código | Archivos / Métodos Responsables |
+| :--- | :--- | :--- |
+| **RN-01: Plan de Evaluación Obligatorio del 100%** | La ponderación total de las evaluaciones debe sumar exactamente el 100%. No se pueden registrar calificaciones masivas si el plan suma diferente de 100%. | [DocenteController.php](file:///Applications/MAMP/htdocs/sgcea/app/Controllers/DocenteController.php#L175) (`guardarCalificaciones`), [PlanEvaluacionService.php](file:///Applications/MAMP/htdocs/sgcea/app/Models/Services/PlanEvaluacionService.php) |
+| **RN-02: Límite de Solicitudes Activas de Constancias** | Cada estudiante puede tener como máximo 1 solicitud activa (en estado `'pendiente'`) por cada tipo de constancia a la vez. | [ConstanciaService.php](file:///Applications/MAMP/htdocs/sgcea/app/Models/Services/ConstanciaService.php), [ConstanciaRepository.php](file:///Applications/MAMP/htdocs/sgcea/app/Models/Repositories/ConstanciaRepository.php#L40) |
+| **RN-03: Impresión Oficial Landscape sin Bordes ni Cuadros** | Todos los reportes e informes impresos se maquetan obligatoriamente en orientación horizontal (`@page { size: landscape; }`) eliminando tarjetas, bordes, sombras y recuadros contenedores. | [print.css](file:///Applications/MAMP/htdocs/sgcea/public/assets/css/print.css#L7), [reportes/index.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/reportes/index.php) |
+| **RN-04: Modales Unificados de Confirmación de Acción** | Ninguna acción destructiva o crítica utiliza popups `confirm()` nativos del navegador; todas utilizan modales flotantes Tailwind CSS (`#modalConfirmar...`). | [planevaluacion.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/docente/planevaluacion.php#L155), [usuarios/index.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/admin/usuarios/index.php#L530) |
+| **RN-05: Danger Zone Reset Preservando Admin y Permisos** | El botón de la Zona de Peligro vacía toda la data operacional (16 tablas), pero mantiene intactos a los usuarios administradores (`tipo_usuario = 'admin'`) y las tablas de permisos de la BD. | [ConfiguracionController.php](file:///Applications/MAMP/htdocs/sgcea/app/Controllers/ConfiguracionController.php#L131) |
+| **RN-06: Matriz de Roles y Permisos ACL (Admin, Docente, Estudiante, Custom)** | Clasificación visual y de seguridad en 4 categorías de badges (`Admin`, `Docente`, `Estudiante`, `Custom`). La etiqueta `Custom` se aplica automáticamente si el usuario posee permisos individuales adicionales en `usuario_permisos`. | [usuarios/index.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/admin/usuarios/index.php#L143), [Security.php](file:///Applications/MAMP/htdocs/sgcea/core/Security.php) |
+| **RN-07: Métricas en Tiempo Real y Filtro del Dashboard** | El Dashboard calcula métricas 100% reales directamente desde la base de datos (mostrando 0 si la BD está limpia) e incluye una barra de filtros dinámicos por Año Lectivo y Grado. | [DashboardService.php](file:///Applications/MAMP/htdocs/sgcea/app/Models/Services/DashboardService.php#L42), [admin/dashboard.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/admin/dashboard.php#L38) |
+| **RN-08: Carnets Imprimibles para Docentes y Estudiantes** | Tanto docentes como estudiantes pueden imprimir su carnet digital desde su perfil y el administrador desde las acciones del módulo. | [CarnetController.php](file:///Applications/MAMP/htdocs/sgcea/app/Controllers/CarnetController.php), `carnet_modal.php` |
 
+---
+
+## 🗄️ 6. Esquema Completo de la Base de Datos (21 Tablas)
+
+1. **`instituciones`**: Configuración del plantel (`nombre`, `codigo_dea`, `logo`, `direccion`).
+2. **`permisos`**: Catálogo de permisos granulares (`id`, `codigo`, `descripcion`, `modulo`).
+3. **`usuarios`**: Cuentas de acceso (`id`, `cedula`, `nombre`, `apellido`, `email`, `password`, `tipo`, `estado`, `created_at`).
+4. **`usuario_permisos`**: Matriz intermedia ACL (`usuario_id`, `permiso_id`).
+5. **`profesores`**: Perfil docente (`id`, `usuario_id`, `especialidad`, `telefono`, `foto`).
+6. **`estudiantes`**: Perfil estudiante (`id`, `usuario_id`, `fecha_nacimiento`, `genero`, `direccion`, `telefono`, `representante`, `foto`).
+7. **`grados`**: Niveles escolares (`id`, `nombre`, `nivel_educativo`).
+8. **`secciones`**: Aulas por grado (`id`, `grado_id`, `nombre`, `capacidad`).
+9. **`materias`**: Asignaturas (`id`, `codigo`, `nombre`, `horas_semanales`).
+10. **`inscripciones`**: Matrícula activa (`id`, `estudiante_id`, `seccion_id`, `ano_academico`, `estado`, `fecha_inscripcion`).
+11. **`asignaciones`**: Cátedras docentes (`id`, `profesor_id`, `materia_id`, `seccion_id`, `ano_academico`).
+12. **`planes_evaluacion`**: Actividades por lapso (`id`, `asignacion_id`, `nombre`, `tipo`, `ponderacion`, `fecha_programada`).
+13. **`calificaciones`**: Evaluaciones individuales (`id`, `plan_evaluacion_id`, `estudiante_id`, `nota`, `observacion`).
+14. **`asistencias`**: Control diario (`id`, `asignacion_id`, `estudiante_id`, `fecha`, `estado`).
+15. **`solicitudes_constancia`**: Trámites de documentos (`id`, `estudiante_id`, `tipo_constancia`, `estado`, `fecha_solicitud`).
+16. **`configuraciones`**: Parámetros globales en clave-valor.
+17. **`auditoria`**: Bitácora histórica (`id`, `usuario_id`, `accion`, `tabla`, `registro_id`, `detalles`, `fecha`).
+18. **`notificaciones`**: Bandeja interna de avisos.
+19. **`intentos_login`**: Control de Rate Limiting por IP (`id`, `ip_address`, `intentos`, `ultimo_intento`).
+20. **`cache_dashboard_admin`**: Caché de estadísticas globales.
+21. **`cache_dashboard_docente`**: Caché de estadísticas de profesores.
+
+---
+
+## 🛡️ 7. Protocolos de Seguridad y Despliegue en Producción
+
+1. **Configuración `.env`**: Asegurar `APP_ENV=production` y `APP_DEBUG=false` para prevenir la fuga de stack traces en pantalla.
+2. **Prepared Statements Obligatorios**: Toda consulta debe usar `PDO::prepare()`. No concatenar variables en cadenas SQL.
+3. **Escapado XSS**: Utilizar siempre el helper `e($variable)` al imprimir contenido dinámico en vistas PHP.
+4. **Validación CSRF**: Incluir `<?= csrf_field() ?>` en todo formulario con método `POST`.
+5. **Permisos de Archivos**: Configurar permisos de lectura en `storage/` y restringir escritura en el directorio raíz.

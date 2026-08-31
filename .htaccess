@@ -1,11 +1,25 @@
 # SGCEA - .htaccess (raíz)
-# Redirige todo el tráfico a la carpeta public/
+# Configuración optimizada para servidor web / dominio
+# Permite servir directamente la Landing Page (index.html) y archivos estáticos
+# Redirige el tráfico de la aplicación hacia public/
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
-    # Redirigir todo a public/
-    RewriteRule ^$ public/ [L]
+    # Establecer la página de inicio por defecto
+    DirectoryIndex index.html index.php
+
+    # Si el archivo o directorio solicitado existe físicamente en la raíz, servirlo directamente
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Redirigir el resto del tráfico de rutas hacia la carpeta public/
+    RewriteRule ^$ index.html [L]
     RewriteRule (.*) public/$1 [L]
 </IfModule>
 
+# Proteger archivos de configuración sensibles en la raíz
+<FilesMatch "^\.env|database\.sql|seed\.sql|\.git">
+    Require all denied
+</FilesMatch>
