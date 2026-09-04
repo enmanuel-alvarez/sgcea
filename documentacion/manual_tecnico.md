@@ -39,7 +39,7 @@
    - [RN-03: Impresión Oficial Landscape sin Bordes ni Cuadros](#rn-03-impresión-oficial-landscape-sin-bordes-ni-cuadros)
    - [RN-04: Modales Unificados de Confirmación de Acción](#rn-04-modales-unificados-de-confirmación-de-acción)
    - [RN-05: Zona de Peligro (Danger Zone Reset) Preservando Admin y Permisos](#rn-05-zona-de-peligro-danger-zone-reset-preservando-admin-y-permisos)
-   - [RN-06: Matriz de Roles y Permisos Granulares ACL (Admin, Docente, Estudiante, Custom)](#rn-06-matriz-de-roles-y-permisos-granulares-acl-admin-docente-estudiante-custom)
+   - [RN-06: Matriz de Roles y Permisos Granulares Hybrid RBAC (Admin, Docente, Estudiante, Excepciones Directas)](#rn-06-matriz-de-roles-y-permisos-granulares-hybrid-rbac-admin-docente-estudiante-excepciones-directas)
    - [RN-07: Métricas en Tiempo Real y Filtro del Dashboard](#rn-07-métricas-en-tiempo-real-y-filtro-del-dashboard)
    - [RN-08: Carnets Imprimibles para Docentes y Estudiantes](#rn-08-carnets-imprimibles-para-docentes-y-estudiantes)
 6. [🗄️ Esquema Completo de la Base de Datos (21 Tablas)](#6-esquema-completo-de-la-base-de-datos-21-tablas)
@@ -74,7 +74,7 @@ El sistema **SGCEA** está diseñado bajo los principios de la **Arquitectura Li
                                          ▼
                     ┌─────────────────────────────────────────┐
                     │      Controladores (app/Controllers/)   │
-                    │ Valida permisos ACL, sanitiza entrada   │
+                    │ Valida permisos Hybrid RBAC, sanitiza   │
                     └──────────┬───────────────────┬──────────┘
                                │                   │
                                ▼                   ▼
@@ -254,35 +254,37 @@ El sistema **SGCEA** está diseñado bajo los principios de la **Arquitectura Li
 | **RN-03: Impresión Oficial Landscape sin Bordes ni Cuadros** | Todos los reportes e informes impresos se maquetan obligatoriamente en orientación horizontal (`@page { size: landscape; }`) eliminando tarjetas, bordes, sombras y recuadros contenedores. | [print.css](file:///Applications/MAMP/htdocs/sgcea/public/assets/css/print.css#L7), [reportes/index.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/reportes/index.php) |
 | **RN-04: Modales Unificados de Confirmación de Acción** | Ninguna acción destructiva o crítica utiliza popups `confirm()` nativos del navegador; todas utilizan modales flotantes Tailwind CSS (`#modalConfirmar...`). | [planevaluacion.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/docente/planevaluacion.php#L155), [usuarios/index.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/admin/usuarios/index.php#L530) |
 | **RN-05: Danger Zone Reset Preservando Admin y Permisos** | El botón de la Zona de Peligro vacía toda la data operacional (16 tablas), pero mantiene intactos a los usuarios administradores (`tipo_usuario = 'admin'`) y las tablas de permisos de la BD. | [ConfiguracionController.php](file:///Applications/MAMP/htdocs/sgcea/app/Controllers/ConfiguracionController.php#L131) |
-| **RN-06: Matriz de Roles y Permisos ACL (Admin, Docente, Estudiante, Custom)** | Clasificación visual y de seguridad en 4 categorías de badges (`Admin`, `Docente`, `Estudiante`, `Custom`). La etiqueta `Custom` se aplica automáticamente si el usuario posee permisos individuales adicionales en `usuario_permisos`. | [usuarios/index.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/admin/usuarios/index.php#L143), [Security.php](file:///Applications/MAMP/htdocs/sgcea/core/Security.php) |
+| **RN-06: Modelo RBAC Híbrido (Roles Principales + Excepciones Directas: CONCEDER / REVOCAR)** | Clasificación basada en 3 roles principales (`Administrador`, `Docente`, `Estudiante`). Los usuarios heredan automáticamente la matriz de permisos de su rol principal. El administrador puede definir excepciones individuales concediendo (`+ CONCEDER`) permisos extra o revocando (`- REVOCAR`) accesos específicos. | [usuarios/index.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/admin/usuarios/index.php), [PermisoService.php](file:///Applications/MAMP/htdocs/sgcea/app/Models/Services/PermisoService.php), [PermisoRepository.php](file:///Applications/MAMP/htdocs/sgcea/app/Models/Repositories/PermisoRepository.php) |
 | **RN-07: Métricas en Tiempo Real y Filtro del Dashboard** | El Dashboard calcula métricas 100% reales directamente desde la base de datos (mostrando 0 si la BD está limpia) e incluye una barra de filtros dinámicos por Año Lectivo y Grado. | [DashboardService.php](file:///Applications/MAMP/htdocs/sgcea/app/Models/Services/DashboardService.php#L42), [admin/dashboard.php](file:///Applications/MAMP/htdocs/sgcea/app/Views/admin/dashboard.php#L38) |
 | **RN-08: Carnets Imprimibles para Docentes y Estudiantes** | Tanto docentes como estudiantes pueden imprimir su carnet digital desde su perfil y el administrador desde las acciones del módulo. | [CarnetController.php](file:///Applications/MAMP/htdocs/sgcea/app/Controllers/CarnetController.php), `carnet_modal.php` |
 
 ---
 
-## 🗄️ 6. Esquema Completo de la Base de Datos (21 Tablas)
+## 🗄️ 6. Esquema Completo de la Base de Datos (23 Tablas)
 
 1. **`instituciones`**: Configuración del plantel (`nombre`, `codigo_dea`, `logo`, `direccion`).
-2. **`permisos`**: Catálogo de permisos granulares (`id`, `codigo`, `descripcion`, `modulo`).
-3. **`usuarios`**: Cuentas de acceso (`id`, `cedula`, `nombre`, `apellido`, `email`, `password`, `tipo`, `estado`, `created_at`).
-4. **`usuario_permisos`**: Matriz intermedia ACL (`usuario_id`, `permiso_id`).
-5. **`profesores`**: Perfil docente (`id`, `usuario_id`, `especialidad`, `telefono`, `foto`).
-6. **`estudiantes`**: Perfil estudiante (`id`, `usuario_id`, `fecha_nacimiento`, `genero`, `direccion`, `telefono`, `representante`, `foto`).
-7. **`grados`**: Niveles escolares (`id`, `nombre`, `nivel_educativo`).
-8. **`secciones`**: Aulas por grado (`id`, `grado_id`, `nombre`, `capacidad`).
-9. **`materias`**: Asignaturas (`id`, `codigo`, `nombre`, `horas_semanales`).
-10. **`inscripciones`**: Matrícula activa (`id`, `estudiante_id`, `seccion_id`, `ano_academico`, `estado`, `fecha_inscripcion`).
-11. **`asignaciones`**: Cátedras docentes (`id`, `profesor_id`, `materia_id`, `seccion_id`, `ano_academico`).
-12. **`planes_evaluacion`**: Actividades por lapso (`id`, `asignacion_id`, `nombre`, `tipo`, `ponderacion`, `fecha_programada`).
-13. **`calificaciones`**: Evaluaciones individuales (`id`, `plan_evaluacion_id`, `estudiante_id`, `nota`, `observacion`).
-14. **`asistencias`**: Control diario (`id`, `asignacion_id`, `estudiante_id`, `fecha`, `estado`).
-15. **`solicitudes_constancia`**: Trámites de documentos (`id`, `estudiante_id`, `tipo_constancia`, `estado`, `fecha_solicitud`).
-16. **`configuraciones`**: Parámetros globales en clave-valor.
-17. **`auditoria`**: Bitácora histórica (`id`, `usuario_id`, `accion`, `tabla`, `registro_id`, `detalles`, `fecha`).
-18. **`notificaciones`**: Bandeja interna de avisos.
-19. **`intentos_login`**: Control de Rate Limiting por IP (`id`, `ip_address`, `intentos`, `ultimo_intento`).
-20. **`cache_dashboard_admin`**: Caché de estadísticas globales.
-21. **`cache_dashboard_docente`**: Caché de estadísticas de profesores.
+2. **`roles`**: Catálogo de roles principales (`id`, `nombre`, `slug`, `descripcion`, `created_at`).
+3. **`permisos`**: Catálogo de permisos granulares por módulo y vista (`id`, `nombre`, `descripcion`, `modulo`).
+4. **`rol_permiso`**: Matriz de permisos heredados por defecto por cada rol (`rol_id`, `permiso_id`).
+5. **`usuarios`**: Cuentas de acceso con referencia de rol (`id`, `rol_id`, `cedula`, `nombre`, `apellido`, `email`, `password`, `tipo`, `estado`, `created_at`).
+6. **`usuario_permisos`**: Excepciones de permisos directas por usuario (`id`, `usuario_id`, `permiso_id`, `tipo`, `created_at`), donde `tipo` es ENUM (`'CONCEDER'`, `'REVOCAR'`).
+7. **`profesores`**: Perfil docente (`id`, `usuario_id`, `especialidad`, `telefono`, `foto`).
+8. **`estudiantes`**: Perfil estudiante (`id`, `usuario_id`, `fecha_nacimiento`, `genero`, `direccion`, `telefono`, `representante`, `foto`).
+9. **`grados`**: Niveles escolares (`id`, `nombre`, `nivel_educativo`).
+10. **`secciones`**: Aulas por grado (`id`, `grado_id`, `nombre`, `capacidad`).
+11. **`materias`**: Asignaturas (`id`, `codigo`, `nombre`, `horas_semanales`).
+12. **`inscripciones`**: Matrícula activa (`id`, `estudiante_id`, `seccion_id`, `ano_academico`, `estado`, `fecha_inscripcion`).
+13. **`asignaciones`**: Cátedras docentes (`id`, `profesor_id`, `materia_id`, `seccion_id`, `ano_academico`).
+14. **`planes_evaluacion`**: Actividades por lapso (`id`, `asignacion_id`, `nombre`, `tipo`, `ponderacion`, `fecha_programada`).
+15. **`calificaciones`**: Evaluaciones individuales (`id`, `plan_evaluacion_id`, `estudiante_id`, `nota`, `observacion`).
+16. **`asistencias`**: Control diario (`id`, `asignacion_id`, `estudiante_id`, `fecha`, `estado`).
+17. **`solicitudes_constancia`**: Trámites de documentos (`id`, `estudiante_id`, `tipo_constancia`, `estado`, `fecha_solicitud`).
+18. **`configuraciones`**: Parámetros globales en clave-valor.
+19. **`auditoria`**: Bitácora histórica (`id`, `usuario_id`, `accion`, `tabla`, `registro_id`, `detalles`, `fecha`).
+20. **`notificaciones`**: Bandeja interna de avisos.
+21. **`intentos_login`**: Control de Rate Limiting por IP (`id`, `ip_address`, `intentos`, `ultimo_intento`).
+22. **`cache_dashboard_admin`**: Caché de estadísticas globales.
+23. **`cache_dashboard_docente`**: Caché de estadísticas de profesores.
 
 ---
 

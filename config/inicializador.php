@@ -53,7 +53,7 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.cookie_secure', '0'); // Cambiar a 1 en producción con HTTPS
-    ini_set('session.cookie_samesite', 'Strict');
+    ini_set('session.cookie_samesite', 'Lax');
     ini_set('session.gc_maxlifetime', '3600');
     
     $sessionPath = __DIR__ . '/../storage/sessions';
@@ -62,7 +62,20 @@ if (session_status() === PHP_SESSION_NONE) {
     }
     ini_set('session.save_path', $sessionPath);
     
-    session_start();
+    // Silenciar advertencia de decodificación si existe un archivo de sesión previo u obsoleto
+    set_error_handler(function($errno, $errstr) {
+        if (str_contains($errstr, 'Failed to decode session object')) {
+            return true;
+        }
+        return false;
+    });
+
+    @session_start();
+    restore_error_handler();
+
+    if (!isset($_SESSION) || !is_array($_SESSION)) {
+        $_SESSION = [];
+    }
 }
 
 // 7. Establecer cabeceras de seguridad HTTP

@@ -142,24 +142,24 @@ if (!empty($todosPermisos)) {
                     <td class="py-3.5">
                         <?php 
                         $tipoReal = strtolower($u['tipo'] ?? $u['tipo_usuario'] ?? $u['rol'] ?? 'estudiante');
-                        $tienePermisosCustom = !empty($userPerms) || ((int)($u['total_permisos'] ?? 0) > 0);
+                        $uExcepciones = $usuarioExcepcionesMap[$u['id']] ?? [];
+                        $tieneExcepciones = !empty($uExcepciones);
 
-                        if ($tipoReal === 'custom' || ($tienePermisosCustom && $tipoReal !== 'admin')): 
+                        if ($tipoReal === 'admin' || $tipoReal === 'administrador'): 
                         ?>
-                            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60" title="Usuario con permisos o accesos personalizados">
-                                <i class="bi bi-sliders me-1"></i> Custom
-                            </span>
-                        <?php elseif ($tipoReal === 'admin' || $tipoReal === 'administrador'): ?>
                             <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
                                 <i class="bi bi-shield-lock-fill me-1"></i> Admin
+                                <?php if ($tieneExcepciones): ?><i class="bi bi-sliders ms-1 text-amber-600" title="Con excepciones directas"></i><?php endif; ?>
                             </span>
-                        <?php elseif ($tipoReal === 'docente' || $tipoReal === 'profesor'): ?>
+                        <?php elseif ($tipoReal === 'docente'): ?>
                             <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
-                                <i class="bi bi-person-workspace me-1"></i> Docente
+                                <i class="bi bi-person-badge-fill me-1"></i> Docente
+                                <?php if ($tieneExcepciones): ?><i class="bi bi-sliders ms-1 text-amber-600" title="Con excepciones directas"></i><?php endif; ?>
                             </span>
                         <?php else: ?>
                             <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
                                 <i class="bi bi-mortarboard-fill me-1"></i> Estudiante
+                                <?php if ($tieneExcepciones): ?><i class="bi bi-sliders ms-1 text-amber-600" title="Con excepciones directas"></i><?php endif; ?>
                             </span>
                         <?php endif; ?>
                     </td>
@@ -180,9 +180,9 @@ if (!empty($todosPermisos)) {
                             <i class="bi bi-pencil-square"></i>
                         </button>
 
-                        <!-- PERMISOS ACL (MODAL) -->
-                        <button type="button" onclick='abrirModalPermisos(<?= $uId ?>, <?= json_encode($u["nombre"] . " " . $u["apellido"]) ?>, <?= json_encode($userPerms) ?>)' 
-                                class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors" title="Gestionar Permisos ACL">
+                        <!-- PERMISOS ACL (MODAL MINIMALISTA HYBRID RBAC) -->
+                        <button type="button" onclick='abrirModalPermisos(<?= $uId ?>, <?= json_encode(($u["nombre"] ?? "") . " " . ($u["apellido"] ?? "")) ?>, <?= json_encode(ucfirst($u["tipo"] ?? "estudiante")) ?>, <?= json_encode($userPerms) ?>, <?= json_encode($uExcepciones) ?>)' 
+                                class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors" title="Gestionar Permisos y Excepciones ACL">
                             <i class="bi bi-key-fill"></i>
                         </button>
 
@@ -272,150 +272,260 @@ if (!empty($todosPermisos)) {
     </div>
 </div>
 
-<!-- ════════════════ MODAL REESTRUCTURADO: PERMISOS ACL POR 3 TABS DE ROL ════════════════ -->
-<div id="modalPermisosACL" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-3xl bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 sm:p-8 space-y-4 max-h-[92vh] flex flex-col">
+<?php
+// Obtener matriz estructurada por Vistas y Acciones
+$permisoService = $permisoService ?? new \Src\Models\Services\PermisoService();
+$matrizVistas = $permisoService->obtenerMatrizPermisosPorVista();
+
+$vistasAdmin = [];
+$vistasOtras = [];
+
+foreach ($matrizVistas as $vKey => $vInfo) {
+    $modLower = strtolower($vInfo['modulo'] ?? '');
+    if ($modLower === 'admin' || str_contains($modLower, 'admin')) {
+        $vistasAdmin[$vKey] = $vInfo;
+    } else {
+        $vistasOtras[$vKey] = $vInfo;
+    }
+}
+?>
+
+<!-- ════════════════ MODAL REESTRUCTURADO: GESTOR DE PERMISOS ACL (VISTAS Y DESPLEGABLE DE ACCIONES) ════════════════ -->
+<div id="modalPermisosACL" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity">
+    <div class="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-3 shrink-0">
-            <div class="flex items-center space-x-3 text-amber-500">
-                <i class="bi bi-shield-lock-fill text-2xl"></i>
+        <!-- Header Minimalista -->
+        <div class="px-6 py-4 bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl font-bold">
+                    <i class="bi bi-shield-check"></i>
+                </div>
                 <div>
-                    <h3 class="font-bold text-lg text-slate-900 dark:text-white" id="modalPermisosTitulo">Asignar Permisos ACL</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Asigne permisos de forma flexible divididos por rol predeterminado.</p>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-white" id="modalPermisosTitulo">Gestor de Permisos por Vistas y Acciones</h3>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="text-slate-500 dark:text-slate-400">Modelo RBAC Híbrido</span>
+                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                        <span id="modalPermisosRoleBadge" class="font-bold text-amber-600 dark:text-amber-400">Rol Base: Administrador</span>
+                    </div>
                 </div>
             </div>
-            <button type="button" onclick="cerrarModalPermisos()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                <i class="bi bi-x-lg"></i>
+            <button type="button" onclick="cerrarModalPermisos()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
 
-        <!-- SWITCHES TABS DEL MODAL POR ROL DEFAULT -->
-        <div class="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl shrink-0">
-            <button type="button" onclick="switchModalRoleTab('admin')" id="mRoleBtn-admin"
-                    class="m-role-btn flex-1 py-2 px-3 rounded-lg text-xs font-extrabold transition-all border-2 border-blue-600 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 shadow-sm flex items-center justify-center space-x-1.5">
-                <i class="bi bi-shield-lock-fill text-blue-600 dark:text-blue-400"></i>
-                <span>1. Administrador</span>
-            </button>
-            <button type="button" onclick="switchModalRoleTab('docente')" id="mRoleBtn-docente"
-                    class="m-role-btn flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all border-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 flex items-center justify-center space-x-1.5">
-                <i class="bi bi-person-badge-fill text-emerald-600 dark:text-emerald-400"></i>
-                <span>2. Docente</span>
-            </button>
-            <button type="button" onclick="switchModalRoleTab('estudiante')" id="mRoleBtn-estudiante"
-                    class="m-role-btn flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all border-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 flex items-center justify-center space-x-1.5">
-                <i class="bi bi-mortarboard-fill text-purple-600 dark:text-purple-400"></i>
-                <span>3. Estudiante</span>
-            </button>
-        </div>
-
-        <!-- CONTROLES DE CARGA RÁPIDA -->
-        <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs shrink-0">
-            <div class="flex items-center space-x-1.5">
-                <span class="font-bold text-slate-500 uppercase text-[10px]">Cargar Rol:</span>
-                <button type="button" onclick="marcarModalRolGroup('admin', true)" class="px-2 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 font-bold rounded">
-                    + Admin
-                </button>
-                <button type="button" onclick="marcarModalRolGroup('docente', true)" class="px-2 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 font-bold rounded">
-                    + Docente
-                </button>
-                <button type="button" onclick="marcarModalRolGroup('estudiante', true)" class="px-2 py-0.5 bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300 font-bold rounded">
-                    + Estudiante
-                </button>
+        <!-- Leyenda y Filtros Rápidos -->
+        <div class="px-6 py-2.5 bg-slate-100/50 dark:bg-slate-950/40 border-b border-slate-200/40 dark:border-slate-800/40 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center text-emerald-700 dark:text-emerald-400 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Conceder (+)
+                </span>
+                <span class="inline-flex items-center text-rose-700 dark:text-rose-400 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span> Revocar (-)
+                </span>
             </div>
-            <div class="space-x-2">
-                <button type="button" onclick="seleccionarTodosModal(true)" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">
-                    Todos
-                </button>
-                <span class="text-slate-300">|</span>
-                <button type="button" onclick="seleccionarTodosModal(false)" class="font-bold text-rose-500 hover:underline">
-                    Limpiar
-                </button>
+            <div class="flex items-center space-x-2">
+                <input type="text" id="filtroPermisoBuscar" oninput="filtrarPermisosModal()" placeholder="Buscar vista o acción..." 
+                       class="px-3 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500 w-52">
             </div>
         </div>
 
-        <!-- Formulario de Permisos -->
-        <form id="formPermisosModal" method="POST" action="" class="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+        <!-- Formulario de Permisos (Vistas Principales y Desplegables de Acciones) -->
+        <form id="formPermisosModal" method="POST" action="" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             <input type="hidden" name="csrf_token" value="<?= \Src\Core\Security::generarTokenCSRF() ?>">
 
-            <!-- PANELES DEL MODAL POR ROL DEFAULT -->
-            <?php foreach ($permisosModalPorRol as $rolKey => $rolInfo): 
-                $hiddenClass = ($rolKey !== 'admin') ? 'hidden' : '';
-            ?>
-                <div id="mRolePanel-<?= $rolKey ?>" class="m-role-panel space-y-3 <?= $hiddenClass ?>">
-                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-700/40">
-                        <div class="flex items-center space-x-2 text-xs">
-                            <i class="bi <?= $rolInfo['icono'] ?> text-<?= $rolInfo['color'] ?>-500"></i>
-                            <span class="font-extrabold text-slate-800 dark:text-slate-200"><?= htmlspecialchars($rolInfo['titulo']) ?></span>
-                            <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-<?= $rolInfo['color'] ?>-100 text-<?= $rolInfo['color'] ?>-800 dark:bg-<?= $rolInfo['color'] ?>-900/60 dark:text-<?= $rolInfo['color'] ?>-300">
-                                <?= htmlspecialchars($rolInfo['badge']) ?>
-                            </span>
-                        </div>
-                        <div class="space-x-2 text-[11px]">
-                            <button type="button" onclick="marcarModalRolGroup('<?= $rolKey ?>', true)" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">Marcar tab</button>
-                            <span class="text-slate-300">|</span>
-                            <button type="button" onclick="marcarModalRolGroup('<?= $rolKey ?>', false)" class="font-bold text-slate-500 hover:underline">Desmarcar tab</button>
-                        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                
+                <!-- COLUMNA 1: VISTAS DEL MÓDULO ADMINISTRACIÓN -->
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2 px-1 text-xs font-extrabold text-purple-700 dark:text-purple-400 uppercase tracking-wider">
+                        <i class="bi bi-shield-lock-fill text-purple-500"></i>
+                        <span>Vistas Administrativas</span>
                     </div>
 
-                    <?php if (!empty($rolInfo['vistas'])): ?>
-                        <?php foreach ($rolInfo['vistas'] as $vKey => $vInfo): ?>
-                            <details class="group bg-slate-50/70 dark:bg-slate-900/50 rounded-xl border border-slate-200/80 dark:border-slate-700/70 overflow-hidden" open>
-                                <summary class="flex items-center justify-between p-3 font-bold text-xs text-slate-800 dark:text-slate-200 cursor-pointer select-none bg-white dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700/60 transition-colors">
-                                    <div class="flex items-center space-x-2.5">
-                                        <i class="bi bi-chevron-right text-[10px] text-slate-400 group-open:rotate-90 transition-transform duration-200"></i>
-                                        <span><?= htmlspecialchars($vInfo['titulo']) ?></span>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                                            <?= count($vInfo['permisos']) ?> opciones
-                                        </span>
-                                        <button type="button" onclick="event.stopPropagation(); toggleGrupoModal('<?= $vKey ?>')" class="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-                                            Toggle
-                                        </button>
-                                    </div>
-                                </summary>
+                    <?php foreach ($vistasAdmin as $vKey => $vInfo): ?>
+                        <details class="group border border-slate-200/80 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-800/60 shadow-sm hover:shadow-md transition-all overflow-hidden" open>
+                            <summary class="flex items-center justify-between p-3.5 bg-slate-50/80 dark:bg-slate-800/80 hover:bg-slate-100/80 dark:hover:bg-slate-700/60 cursor-pointer select-none border-b border-slate-100 dark:border-slate-800/60">
+                                <div class="flex items-center space-x-2">
+                                    <i class="bi bi-chevron-right text-xs text-slate-400 group-open:rotate-90 transition-transform duration-200"></i>
+                                    <span class="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                                        <?= htmlspecialchars($vInfo['titulo']) ?>
+                                    </span>
+                                </div>
 
-                                <div class="p-3 space-y-2 border-t border-slate-100 dark:border-slate-700/60 bg-slate-50/40 dark:bg-slate-900/40">
-                                    <?php foreach ($vInfo['permisos'] as $p): 
-                                        $pId = (int)($p['id'] ?? $p['id_permiso']);
-                                        $desc = $p['descripcion'] ?? $p['nombre'] ?? '';
-                                        $nombrePermiso = $p['nombre'] ?? '';
-                                        $isVer = str_ends_with($nombrePermiso, '.ver') || str_ends_with($nombrePermiso, '.dashboard');
+                                <div class="flex items-center space-x-2.5 shrink-0" onclick="event.stopPropagation()">
+                                    <?php if ($vInfo['acceso_vista']): 
+                                        $pVis = $vInfo['acceso_vista'];
+                                        $pVisId = (int)$pVis['id'];
                                     ?>
-                                        <label for="m_permiso_<?= $pId ?>" class="flex items-center justify-between p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800/80 transition-colors cursor-pointer select-none border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                                            <div class="flex items-center space-x-3">
-                                                <input type="checkbox" name="permisos[]" value="<?= $pId ?>" id="m_permiso_<?= $pId ?>" data-group="<?= $vKey ?>" data-mrol="<?= $rolKey ?>"
-                                                       class="modal-permiso-cb h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500">
-                                                <span class="text-xs font-semibold text-slate-800 dark:text-slate-200"><?= htmlspecialchars($desc) ?></span>
+                                        <div class="flex items-center space-x-2 bg-purple-50/80 dark:bg-purple-950/40 px-2.5 py-1 rounded-xl border border-purple-200/60 dark:border-purple-800/60 text-xs" data-permiso-text="<?= strtolower($pVis['nombre'] . ' ' . ($pVis['descripcion'] ?? '')) ?>">
+                                            <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300">Ver Vista</span>
+                                            <div class="flex items-center space-x-1 select-none">
+                                                <label title="Conceder Vista (+)" class="flex items-center cursor-pointer">
+                                                    <input type="checkbox" name="permisos[]" value="<?= $pVisId ?>" id="permiso_conc_<?= $pVisId ?>" onchange="sincronizarCasillaPermiso(<?= $pVisId ?>, 'conc')"
+                                                           class="cb-permiso-conceder h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 ml-0.5">+</span>
+                                                </label>
+                                                <label title="Revocar Vista (-)" class="flex items-center cursor-pointer ml-1">
+                                                    <input type="checkbox" name="permisos_revocar[]" value="<?= $pVisId ?>" id="permiso_rev_<?= $pVisId ?>" onchange="sincronizarCasillaPermiso(<?= $pVisId ?>, 'rev')"
+                                                           class="cb-permiso-revocar h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                                                    <span class="text-[10px] font-bold text-rose-600 dark:text-rose-400 ml-0.5">-</span>
+                                                </label>
                                             </div>
-                                            <?php if ($isVer): ?>
-                                                <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
-                                                    Acceso a Vista
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-200/60 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                                                    Acción
-                                                </span>
-                                            <?php endif; ?>
-                                        </label>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($vInfo['acciones'])): ?>
+                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                            <?= count($vInfo['acciones']) ?> acciones
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </summary>
+
+                            <?php if (!empty($vInfo['acciones'])): ?>
+                                <div class="p-3 space-y-2 bg-slate-50/40 dark:bg-slate-900/40">
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Acciones Específicas</div>
+                                    <?php foreach ($vInfo['acciones'] as $p): 
+                                        $pId = (int)$p['id'];
+                                        $pNom = $p['nombre'];
+                                        $pDesc = $p['descripcion'] ?? $pNom;
+                                    ?>
+                                        <div class="item-permiso flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors" data-permiso-text="<?= strtolower($pNom . ' ' . $pDesc) ?>">
+                                            <div class="space-y-0.5 pr-2">
+                                                <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight"><?= htmlspecialchars($pDesc) ?></div>
+                                                <div class="text-[10px] font-mono text-slate-400 dark:text-slate-500"><?= htmlspecialchars($pNom) ?></div>
+                                            </div>
+
+                                            <div class="flex items-center space-x-3 shrink-0 select-none">
+                                                <label title="Conceder acción (+)" class="flex items-center space-x-1 cursor-pointer">
+                                                    <input type="checkbox" name="permisos[]" value="<?= $pId ?>" id="permiso_conc_<?= $pId ?>" onchange="sincronizarCasillaPermiso(<?= $pId ?>, 'conc')"
+                                                           class="cb-permiso-conceder h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">+</span>
+                                                </label>
+                                                <label title="Revocar acción (-)" class="flex items-center space-x-1 cursor-pointer">
+                                                    <input type="checkbox" name="permisos_revocar[]" value="<?= $pId ?>" id="permiso_rev_<?= $pId ?>" onchange="sincronizarCasillaPermiso(<?= $pId ?>, 'rev')"
+                                                           class="cb-permiso-revocar h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                                                    <span class="text-[10px] font-bold text-rose-600 dark:text-rose-400">-</span>
+                                                </label>
+                                            </div>
+                                        </div>
                                     <?php endforeach; ?>
                                 </div>
-                            </details>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                            <?php endif; ?>
+                        </details>
+                    <?php endforeach; ?>
                 </div>
-            <?php endforeach; ?>
 
-            <!-- Modal Action Buttons -->
-            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-700/50 shrink-0">
-                <button type="button" onclick="cerrarModalPermisos()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
-                    Cancelar
+                <!-- COLUMNA 2: VISTAS DOCENTE, ESTUDIANTE Y REPORTES APILADAS -->
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2 px-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                        <i class="bi bi-person-workspace text-emerald-500"></i>
+                        <span>Vistas Operacionales y Reportes</span>
+                    </div>
+
+                    <?php foreach ($vistasOtras as $vKey => $vInfo): 
+                        $modColor = 'blue';
+                        $modLower = strtolower($vInfo['modulo'] ?? '');
+
+                        if (str_contains($modLower, 'docente')) {
+                            $modColor = 'emerald';
+                        } elseif (str_contains($modLower, 'estudiante')) {
+                            $modColor = 'indigo';
+                        } elseif (str_contains($modLower, 'reporte')) {
+                            $modColor = 'amber';
+                        }
+                    ?>
+                        <details class="group border border-slate-200/80 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-800/60 shadow-sm hover:shadow-md transition-all overflow-hidden" open>
+                            <summary class="flex items-center justify-between p-3.5 bg-slate-50/80 dark:bg-slate-800/80 hover:bg-slate-100/80 dark:hover:bg-slate-700/60 cursor-pointer select-none border-b border-slate-100 dark:border-slate-800/60">
+                                <div class="flex items-center space-x-2">
+                                    <i class="bi bi-chevron-right text-xs text-slate-400 group-open:rotate-90 transition-transform duration-200"></i>
+                                    <span class="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                                        <?= htmlspecialchars($vInfo['titulo']) ?>
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center space-x-2.5 shrink-0" onclick="event.stopPropagation()">
+                                    <?php if ($vInfo['acceso_vista']): 
+                                        $pVis = $vInfo['acceso_vista'];
+                                        $pVisId = (int)$pVis['id'];
+                                    ?>
+                                        <div class="flex items-center space-x-2 bg-<?= $modColor ?>-50/80 dark:bg-<?= $modColor ?>-950/40 px-2.5 py-1 rounded-xl border border-<?= $modColor ?>-200/60 dark:border-<?= $modColor ?>-800/60 text-xs" data-permiso-text="<?= strtolower($pVis['nombre'] . ' ' . ($pVis['descripcion'] ?? '')) ?>">
+                                            <span class="text-[10px] font-bold text-<?= $modColor ?>-700 dark:text-<?= $modColor ?>-300">Ver Vista</span>
+                                            <div class="flex items-center space-x-1 select-none">
+                                                <label title="Conceder Vista (+)" class="flex items-center cursor-pointer">
+                                                    <input type="checkbox" name="permisos[]" value="<?= $pVisId ?>" id="permiso_conc_<?= $pVisId ?>" onchange="sincronizarCasillaPermiso(<?= $pVisId ?>, 'conc')"
+                                                           class="cb-permiso-conceder h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 ml-0.5">+</span>
+                                                </label>
+                                                <label title="Revocar Vista (-)" class="flex items-center cursor-pointer ml-1">
+                                                    <input type="checkbox" name="permisos_revocar[]" value="<?= $pVisId ?>" id="permiso_rev_<?= $pVisId ?>" onchange="sincronizarCasillaPermiso(<?= $pVisId ?>, 'rev')"
+                                                           class="cb-permiso-revocar h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                                                    <span class="text-[10px] font-bold text-rose-600 dark:text-rose-400 ml-0.5">-</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($vInfo['acciones'])): ?>
+                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                            <?= count($vInfo['acciones']) ?> acciones
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </summary>
+
+                            <?php if (!empty($vInfo['acciones'])): ?>
+                                <div class="p-3 space-y-2 bg-slate-50/40 dark:bg-slate-900/40">
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Acciones Específicas</div>
+                                    <?php foreach ($vInfo['acciones'] as $p): 
+                                        $pId = (int)$p['id'];
+                                        $pNom = $p['nombre'];
+                                        $pDesc = $p['descripcion'] ?? $pNom;
+                                    ?>
+                                        <div class="item-permiso flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors" data-permiso-text="<?= strtolower($pNom . ' ' . $pDesc) ?>">
+                                            <div class="space-y-0.5 pr-2">
+                                                <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight"><?= htmlspecialchars($pDesc) ?></div>
+                                                <div class="text-[10px] font-mono text-slate-400 dark:text-slate-500"><?= htmlspecialchars($pNom) ?></div>
+                                            </div>
+
+                                            <div class="flex items-center space-x-3 shrink-0 select-none">
+                                                <label title="Conceder acción (+)" class="flex items-center space-x-1 cursor-pointer">
+                                                    <input type="checkbox" name="permisos[]" value="<?= $pId ?>" id="permiso_conc_<?= $pId ?>" onchange="sincronizarCasillaPermiso(<?= $pId ?>, 'conc')"
+                                                           class="cb-permiso-conceder h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">+</span>
+                                                </label>
+                                                <label title="Revocar acción (-)" class="flex items-center space-x-1 cursor-pointer">
+                                                    <input type="checkbox" name="permisos_revocar[]" value="<?= $pId ?>" id="permiso_rev_<?= $pId ?>" onchange="sincronizarCasillaPermiso(<?= $pId ?>, 'rev')"
+                                                           class="cb-permiso-revocar h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                                                    <span class="text-[10px] font-bold text-rose-600 dark:text-rose-400">-</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </details>
+                    <?php endforeach; ?>
+                </div>
+
+            </div>
+
+            <!-- Footer Action Buttons -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                <button type="button" onclick="limpiarExcepcionesModal()" class="px-3.5 py-2 text-rose-600 hover:text-rose-700 dark:text-rose-400 font-semibold text-xs transition-all flex items-center space-x-1.5">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    <span>Limpiar Selecciones</span>
                 </button>
-                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs shadow-md shadow-blue-500/20 transition-all flex items-center space-x-2">
-                    <i class="bi bi-save"></i>
-                    <span>Guardar Permisos</span>
-                </button>
+                <div class="flex items-center space-x-3">
+                    <button type="button" onclick="cerrarModalPermisos()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs shadow-md shadow-amber-500/20 transition-all flex items-center space-x-2">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Guardar Excepciones</span>
+                    </button>
+                </div>
             </div>
         </form>
 
@@ -568,10 +678,11 @@ function marcarModalRolGroup(rolKey, state) {
     document.querySelectorAll(`input[data-mrol="${rolKey}"]`).forEach(cb => cb.checked = state);
 }
 
-function abrirModalPermisos(userId, userName, activePerms) {
+function abrirModalPermisos(userId, userName, userRole, activePerms, userExceptions) {
     const modal = document.getElementById('modalPermisosACL');
     const form = document.getElementById('formPermisosModal');
     const titulo = document.getElementById('modalPermisosTitulo');
+    const badge = document.getElementById('modalPermisosRoleBadge');
     
     if (form) {
         form.action = '<?= url('/admin/permisos/guardar/') ?>' + userId;
@@ -579,17 +690,38 @@ function abrirModalPermisos(userId, userName, activePerms) {
     if (titulo) {
         titulo.innerText = 'Permisos ACL: ' + userName;
     }
+    if (badge) {
+        badge.innerText = 'Rol Principal: ' + (userRole || 'Estudiante').toUpperCase();
+    }
 
-    document.querySelectorAll('.modal-permiso-cb').forEach(cb => cb.checked = false);
+    // Resetear todas las casillas de conceder y revocar
+    document.querySelectorAll('.cb-permiso-conceder').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cb-permiso-revocar').forEach(cb => cb.checked = false);
 
+    // Marcar permisos calculados/activos (Concedidos)
     if (Array.isArray(activePerms)) {
         activePerms.forEach(pId => {
-            const cb = document.getElementById('m_permiso_' + pId);
-            if (cb) cb.checked = true;
+            const cbConc = document.getElementById('permiso_conc_' + pId);
+            if (cbConc) cbConc.checked = true;
         });
     }
 
-    switchModalRoleTab('admin');
+    // Marcar excepciones específicas (CONCEDER / REVOCAR)
+    if (Array.isArray(userExceptions)) {
+        userExceptions.forEach(exc => {
+            const pId = exc.permiso_id;
+            if (exc.tipo === 'REVOCAR') {
+                const cbRev = document.getElementById('permiso_rev_' + pId);
+                if (cbRev) cbRev.checked = true;
+                const cbConc = document.getElementById('permiso_conc_' + pId);
+                if (cbConc) cbConc.checked = false;
+            } else if (exc.tipo === 'CONCEDER') {
+                const cbConc = document.getElementById('permiso_conc_' + pId);
+                if (cbConc) cbConc.checked = true;
+            }
+        });
+    }
+
     if (modal) modal.classList.remove('hidden');
 }
 
@@ -598,15 +730,33 @@ function cerrarModalPermisos() {
     if (modal) modal.classList.add('hidden');
 }
 
-function toggleGrupoModal(vKey) {
-    const cbs = document.querySelectorAll(`input[data-group="${vKey}"]`);
-    if (cbs.length === 0) return;
-    const allChecked = Array.from(cbs).every(cb => cb.checked);
-    cbs.forEach(cb => cb.checked = !allChecked);
+function sincronizarCasillaPermiso(pId, modo) {
+    if (modo === 'conc') {
+        const cbConc = document.getElementById('permiso_conc_' + pId);
+        if (cbConc && cbConc.checked) {
+            const cbRev = document.getElementById('permiso_rev_' + pId);
+            if (cbRev) cbRev.checked = false;
+        }
+    } else if (modo === 'rev') {
+        const cbRev = document.getElementById('permiso_rev_' + pId);
+        if (cbRev && cbRev.checked) {
+            const cbConc = document.getElementById('permiso_conc_' + pId);
+            if (cbConc) cbConc.checked = false;
+        }
+    }
 }
 
-function seleccionarTodosModal(state) {
-    document.querySelectorAll('.modal-permiso-cb').forEach(cb => cb.checked = state);
+function filtrarPermisosModal() {
+    const q = (document.getElementById('filtroPermisoBuscar')?.value || '').toLowerCase().trim();
+    document.querySelectorAll('.item-permiso').forEach(item => {
+        const txt = item.getAttribute('data-permiso-text') || '';
+        item.style.display = (q === '' || txt.includes(q)) ? '' : 'none';
+    });
+}
+
+function limpiarExcepcionesModal() {
+    document.querySelectorAll('.cb-permiso-conceder').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cb-permiso-revocar').forEach(cb => cb.checked = false);
 }
 
 function cerrarModalConfirmarModificacion() {

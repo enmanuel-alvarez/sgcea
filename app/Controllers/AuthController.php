@@ -104,10 +104,10 @@ class AuthController extends Controller
         // Limpiar intentos previos
         $rateLimiter->limpiarIntentos($ip);
 
-        // Obtener permisos del usuario
-        $permisoRepo = new \Src\Models\Repositories\PermisoRepository();
-        $permisos = $permisoRepo->obtenerPermisosPorUsuario($usuario['id']);
-        $nombresPermisos = array_column($permisos, 'nombre');
+        // Obtener permisos calculados del usuario (RBAC Híbrido: Permisos de Rol + Concedidos - Revocados)
+        $permisoService = new \Src\Models\Services\PermisoService();
+        $rolId = (int)($usuario['rol_id'] ?? 3);
+        $nombresPermisos = $permisoService->obtenerPermisosCalculados((int)$usuario['id'], $rolId);
 
         // Iniciar sesión
         $_SESSION['usuario_id'] = $usuario['id'];
@@ -115,6 +115,7 @@ class AuthController extends Controller
         $_SESSION['usuario_apellido'] = $usuario['apellido'];
         $_SESSION['usuario_email'] = $usuario['email'];
         $_SESSION['usuario_tipo'] = $usuario['tipo'];
+        $_SESSION['usuario_rol_id'] = $rolId;
         $_SESSION['usuario_permisos'] = $nombresPermisos;
         $_SESSION['ultima_actividad'] = time();
 
@@ -261,9 +262,8 @@ class AuthController extends Controller
             case 'estudiante':
                 $this->redirigir('/estudiante');
                 break;
-            case 'custom':
             default:
-                // Evaluar la matriz de permisos para determinar el módulo de entrada
+                // Evaluar la matriz de permisos para determinar el módulo de entrada seguro
                 $permisos = $_SESSION['usuario_permisos'] ?? [];
                 
                 foreach ($permisos as $p) {
@@ -281,7 +281,6 @@ class AuthController extends Controller
                     }
                 }
                 
-                // Redirección segura por defecto a /admin (nunca a /login para evitar bucles de 100+ peticiones)
                 $this->redirigir('/admin');
                 break;
         }

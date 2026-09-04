@@ -74,6 +74,9 @@ return [
         '/carnet/docente' => ['CarnetController@docente', null],
         '/carnet/docente/{id}' => ['CarnetController@docente', null],
 
+        '/politicas' => ['ConfiguracionController@politicas', null],
+        '/politicas-uso' => ['ConfiguracionController@politicas', null],
+
         '/reportes' => ['ReportesController@index', 'reportes.ver'],
         '/reportes/ficha360/{id}' => ['ReportesController@ficha360', 'reportes.ver'],
         '/reportes/rendimiento' => ['ReportesController@rendimiento', 'reportes.ver'],

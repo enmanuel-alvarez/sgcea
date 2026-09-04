@@ -168,7 +168,7 @@
                         </div>
                         <div class="p-2 pt-6 md:pt-2">
                             <p class="text-3xl sm:text-4xl font-extrabold text-amber-400">100%</p>
-                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mt-1">Matriz Permisos ACL</p>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mt-1">Modelo RBAC Híbrido</p>
                         </div>
                         <div class="p-2 pt-6 md:pt-2">
                             <p class="text-3xl sm:text-4xl font-extrabold text-indigo-400">$0</p>
@@ -180,13 +180,13 @@
             </div>
         </section>
 
-        <!-- SECCIÓN MÓDULOS DE ROL (ACL) -->
+        <!-- SECCIÓN MÓDULOS DE ROL (HYBRID RBAC) -->
         <section id="modulos" class="py-20 bg-slate-50 dark:bg-slate-900 transition-colors">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto mb-16">
                     <h2 class="text-xs font-extrabold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">Arquitectura Multiusuario</h2>
                     <p class="text-3xl sm:text-4xl font-extrabold tracking-tight">Módulos Especializados por Rol</p>
-                    <p class="mt-4 text-slate-600 dark:text-slate-400">Cada usuario dispone de una interfaz adaptada a sus responsabilidades con seguridad basada en permisos ACL granulares.</p>
+                    <p class="mt-4 text-slate-600 dark:text-slate-400">Cada usuario dispone de una interfaz adaptada a su rol principal con seguridad basada en el Modelo RBAC Híbrido.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -201,11 +201,11 @@
                             <span class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">Control Total</span>
                         </h3>
                         <p class="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                            Supervisión global de la institución. Gestión de usuarios, matriz de permisos ACL, materias, secciones, auditoría de cambios y respaldos de base de datos.
+                            Supervisión global de la institución. Gestión de usuarios, gestor de excepciones de permisos (RBAC Híbrido), materias, secciones, auditoría y respaldos.
                         </p>
                         <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium border-t border-slate-100 dark:border-slate-800/80 pt-4">
                             <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Dashboard con métricas en tiempo real</span></li>
-                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Asignación de permisos individuales (ACL)</span></li>
+                            <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Gestor de Excepciones (+ Conceder / - Revocar)</span></li>
                             <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Aprobación y emisión de constancias</span></li>
                             <li class="flex items-center space-x-2"><i class="bi bi-check-circle-fill text-emerald-500"></i><span>Exportación / Importación de respaldos SQL</span></li>
                         </ul>
@@ -275,7 +275,7 @@
                             <span class="p-2 bg-blue-500/20 text-blue-400 rounded-xl"><i class="bi bi-person-fill-gear text-xl"></i></span>
                             <div>
                                 <h4 class="font-bold text-base">Rol Administrador</h4>
-                                <p class="text-xs text-slate-400">Acceso a todas las funciones y ACL</p>
+                                <p class="text-xs text-slate-400">Acceso a todas las funciones y RBAC Híbrido</p>
                             </div>
                         </div>
                         <div class="space-y-2 bg-slate-950/80 p-4 rounded-2xl font-mono text-xs border border-slate-800">
@@ -432,7 +432,7 @@
                                 </div>
                                 <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
                                     <span class="font-mono text-blue-400 font-bold block mb-1">Router.php</span>
-                                    <p class="text-slate-400">Enrutador de URLs limpias con parámetros dinámicos `{id}`, verificación de sesión y permisos ACL pre-ejecución.</p>
+                                    <p class="text-slate-400">Enrutador de URLs limpias con parámetros dinámicos `{id}`, verificación de sesión y permisos Híbridos RBAC pre-ejecución.</p>
                                 </div>
                                 <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
                                     <span class="font-mono text-blue-400 font-bold block mb-1">Security.php</span>
@@ -449,11 +449,11 @@
                             </div>
                         </div>
 
-                        <!-- 3. Base de Datos y ACL -->
+                        <!-- 3. Base de Datos y RBAC Híbrido -->
                         <div class="space-y-4">
                             <h4 class="text-lg font-bold text-white flex items-center space-x-2">
                                 <i class="bi bi-database-fill-check text-emerald-400"></i>
-                                <span>3. Esquema de Base de Datos (21 Tablas) y Permisos ACL</span>
+                                <span>3. Esquema de Base de Datos (23 Tablas) y RBAC Híbrido</span>
                             </h4>
                             <p class="text-sm text-slate-300">Catálogo general de tablas principales de la base de datos relacional:</p>
                             <div class="overflow-x-auto">
@@ -466,9 +466,11 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-800 text-slate-300 font-mono">
-                                        <tr><td class="p-2 text-emerald-400 font-bold">usuarios</td><td class="p-2">Usuarios principales del sistema</td><td class="p-2">cedula, email, password BCRYPT, tipo</td></tr>
-                                        <tr><td class="p-2 text-emerald-400 font-bold">permisos</td><td class="p-2">Catálogo de 48 permisos ACL granulares</td><td class="p-2">admin, docente, estudiante, reportes</td></tr>
-                                        <tr><td class="p-2 text-emerald-400 font-bold">usuario_permisos</td><td class="p-2">Matriz intermedia de permisos asignados</td><td class="p-2">usuario_id + permiso_id</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">roles</td><td class="p-2">Catálogo de 3 roles principales</td><td class="p-2">admin, docente, estudiante</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">rol_permiso</td><td class="p-2">Permisos heredados por defecto por rol</td><td class="p-2">rol_id + permiso_id</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">usuarios</td><td class="p-2">Usuarios principales del sistema</td><td class="p-2">rol_id, cedula, email, password BCRYPT, tipo</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">permisos</td><td class="p-2">Catálogo de permisos granulares por módulo</td><td class="p-2">admin, docente, estudiante, reportes</td></tr>
+                                        <tr><td class="p-2 text-emerald-400 font-bold">usuario_permisos</td><td class="p-2">Excepciones directas por usuario</td><td class="p-2">usuario_id + permiso_id + tipo (CONCEDER/REVOCAR)</td></tr>
                                         <tr><td class="p-2 text-emerald-400 font-bold">estudiantes / profesores</td><td class="p-2">Expedientes extendidos de perfil</td><td class="p-2">Llave foránea hacia tabla usuarios</td></tr>
                                         <tr><td class="p-2 text-emerald-400 font-bold">asignaciones</td><td class="p-2">Cátedra académica de docentes</td><td class="p-2">Profesor + Materia + Sección + Año Escolar</td></tr>
                                         <tr><td class="p-2 text-emerald-400 font-bold">calificaciones</td><td class="p-2">Notas cuantitativas (0-20 pts)</td><td class="p-2">Estudiante + Plan de Evaluación</td></tr>
@@ -504,7 +506,7 @@
                                 <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/20">👑 Administrador</span>
                                 <ul class="space-y-2 text-xs text-slate-300 font-medium pt-2">
                                     <li>• <strong>Métricas Globales:</strong> Panel de control con resúmenes agregados en tiempo real.</li>
-                                    <li>• <strong>Gestión ACL:</strong> Asignación individual de permisos de la matriz de 48 opciones.</li>
+                                    <li>• <strong>Gestión RBAC Híbrido:</strong> Asignación de Rol Principal y Excepciones (+ Conceder / - Revocar).</li>
                                     <li>• <strong>Gestión Académica:</strong> Creación de materias, secciones, docentes y alumnos.</li>
                                     <li>• <strong>Respaldos:</strong> Generación e importación de volcados de base de datos SQL/JSON.</li>
                                 </ul>
@@ -721,6 +723,7 @@ sgcea/
                     <i class="bi bi-github text-base"></i>
                     <span>GitHub Repo</span>
                 </a>
+                <a href="documentacion/politicas_uso.md" target="_blank" class="text-amber-400 hover:text-amber-300 font-bold flex items-center space-x-1 transition-colors"><i class="bi bi-shield-check"></i><span>Políticas de Uso</span></a>
                 <a href="#documentacion" onclick="openDocTab('tab-requisitos')" class="hover:text-white transition-colors">Análisis Requisitos</a>
                 <a href="#documentacion" onclick="openDocTab('tab-factibilidad')" class="hover:text-white transition-colors">Estudio Factibilidad</a>
                 <a href="#documentacion" onclick="openDocTab('tab-construccion')" class="hover:text-white transition-colors">Manual Construcción</a>

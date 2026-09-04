@@ -10,7 +10,7 @@
 2. [Acceso al Sistema](#2-acceso-al-sistema)
 3. [Módulo Administrador](#3-módulo-administrador)
    - [3.1 Dashboard y Estadísticas](#31-dashboard-y-estadísticas)
-   - [3.2 Gestión de Usuarios y Permisos (ACL)](#32-gestión-de-usuarios-y-permisos-acl)
+   - [3.2 Gestión de Usuarios y Permisos Híbridos (Hybrid RBAC)](#32-gestión-de-usuarios-y-permisos-acl)
    - [3.3 Gestión de Estudiantes e Inscripciones](#33-gestión-de-estudiantes-e-inscripciones)
    - [3.4 Gestión de Docentes y Asignaciones](#34-gestión-de-docentes-y-asignaciones)
    - [3.5 Gestión de Materias, Grados y Secciones](#35-gestión-de-materias-grados-y-secciones)
@@ -34,7 +34,7 @@
 ## 1. Introducción
 El **SGCEA** (Sistema de Gestión y Control Escolar-Académico) es una plataforma web integral diseñada para la automatización, control y administración de los procesos educativos de instituciones de educación primaria, secundaria y bachillerato.
 
-El sistema contempla 3 perfiles de acceso claramente diferenciados mediante un control de acceso basado en listas de permisos (ACL):
+El sistema contempla 3 perfiles de acceso claramente diferenciados mediante un gestor de permisos de control de acceso basado en roles híbrido (Hybrid RBAC) con excepciones individuales (`CONCEDER`/`REVOCAR`):
 - 👑 **Administrador**: Control operativo, institucional y técnico total del sistema.
 - 👨‍🏫 **Docente**: Gestión pedagógica, registro de asistencia y evaluación continua de estudiantes.
 - 🎓 **Estudiante**: Consulta académica, seguimiento de asistencias y autoservicio de constancias.
@@ -69,10 +69,13 @@ Al ingresar, el administrador visualiza:
 - **Solicitudes de constancia pendientes**: Acceso rápido para aprobar o rechazar solicitudes de estudiantes.
 - **Acciones rápidas**: Accesos a la creación de usuarios, reportes y respaldo del sistema.
 
-### 3.2 Gestión de Usuarios y Permisos (ACL)
-- **Ver Usuarios**: Lista paginada con filtros por nombre, cédula, correo o tipo de usuario (`admin`, `docente`, `estudiante`).
-- **Crear Usuario**: Permite registrar un nuevo usuario especificando sus datos personales, credenciales iniciales y rol.
-- **Asignar Permisos (Matriz ACL)**: El administrador puede activar o desactivar dinámicamente cualquiera de los 48 permisos del catálogo del sistema a cualquier usuario individual.
+### 3.2 Gestión de Usuarios y Permisos (RBAC Híbrido)
+- **Ver Usuarios**: Lista paginada con filtros por nombre, cédula, correo o rol principal (`Administrador`, `Docente`, `Estudiante`).
+- **Crear Usuario**: Permite registrar un nuevo usuario especificando sus datos personales, credenciales e indicando su **Rol Principal**.
+- **Gestor de Permisos y Excepciones**: Al pulsar el botón de llave en la fila de un usuario, se despliega el modal interactivo organizado por Vistas y Desplegables de Acciones:
+  - Cada usuario hereda por defecto el catálogo completo de permisos asignados a su **Rol Principal**.
+  - **`+ Conceder` (Casilla Verde)**: Permite otorgar permisos adicionales fuera de su rol.
+  - **`- Revocar` (Casilla Roja)**: Permite retirar o bloquear permisos específicos que su rol incluiría por defecto.
 
 ### 3.3 Gestión de Estudiantes e Inscripciones
 - **Registro de Estudiantes**: Extiende la información personal con fecha de nacimiento, género, dirección, datos del representante y teléfono de contacto.
