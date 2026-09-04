@@ -177,6 +177,11 @@ $emailUsuario = $_SESSION['usuario_correo'] ?? $_SESSION['usuario_email'] ?? '';
 
                         <!-- Menu Options -->
                         <div class="py-2">
+                            <a href="<?= url('/politicas') ?>" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-700/50 hover:text-amber-600 transition-colors border-b border-slate-100 dark:border-slate-700/50">
+                                <i class="bi bi-shield-check text-base text-amber-500"></i>
+                                <span>Políticas de Uso del Sistema</span>
+                            </a>
+
                             <?php if ($tipoUsuario === 'admin'): ?>
                                 <a href="<?= url('/admin/configuracion') ?>" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/50 hover:text-blue-600 transition-colors">
                                     <i class="bi bi-gear text-base text-blue-500"></i>

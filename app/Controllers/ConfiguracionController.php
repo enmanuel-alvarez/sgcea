@@ -216,5 +216,22 @@ class ConfiguracionController extends Controller
             $this->redirigir('/admin/backup');
         }
     }
+
+    /**
+     * Mostrar vista interactiva de Políticas de Uso del Sistema (Accesible a todos los usuarios)
+     */
+    public function politicas(): void
+    {
+        $configuraciones = $this->configuracionService->obtenerTodas();
+        $config = [];
+        foreach ($configuraciones as $c) {
+            $config[$c['clave']] = $c['valor'];
+        }
+
+        $this->render('politicas/index', [
+            'titulo' => 'Políticas y Normativa de Uso del Sistema SGCEA',
+            'config' => $config
+        ]);
+    }
 }
 

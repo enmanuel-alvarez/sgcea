@@ -39,7 +39,7 @@
    - [RN-03: Impresión Oficial Landscape sin Bordes ni Cuadros](#rn-03-impresión-oficial-landscape-sin-bordes-ni-cuadros)
    - [RN-04: Modales Unificados de Confirmación de Acción](#rn-04-modales-unificados-de-confirmación-de-acción)
    - [RN-05: Zona de Peligro (Danger Zone Reset) Preservando Admin y Permisos](#rn-05-zona-de-peligro-danger-zone-reset-preservando-admin-y-permisos)
-   - [RN-06: Matriz de Roles y Permisos Granulares ACL (Admin, Docente, Estudiante, Custom)](#rn-06-matriz-de-roles-y-permisos-granulares-acl-admin-docente-estudiante-custom)
+   - [RN-06: Matriz de Roles y Permisos Granulares Hybrid RBAC (Admin, Docente, Estudiante, Excepciones Directas)](#rn-06-matriz-de-roles-y-permisos-granulares-hybrid-rbac-admin-docente-estudiante-excepciones-directas)
    - [RN-07: Métricas en Tiempo Real y Filtro del Dashboard](#rn-07-métricas-en-tiempo-real-y-filtro-del-dashboard)
    - [RN-08: Carnets Imprimibles para Docentes y Estudiantes](#rn-08-carnets-imprimibles-para-docentes-y-estudiantes)
 6. [🗄️ Esquema Completo de la Base de Datos (21 Tablas)](#6-esquema-completo-de-la-base-de-datos-21-tablas)
@@ -74,7 +74,7 @@ El sistema **SGCEA** está diseñado bajo los principios de la **Arquitectura Li
                                          ▼
                     ┌─────────────────────────────────────────┐
                     │      Controladores (app/Controllers/)   │
-                    │ Valida permisos ACL, sanitiza entrada   │
+                    │ Valida permisos Hybrid RBAC, sanitiza   │
                     └──────────┬───────────────────┬──────────┘
                                │                   │
                                ▼                   ▼

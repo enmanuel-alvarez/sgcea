@@ -24,8 +24,8 @@ $gradoSeccion = htmlspecialchars(($est['grado_nombre'] ?? 'N/A') . ' - ' . ($est
     <style>
         @media print {
             @page {
-                size: A4 portrait;
-                margin: 1cm;
+                size: letter portrait;
+                margin: 0.5in;
             }
             .no-print { display: none !important; }
             body {

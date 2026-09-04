@@ -188,6 +188,18 @@ $tienePermiso = function(string $permiso) use ($tipoUsuario, $permisos_sesion) {
         </div>
         <?php endif; ?>
 
+        <!-- ═══ Sección Institucional (Visible para todos) ═══ -->
+        <div>
+            <h3 class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Información & Normativa</h3>
+            <nav class="space-y-1">
+                <?php $isPol = strpos($currentUri, '/politicas') !== false; ?>
+                <a href="<?= url('/politicas') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all <?= $isPol ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-semibold border-l-4 border-amber-500' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' ?>">
+                    <i class="bi bi-shield-check text-lg text-amber-500"></i>
+                    <span>Políticas de Uso</span>
+                </a>
+            </nav>
+        </div>
+
     </div>
 </aside>
 

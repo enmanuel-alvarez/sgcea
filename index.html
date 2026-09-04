@@ -180,7 +180,7 @@
             </div>
         </section>
 
-        <!-- SECCIÓN MÓDULOS DE ROL (ACL) -->
+        <!-- SECCIÓN MÓDULOS DE ROL (HYBRID RBAC) -->
         <section id="modulos" class="py-20 bg-slate-50 dark:bg-slate-900 transition-colors">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto mb-16">
@@ -275,7 +275,7 @@
                             <span class="p-2 bg-blue-500/20 text-blue-400 rounded-xl"><i class="bi bi-person-fill-gear text-xl"></i></span>
                             <div>
                                 <h4 class="font-bold text-base">Rol Administrador</h4>
-                                <p class="text-xs text-slate-400">Acceso a todas las funciones y ACL</p>
+                                <p class="text-xs text-slate-400">Acceso a todas las funciones y RBAC Híbrido</p>
                             </div>
                         </div>
                         <div class="space-y-2 bg-slate-950/80 p-4 rounded-2xl font-mono text-xs border border-slate-800">
@@ -432,7 +432,7 @@
                                 </div>
                                 <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
                                     <span class="font-mono text-blue-400 font-bold block mb-1">Router.php</span>
-                                    <p class="text-slate-400">Enrutador de URLs limpias con parámetros dinámicos `{id}`, verificación de sesión y permisos ACL pre-ejecución.</p>
+                                    <p class="text-slate-400">Enrutador de URLs limpias con parámetros dinámicos `{id}`, verificación de sesión y permisos Híbridos RBAC pre-ejecución.</p>
                                 </div>
                                 <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
                                     <span class="font-mono text-blue-400 font-bold block mb-1">Security.php</span>
@@ -723,6 +723,7 @@ sgcea/
                     <i class="bi bi-github text-base"></i>
                     <span>GitHub Repo</span>
                 </a>
+                <a href="documentacion/politicas_uso.md" target="_blank" class="text-amber-400 hover:text-amber-300 font-bold flex items-center space-x-1 transition-colors"><i class="bi bi-shield-check"></i><span>Políticas de Uso</span></a>
                 <a href="#documentacion" onclick="openDocTab('tab-requisitos')" class="hover:text-white transition-colors">Análisis Requisitos</a>
                 <a href="#documentacion" onclick="openDocTab('tab-factibilidad')" class="hover:text-white transition-colors">Estudio Factibilidad</a>
                 <a href="#documentacion" onclick="openDocTab('tab-construccion')" class="hover:text-white transition-colors">Manual Construcción</a>
