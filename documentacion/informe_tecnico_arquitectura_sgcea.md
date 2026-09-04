@@ -2,9 +2,9 @@
 
 ## Resumen Ejecutivo
 
-El **Sistema de Gestión del Centro Educativo y Académico (SGCEA)** está construido sobre una arquitectura personalizada en PHP 8.3 implementando el patrón **Modelo-Vista-Controlador (MVC)**, enriquecido con la arquitectura en capas **Service-Repository** para desvincular la lógica de negocio del acceso a la base de datos.
+El **Sistema de Gestión y Control Educatico-Académico (SGCEA)** está construido sobre una arquitectura personalizada en PHP 8.3 implementando el patrón **Modelo-Vista-Controlador (MVC)**, enriquecido con la arquitectura en capas **Service-Repository** para desvincular la lógica de negocio del acceso a la base de datos.
 
-La aplicación utiliza un enfoque **Front Controller** donde todas las peticiones dinámicas son canalizadas a través de `public/index.php`. No depende de frameworks pesados de terceros, sino de un núcleo ligero y altamente eficiente desarrollado a la medida (`Src\Core`), respaldado por un **Autoloader PSR-4 personalizado**, un enrutador inteligente con control de acceso basado en roles y permisos (**ACL**), y mecanismos nativos de seguridad (protección **CSRF**, sanitización, headers HTTP restrictivos y rate limiting).
+La aplicación utiliza un enfoque **Front Controller** donde todas las peticiones dinámicas son canalizadas a través de `public/index.php`. No depende de frameworks pesados de terceros, sino de un núcleo ligero y altamente eficiente desarrollado a la medida (`Src\Core`), respaldado por un **Autoloader PSR-4 personalizado**, un enrutador inteligente con control de acceso **Híbrido RBAC / ACL** (Control de Acceso Basado en Roles con Excepciones Granulares por Usuario CONCEDER/REVOCAR), y mecanismos nativos de seguridad (protección **CSRF**, sanitización, headers HTTP restrictivos y rate limiting).
 
 ---
 
@@ -37,7 +37,7 @@ sequenceDiagram
     FrontController->>Router: Instancia y registra rutas desde config/routes.php
     FrontController->>Router: $router->resolver($uri, $method)
     Router->>Router: Normaliza URI y busca coincidencia (Patrón Regex)
-    Router->>Security: Verifica Autenticación y Permisos ACL ($_SESSION)
+    Router->>Security: Verifica Autenticación y Permisos Híbridos RBAC/ACL ($_SESSION)
     alt Sin Autenticación / Sin Permiso
         Security-->>Usuario: Redirección /login ó Error 403 Forbidden
     else Permiso Autorizado
@@ -83,7 +83,7 @@ El patrón **Front Controller** centraliza el manejo de todas las peticiones en 
    - **Inicialización del Autoloader:** Carga `core/Autoloader.php` y ejecuta `Autoloader::register()`.
    - **Entorno y Helpers:** Invoca `Src\Core\Env::cargar()` para parsear el archivo `.env` y requiere `core/helpers.php`.
    - **Configuración Global:** Carga `config/app.php` y establece la zona horaria (`America/Caracas`).
-   - **Sesiones Securizadas:** Inicia la sesión PHP aplicando directivas estrictas de seguridad (`cookie_httponly`, `use_only_cookies`, `cookie_samesite=Lax`, tiempo de vida de 1 hora) y asigna un directorio de almacenamiento aislado (`storage/sessions`).
+   - **Sesiones Securizadas:** Inicia la sesión PHP aplicando directivas strictly de seguridad (`cookie_httponly`, `use_only_cookies`, `cookie_samesite=Lax`, tiempo de vida de 1 hora) y asigna un directorio de almacenamiento aislado (`storage/sessions`).
    - **Headers de Seguridad:** Invoca `Src\Core\Security::establecerHeadersSeguridad()`.
 
 ---
@@ -93,7 +93,7 @@ El patrón **Front Controller** centraliza el manejo de todas las peticiones en 
 El sistema de enrutamiento está gestionado por `Src\Core\Router` (`core/Router.php`) y configurado de forma declarativa en `config/routes.php`.
 
 #### Definición de Rutas (`config/routes.php`)
-Retorna un array multidimensional clasificado por método HTTP (`GET` y `POST`). Cada entrada mapea un patrón URI a una tupla conteniendo la acción `Controlador@método` y la clave del permiso ACL requerido:
+Retorna un array multidimensional clasificado por método HTTP (`GET` y `POST`). Cada entrada mapea un patrón URI a una tupla conteniendo la acción `Controlador@método` y la clave del permiso requerido:
 
 ```php
 'GET' => [
@@ -108,9 +108,10 @@ Retorna un array multidimensional clasificado por método HTTP (`GET` y `POST`).
 3. **Conversión a Expresiones Regulares (`convertirAPatron`):**
    - Transforma los parámetros dinámicos `{param}` (como `{id}`) en grupos de captura regex `([^/]+)`.
    - Compila el patrón delimitado `#^/admin/estudiantes/editar/([^/]+)$#`.
-4. **Validación de Autenticación y ACL:**
+4. **Validación de Autenticación y Modelo Híbrido RBAC / ACL:**
+   - El sistema calcula los permisos mediante el modelo Híbrido: toma los permisos base del rol del usuario (`rol_permiso`), suma las excepciones concedidas explícitamente (`usuario_permisos` con `tipo='CONCEDER'`) y resta las revocadas (`usuario_permisos` con `tipo='REVOCAR'`).
    - Si la ruta requiere un permiso (`$permiso !== null`) y no hay `$_SESSION['usuario_id']`, guarda la URI solicitada en `$_SESSION['redirect_after_login']` y redirige a `/login`.
-   - Invoca el método privado `tienePermiso($permiso)`. Si el usuario no posee el permiso en `$_SESSION['usuario_permisos']`, emite una respuesta HTTP 403 y renderiza `app/Views/errors/403.php`.
+   - Invoca el método privado `tienePermiso($permiso)`. Si el usuario no posee el permiso en la matriz precalculada `$_SESSION['usuario_permisos']`, emite una respuesta HTTP 403 y renderiza `app/Views/errors/403.php`.
    - **Excepción de Superadmin:** El usuario con `usuario_id === 1` sobrepasa cualquier control ACL otorgando acceso total automático.
 5. **Invocación Dinámica con Reflection (`ReflectionMethod`):**
    - Instancia la clase especificada mediante su Namespace FQCN (`Src\Controllers\AdminController`).
@@ -148,13 +149,13 @@ SGCEA no utiliza el patrón Active Record tradicional (donde cada modelo extiend
 - Ofrece métodos helper optimizados: `query()`, `fetch()`, `fetchAll()`, `insert()`, `update()`, `delete()`.
 
 #### Capa de Repositorios (`app/Models/Repositories/`)
-- Clases especializadas (ej: `EstudianteRepository`, `CalificacionRepository`, `UsuarioRepository`).
+- Clases especializadas (ej: `EstudianteRepository`, `CalificacionRepository`, `UsuarioRepository`, `PermisoRepository`).
 - Tienen la responsabilidad **exclusiva** de comunicarse con la base de datos a través de `Database::getInstance()`.
-- Escriben consultas SQL nativas parametrizadas con placeholders (`:id`, `:email`), ejecutando `JOINs`, agrupaciones y agregaciones de alto rendimiento.
+- `PermisoRepository` ejecuta las consultas complejas de fusión de conjuntos para calcular los permisos finales del usuario (combinando permisos del rol con excepciones individuales `CONCEDER`/`REVOCAR`).
 - Retornan arreglos de datos crudos.
 
 #### Capa de Servicios (`app/Models/Services/`)
-- Clases que encapsulan las **reglas de negocio** del dominio escolar (ej: `EstudianteService`, `CalificacionService`, `UsuarioService`).
+- Clases que encapsulan las **reglas de negocio** del dominio escolar (ej: `EstudianteService`, `CalificacionService`, `UsuarioService`, `PermisoService`).
 - Coordinan múltiples repositorios si es necesario (ej: `UsuarioService` interactúa con `UsuarioRepository`, `PermisoRepository` y `AuditoriaService`).
 - Realizan validaciones de negocio (comprobar duplicidad de cédulas, verificar prelaciones de materias, cálculo de promedios académicos) y registran eventos en el sistema de Auditoría.
 
@@ -188,7 +189,7 @@ protected function render(string $vista, array $datos = [], bool $layout = true,
 1. **Paso de Variables:** La función `extract($datos)` transforma el array entregado por el controlador (ej: `['estudiantes' => $lista]`) en variables locales utilizables directamente en la vista (`$estudiantes`).
 2. **Estructura Modular del Layout:**
    - `header.php`: Carga la cabecera HTML, las metaetiquetas, las fuentes, los estilos CSS de `public/assets/`, la barra superior y los scripts base.
-   - `sidebar.php`: Renderiza el menú de navegación dinámico según el rol y los permisos del usuario activo.
+   - `sidebar.php`: Renderiza el menú de navegación dinámico evaluando la matriz Híbrida de permisos del usuario activo (`$_SESSION['usuario_permisos']`).
    - `[vista].php`: El cuerpo específico de la página solicitada.
    - `footer.php`: Carga el cierre del documento HTML, incluye los scripts JS de `public/assets/` y ejecuta los inicializadores de componentes interactivos.
 3. **Vistas de Impresión:** `print.php` provee un lienzo estilizado en blanco sin barras laterales para la generación de constancias, boletines y carnetización.
@@ -199,7 +200,7 @@ Las vistas interactúan con la capa de activos públicos (`public/assets/`) a tr
 - `url('/admin/docentes')`: Construye rutas respetando el `BASE_PATH`.
 - `e($cadena)`: Alias de `Security::e()` para escapar la salida HTML y prevenir ataques **XSS**.
 - `csrf_field()`: Inserta el campo oculto `<input type="hidden" name="csrf_token" value="...">` para formularios seguros.
-- `can('admin.usuarios.crear')`: Evalúa dinámicamente si el usuario puede visibilizar botones o secciones protegidas.
+- `can('admin.usuarios.crear')`: Evalúa dinámicamente si el usuario posee el permiso en su matriz Híbrida para visibilizar botones o secciones protegidas.
 
 ---
 
@@ -214,7 +215,7 @@ El directorio `core/` proporciona los cimientos reutilizables de toda la aplicac
 | `Database.php` | `Src\Core\Database` | Conexión PDO Singleton, ejecución de sentencias SQL preparadas y métodos CRUD. |
 | `Env.php` | `Src\Core\Env` | Lector y parseador nativo de archivos `.env` (sin librerías externas). |
 | `RateLimiter.php` | `Src\Core\RateLimiter` | Mecanismo de protección contra ataques de fuerza bruta limitando intentos por IP/usuario. |
-| `Router.php` | `Src\Core\Router` | Enrutador con motor Regex, resolución de parámetros URL, Reflection e integración ACL. |
+| `Router.php` | `Src\Core\Router` | Enrutador con motor Regex, resolución de parámetros URL, Reflection e integración Híbrida RBAC/ACL. |
 | `Security.php` | `Src\Core\Security` | Generación/validación de Tokens CSRF, sanitización de entrada y cabeceras HTTP de seguridad. |
 | `helpers.php` | Global (Procedural) | Funciones de conveniencia global (`e`, `url`, `asset`, `config`, `env`, `csrf_field`, `can`, `auth_user`). |
 
@@ -293,79 +294,148 @@ Archivos y módulos complementarios que respaldan la infraestructura del sistema
 El mapa de dependencias entre las distintas capas del software muestra una estructura estrictamente acoplada verticalmente y desacoplada horizontalmente:
 
 ```mermaid
-graph TD
-    subgraph Capa_Public [Capa Pública]
-        RootHtaccess[/.htaccess] --> PublicHtaccess[/public/.htaccess]
-        PublicHtaccess --> IndexPHP[public/index.php]
-    end
+classDiagram
+    class IndexPHP {
+        +index.php
+    }
+    class Inicializador {
+        +inicializador.php
+    }
+    class AppConfig {
+        +app.php
+    }
+    class RoutesConfig {
+        +routes.php
+    }
+    class DBConfig {
+        +database.php
+    }
+    class Autoloader {
+        +Src/Core/Autoloader
+    }
+    class Env {
+        +Src/Core/Env
+    }
+    class Security {
+        +Src/Core/Security
+    }
+    class Helpers {
+        +core/helpers.php
+    }
+    class Router {
+        +Src/Core/Router
+    }
+    class BaseController {
+        +Src/Core/Controller
+    }
+    class AdminController {
+        +AdminController
+    }
+    class DocenteController {
+        +DocenteController
+    }
+    class EstudianteController {
+        +EstudianteController
+    }
+    class AuthController {
+        +AuthController
+    }
+    class UsuarioService {
+        +UsuarioService
+    }
+    class EstudianteService {
+        +EstudianteService
+    }
+    class DocenteService {
+        +DocenteService
+    }
+    class CalificacionService {
+        +CalificacionService
+    }
+    class AuditoriaService {
+        +AuditoriaService
+    }
+    class UsuarioRepository {
+        +UsuarioRepository
+    }
+    class PermisoRepository {
+        +PermisoRepository
+    }
+    class EstudianteRepository {
+        +EstudianteRepository
+    }
+    class DocenteRepository {
+        +DocenteRepository
+    }
+    class CalificacionRepository {
+        +CalificacionRepository
+    }
+    class DatabaseSingleton {
+        +Src/Core/Database
+    }
+    class MySQL {
+        +MySQL Database
+    }
+    class LayoutHeader {
+        +Views/layouts/header.php
+    }
+    class LayoutSidebar {
+        +Views/layouts/sidebar.php
+    }
+    class MainView {
+        +Views/*/*.php
+    }
+    class LayoutFooter {
+        +Views/layouts/footer.php
+    }
+    class Assets {
+        +public/assets/ CSS & JS
+    }
 
-    subgraph Capa_Config [Configuración & Bootstrap]
-        IndexPHP --> Inicializador[config/inicializador.php]
-        Inicializador --> AppConfig[config/app.php]
-        Inicializador --> RoutesConfig[config/routes.php]
-        Inicializador --> DBConfig[config/database.php]
-    end
+    %% Herencia (Controllers -> BaseController)
+    AdminController --|> BaseController
+    DocenteController --|> BaseController
+    EstudianteController --|> BaseController
+    AuthController --|> BaseController
 
-    subgraph Capa_Core [Núcleo Framework Src\Core]
-        Inicializador --> Autoloader[Src\Core\Autoloader]
-        Inicializador --> Env[Src\Core\Env]
-        Inicializador --> Security[Src\Core\Security]
-        Inicializador --> Helpers[core/helpers.php]
-        IndexPHP --> Router[Src\Core\Router]
-    end
+    %% Dependencias (flechas direccionales)
+    IndexPHP --> Inicializador
+    Inicializador --> AppConfig
+    Inicializador --> RoutesConfig
+    Inicializador --> DBConfig
+    Inicializador --> Autoloader
+    Inicializador --> Env
+    Inicializador --> Security
+    Inicializador --> Helpers
+    IndexPHP --> Router
 
-    subgraph Capa_Controladores [Src\Controllers]
-        Router --> BaseController[Src\Core\Controller]
-        BaseController <|-- AdminController[AdminController]
-        BaseController <|-- DocenteController[DocenteController]
-        BaseController <|-- EstudianteController[EstudianteController]
-        BaseController <|-- AuthController[AuthController]
-    end
+    Router --> BaseController
+    BaseController --> AdminController
+    BaseController --> DocenteController
+    BaseController --> EstudianteController
+    BaseController --> AuthController
 
-    subgraph Capa_Servicios [Src\Models\Services]
-        AdminController --> UsuarioService[UsuarioService]
-        AdminController --> EstudianteService[EstudianteService]
-        DocenteController --> DocenteService[DocenteService]
-        DocenteController --> CalificacionService[CalificacionService]
-        UsuarioService --> AuditoriaService[AuditoriaService]
-    end
+    AdminController --> UsuarioService
+    AdminController --> EstudianteService
+    DocenteController --> DocenteService
+    DocenteController --> CalificacionService
+    UsuarioService --> AuditoriaService
 
-    subgraph Capa_Repositorios [Src\Models\Repositories]
-        UsuarioService --> UsuarioRepository[UsuarioRepository]
-        UsuarioService --> PermisoRepository[PermisoRepository]
-        EstudianteService --> EstudianteRepository[EstudianteRepository]
-        DocenteService --> DocenteRepository[DocenteRepository]
-        CalificacionService --> CalificacionRepository[CalificacionRepository]
-    end
+    UsuarioService --> UsuarioRepository
+    UsuarioService --> PermisoRepository
+    EstudianteService --> EstudianteRepository
+    DocenteService --> DocenteRepository
+    CalificacionService --> CalificacionRepository
 
-    subgraph Capa_BaseDatos [Base de Datos PDO]
-        UsuarioRepository --> DatabaseSingleton[Src\Core\Database]
-        EstudianteRepository --> DatabaseSingleton
-        DocenteRepository --> DatabaseSingleton
-        CalificacionRepository --> DatabaseSingleton
-        DatabaseSingleton --> MySQL[(MySQL Database)]
-    end
+    UsuarioRepository --> DatabaseSingleton
+    EstudianteRepository --> DatabaseSingleton
+    DocenteRepository --> DatabaseSingleton
+    CalificacionRepository --> DatabaseSingleton
+    DatabaseSingleton --> MySQL
 
-    subgraph Capa_Vistas [Vistas HTML / Tailwind]
-        BaseController --> LayoutHeader[Views/layouts/header.php]
-        BaseController --> LayoutSidebar[Views/layouts/sidebar.php]
-        BaseController --> MainView[Views/*/*.php]
-        BaseController --> LayoutFooter[Views/layouts/footer.php]
-        LayoutHeader --> Assets[public/assets/ CSS & JS]
-    end
+    BaseController --> LayoutHeader
+    BaseController --> LayoutSidebar
+    BaseController --> MainView
+    BaseController --> LayoutFooter
+    LayoutHeader --> Assets
 ```
-
----
-
-## Conclusión
-
-### Fortalezas de la Arquitectura
-1. **Rendimiento Excepcional y Cero Dependencias Pesadas:** Al no cargar paquetes pesados de Composer o frameworks monolíticos, el tiempo de arranque (bootstrapping) de cada petición HTTP es de apenas unos milisegundos.
-2. **Desacoplamiento Claro (Service-Repository):** La división entre `Controllers`, `Services` y `Repositories` facilita el mantenimiento, la reutilización de lógica (ej. reuso de `UsuarioService` en múltiples controladores) y la legibilidad del código.
-3. **Seguridad Integrada desde el Núcleo:** La app incluye mitigaciones nativas contra inyecciones SQL (PDO preparado en `Database`), ataques XSS (escapado obligatorio con `e()`), CSRF (tokens por sesión) y accesos no autorizados (controlador de permisos ACL en el `Router`).
-4. **Enrutamiento Flexible:** La inspección mediante `Reflection` de PHP 8 en el `Router` permite inyectar parámetros de forma limpia en los métodos del controlador sin necesidad de parsear arrays superglobales manualmente.
-
-### Posibles Cuellos de Botella y Recomendaciones
-1. **Almacenamiento de Sesiones en Disco:** Las sesiones PHP se guardan en el sistema de archivos local (`storage/sessions`). En un entorno de producción distribuido con balanceador de carga o alto tráfico masivo, esto podría volverse un cuello de botella de I/O. Se recomienda considerar un backend en memoria como Redis en versiones futuras.
-2. **Escalabilidad de Autoloader Manual:** El autoloader personalizado funciona impecablemente para los namespaces actuales (`Src\Controllers`, `Src\Models\...`, `Src\Core`). Si se integran librerías de terceros en el futuro (ej: SDKs para pasarelas de pago o envío de emails como PHPMailer), se sugiere delegar su gestión al autoloader oficial de Composer PSR-4 manteniéndolo en paralelo.
-3. **Caché de Consultas Frecuentes:** Actualmente, cada petición resuelve sus consultas directamente contra MySQL a través de los repositorios. Para tablas de lectura masiva (como `configuracion` o el menú de `permisos`), implementar un driver de almacenamiento en caché en memoria incrementaría sustancialmente la velocidad de respuesta.
